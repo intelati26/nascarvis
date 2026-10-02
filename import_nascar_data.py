@@ -15,6 +15,10 @@ Columns in the source file (from the package docs):
   Season, Race, Track, Name, Length, Surface, Finish, Start, Car, Driver, Team, Make,
   Pts, Laps, Led, Status, S1, S2, S3, Rating, Win
 
+  S1/S2/S3 in the source are stage FINISHING POSITIONS (1-10; blank = outside the top 10 or no stage).
+  They are converted to stage POINTS on load (1st = 10 ... 10th = 1, else 0), because the schema's
+  stage1_pts/stage2_pts/stage3_pts and the weekly export ("10 = stage winner") work in points.
+
 Not in the source (so they come out empty or zero here):
   playoff points, poles, stage wins, best-lap points, Daytona duel points, the Chase reset.
   Add the reset / penalties / bonuses as rows in the `adjustments` table, then use
@@ -98,7 +102,10 @@ def load_data(path, season):
     df = df[df["Season"] == season].copy()
     if df.empty:
         sys.exit(f"no rows for season {season}")
-    for c in ["S1", "S2", "S3", "Led", "Pts"]:
+    for c in ["S1", "S2", "S3"]:                  # stage finishing position -> stage points (1st = 10 ... 10th = 1)
+        pos = pd.to_numeric(df[c], errors="coerce")
+        df[c] = (11 - pos).where(pos.between(1, 10), 0).astype(int)
+    for c in ["Led", "Pts"]:
         df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
     df["Status"] = df["Status"].fillna("").astype(str)
     return df

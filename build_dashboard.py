@@ -60,6 +60,10 @@ def main():
             out.append(int(v) if float(v).is_integer() else float(v))
         return out
 
+    def stage_pts(name):
+        # source columns S1/S2/S3 are stage finishing positions (1-10); convert to stage points (1st = 10 ... 10th = 1)
+        return [None if v is None else (11 - int(v) if 1 <= v <= 10 else 0) for v in col(name)]
+
     drivers, driver = dic("Driver"); tracks, track = dic("Track"); names, name = dic("Name")
     makes, make = dic("Make"); teams, team = dic("Team")
     statuses, status = dic("Status", lambda v: ("" if v is None else str(v)).lower())
@@ -72,7 +76,7 @@ def main():
         car=[str(v) for v in col("Car")], length=num("Length"),
         start=num("Start"), finish=[int(v) for v in col("Finish")],
         pts=num("Pts"), laps=num("Laps"), led=num("Led"),
-        s1=num("S1"), s2=num("S2"), s3=num("S3"), rating=num("Rating", 1), win=num("Win"),
+        s1=stage_pts("S1"), s2=stage_pts("S2"), s3=stage_pts("S3"), rating=num("Rating", 1), win=num("Win"),
     )
     tpl = open(os.path.join(HERE, "dashboard_template.html"), encoding="utf-8").read()
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()

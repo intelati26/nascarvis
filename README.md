@@ -101,7 +101,9 @@ official standings**, so their causes and exact races are not confirmed; each ca
 The 2026 reset and seasons before 2004 have not been checked against official tables.
 
 **Data note:** in `cup_series.parquet` the `S1`/`S2`/`S3` columns are stage *finishing positions* (1–10), not stage
-points, so a stage win is `1`.
+points. `import_nascar_data.py` and `build_dashboard.py` both convert them to stage points on load (1st = 10 … 10th = 1),
+so `stage1_pts`/`stage2_pts` in the database, `results_<season>.csv`, the weekly export and the dashboard's "Stg 1/2/3 pts"
+columns are all points, and a stage winner is `10`. (Only `tests/make_fixture.py` reads the raw positions.)
 
 ## Weekly scorecard exporter (original tooling)
 

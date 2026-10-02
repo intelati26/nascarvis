@@ -127,7 +127,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <div class="card">
       <div class="tools"><button class="btn" data-png="c-led">PNG</button></div>
       <h2>Laps led</h2>
-      <div class="sub">Every driver who led at least one lap. Stage finishing positions (top 10) are in the table below.</div>
+      <div class="sub">Every driver who led at least one lap. Stage points are in the table below.</div>
       <div class="chartbox" id="r-box2"><canvas id="c-led"></canvas></div>
     </div>
   </div>
@@ -258,7 +258,7 @@ function standings(season, opts = {}) {
   const fmt = opts.fmt || 'auto', after = opts.after || 26, adj = opts.adj !== false;
   const key = `${season}|${fmt}|${after}|${adj}`;
   if (standCache.has(key)) return standCache.get(key);
-  const rl = races(season).map(r => ({num: r.num, rows: r.rows.map(i => ({driver: drv(i), pts: nz(D.pts[i]), finish: D.finish[i], sw: (D.s1[i]===1)+(D.s2[i]===1)+(D.s3[i]===1)}))}));
+  const rl = races(season).map(r => ({num: r.num, rows: r.rows.map(i => ({driver: drv(i), pts: nz(D.pts[i]), finish: D.finish[i], sw: (D.s1[i]===10)+(D.s2[i]===10)+(D.s3[i]===10)}))}));
   const out = NASCARFormats.compute(season, rl, fmt, {after, adj});
   standCache.set(key, out);
   return out;
@@ -477,7 +477,7 @@ function renderRace() {
     {h:'Fin', k:i=>D.finish[i]}, {h:'Start', k:i=>D.start[i]}, {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
     {h:'Driver', k:drv, l:1, html:i=>driverLink(drv(i))}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Team', k:i=>D.teams[D.team[i]], l:1},
     {h:'Make', k:i=>D.makes[D.make[i]], l:1}, {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]},
-    {h:'Stg 1', k:i=>D.s1[i]}, {h:'Stg 2', k:i=>D.s2[i]}, {h:'Stg 3', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i]},
+    {h:'Stg 1 pts', k:i=>D.s1[i]}, {h:'Stg 2 pts', k:i=>D.s2[i]}, {h:'Stg 3 pts', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i]},
     {h:'Rating', k:i=>D.rating[i]}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
   ], rows, {file:`race-${season}-${r.num}`});
 }
