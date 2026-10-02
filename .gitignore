@@ -12,3 +12,4 @@ race_events.csv
 lap_data_sample.txt
 dashboard.html
 out/
+tests/results_2004_2013.json

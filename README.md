@@ -44,13 +44,50 @@ This installs `python`, `python-pyarrow` and `termux-api`, and adds three Termux
 
 Alternatively build `dashboard.html` on a desktop and copy the single file to the phone.
 
-Notes: playoff-reset modelling exists only for 2026; earlier seasons show cumulative race points.
 The Termux scripts and the phone layout have not been tested on a device.
+
+### Points formats and "what ifs"
+
+The Season tab has a **Points format** picker. By default it shows the format that season actually ran;
+you can apply any other format to any season, change the race the playoff starts after (default 26), and
+switch known penalties off.
+
+| Format | Field | Reset |
+|---|---|---|
+| Full season | everyone | none (2001–03; also used for 2014–2025, see below) |
+| 2004–06 Chase | top 10 + anyone within 400 pts of the leader | 5050 down by 5 per rank |
+| 2007–10 Chase | top 12 | 5000 + 10 per win in the first 26 races |
+| 2011–13 Chase | top 10 + 2 wild cards (most wins among 11th–20th) | 2000 + 3 per win; wild cards get no win bonus |
+| 2026 Chase | top 16 | 2000 + 100/75/65, then 60 down to 0 in steps of 5 |
+
+Drivers outside the field keep their season totals and rank below it, with the gap measured within each
+group. Ties are broken by wins, then 2nd places, 3rd places and so on. 2013 includes its one-off field
+(Truex removed, Newman and Gordon added).
+
+**Not modelled:** the 2014–2025 elimination formats (rounds of 16/12/8/4 with playoff points). Those seasons
+default to full-season points, so their ranks are *not* the official final standings.
+
+The engine is `formats.js` (pure functions, no DOM). The rules were checked against NASCAR rule summaries
+(Wikipedia's *NASCAR Chase* and season articles) and the 2026 changes in press coverage.
+
+### Validation
+
+`tests/test_formats.js` recomputes the final standings for 2004–2013 and compares the top 15 with the
+official final points in `tests/official_standings_2004_2013.json` (copied from the Wikipedia season articles;
+CC BY-SA). Run it with `python tests/make_fixture.py && node tests/test_formats.js`. It reproduces every checked
+total except one name-spelling quirk in the test data. Getting there needed
+`adjustments.json`, a list of **penalties the results data doesn't contain** (for example Dale Earnhardt Jr.'s
+2004 deductions and Clint Bowyer's 150 points in 2010). Those entries were **inferred from the gap to the
+official standings**, so their causes and exact races are not confirmed; each carries a note saying so. Two
+small ones (2005 Kenseth +5, 2008 Kenseth −2) are unexplained data differences. Seasons outside 2004–2013
+and the 2026 reset have not been checked against official tables, and penalties for other years are not
+included, so interim standings can differ slightly from the official ones.
 
 ## Weekly scorecard exporter (original tooling)
 
 | File | Purpose |
 |---|---|
+| `formats.js` / `adjustments.json` | Points-format engine and the inferred penalty list (see above) |
 | `import_nascar_data.py` | Loads one season of the data into SQLite (`nascar_schema.sql`) and writes `results_<season>.csv` |
 | `nascar_weekly_export.py` | Per-race results table and season-to-date standings as CSV, Excel and PNG (needs pandas, matplotlib, openpyxl) |
 | `fetch_best_laps.py` | Each driver's best lap per race, from NASCAR's lap-time feed (needs `nascar-api`, Python 3.11+) |

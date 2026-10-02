@@ -76,7 +76,10 @@ def main():
     )
     tpl = open(os.path.join(HERE, "dashboard_template.html"), encoding="utf-8").read()
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()
+    fmts = open(os.path.join(HERE, "formats.js"), encoding="utf-8").read()
+    data["adjustments"] = json.load(open(os.path.join(HERE, "adjustments.json"), encoding="utf-8"))
     html = (tpl.replace("/*__CHARTJS__*/", chart.replace("</script", "<\\/script"))
+               .replace("/*__FORMATS__*/", fmts)
                .replace("/*__DATA__*/", "const D = " + json.dumps(data, separators=(",", ":")) + ";"))
     open(a.out, "w", encoding="utf-8").write(html)
     print(f"wrote {a.out}: {len(keep):,} rows, seasons {data['season'][0]}-{data['season'][-1]}, "

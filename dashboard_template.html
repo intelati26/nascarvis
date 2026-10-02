@@ -88,6 +88,9 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
       <option value="5">Top 5</option><option value="10" selected>Top 10</option>
       <option value="16">Top 16</option><option value="99">Everyone</option>
     </select></label>
+    <label>Points format<select id="s-format" style="max-width:300px"></select></label>
+    <label>Playoff after race<input type="number" id="s-after" value="26" min="5" max="35" style="width:70px"></label>
+    <label style="flex-direction:row;align-items:center;gap:6px;text-transform:none;letter-spacing:0"><input type="checkbox" id="s-adj" checked> Apply known penalties</label>
     <label>Top N by<select id="s-topby"><option value="final">Current standings</option><option value="wins">Wins</option></select></label>
   </div>
   <div class="card">
@@ -210,6 +213,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
 </main>
 
 <script>/*__CHARTJS__*/</script>
+<script>/*__FORMATS__*/</script>
 <script>
 /*__DATA__*/
 "use strict";
@@ -247,52 +251,20 @@ const raceCache = new Map();
 const races = s => { if (!raceCache.has(s)) raceCache.set(s, raceList(s)); return raceCache.get(s); };
 
 // ---------------------------------------------------------------- standings
-// 2026 format: after race 26 the top 16 are reset to 2000 + bonus (see nascar_weekly_export.py).
-const RESET = {2026: {after:26, size:16, base:2000}};
-const BONUS = [100,75,65,60,55,50,45,40,35,30,25,20,15,10,5,0];
+// Point formats live in formats.js (inlined below). `standings(season, opts)` computes any format for any
+// season: opts = {fmt: 'auto' | key, after: races before the playoff, adj: apply known penalties}.
 const standCache = new Map();
-function standings(season) {
-  if (standCache.has(season)) return standCache.get(season);
-  const rl = races(season), pts = new Map(), wins = new Map(), fin = new Map();
-  const names = new Set(); rl.forEach(r => r.rows.forEach(i => names.add(drv(i))));
-  const ds = [...names];
-  const cum = new Map(ds.map(d => [d, 0]));
-  const out = {drivers: ds, nums: rl.map(r=>r.num), pts: new Map(ds.map(d=>[d,[]])),
-               rank: new Map(ds.map(d=>[d,[]])), behind: new Map(ds.map(d=>[d,[]])), field: null, resetIdx: null,
-               started: new Map(ds.map(d=>[d,[]]))};
-  const cfg = RESET[season];
-  rl.forEach((r, k) => {
-    const got = new Set();
-    for (const i of r.rows) { cum.set(drv(i), cum.get(drv(i)) + nz(D.pts[i])); got.add(drv(i)); }
-    if (cfg && r.num === cfg.after + 1) {
-      // reset applies from this race on; rank by regular-season points at the cut
-      const prev = k - 1;
-      const ord = ds.map(d => ({d, p: out.pts.get(d)[prev] ?? 0,
-                     w: rl.slice(0,k).reduce((a,x)=>a+x.rows.filter(i=>drv(i)===d&&D.finish[i]===1).length,0)}))
-        .sort((a,b)=> b.p-a.p || b.w-a.w);
-      out.field = new Set(ord.slice(0,cfg.size).map(o=>o.d));
-      out.resetIdx = k;
-      ord.slice(0,cfg.size).forEach((o,j)=> cum.set(o.d, cfg.base + (BONUS[j]||0) +
-        (cum.get(o.d) - (out.pts.get(o.d)[prev] ?? 0)) ));
-    }
-    for (const d of ds) { out.pts.get(d).push(cum.get(d)); out.started.get(d).push(got.has(d) || (out.started.get(d)[k-1] ?? false)); }
-    // rank & gap, grouped after the reset
-    const active = ds.filter(d => out.started.get(d)[k]);
-    const grouped = out.field && k >= out.resetIdx;
-    const groups = grouped ? [active.filter(d=>out.field.has(d)), active.filter(d=>!out.field.has(d))] : [active];
-    let base = 0;
-    for (const g of groups) {
-      g.sort((a,b)=> cum.get(b)-cum.get(a));
-      const top = g.length ? cum.get(g[0]) : 0;
-      g.forEach((d,j)=>{ const rk = j>0 && cum.get(g[j-1])===cum.get(d) ? out.rank.get(g[j-1])[k] : base+j+1;
-        out.rank.get(d)[k]=rk; out.behind.get(d)[k]=cum.get(d)-top; });
-      base += g.length;
-    }
-    for (const d of ds) if (out.rank.get(d)[k]===undefined) { out.rank.get(d)[k]=null; out.behind.get(d)[k]=null; }
-  });
-  standCache.set(season, out);
+function standings(season, opts = {}) {
+  const fmt = opts.fmt || 'auto', after = opts.after || 26, adj = opts.adj !== false;
+  const key = `${season}|${fmt}|${after}|${adj}`;
+  if (standCache.has(key)) return standCache.get(key);
+  const rl = races(season).map(r => ({num: r.num, rows: r.rows.map(i => ({driver: drv(i), pts: nz(D.pts[i]), finish: D.finish[i]}))}));
+  const out = NASCARFormats.compute(season, rl, fmt, {after, adj});
+  standCache.set(key, out);
   return out;
 }
+// the Season tab's current what-if choices
+const seasonStandings = season => standings(season, {fmt: $('s-format').value, after: +$('s-after').value || 26, adj: $('s-adj').checked});
 
 // ============================================================ helpers
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -383,7 +355,7 @@ $('theme').onclick = () => {
 // ============================================================ SEASON
 const hidden = new Set();
 function renderSeason() {
-  const season = +$('s-season').value, st = standings(season), rl = races(season);
+  const season = +$('s-season').value, st = seasonStandings(season), rl = races(season);
   const metric = $('s-metric').value, topN = +$('s-top').value;
   const last = st.nums.length - 1;
   const ordKey = d => $('s-topby').value === 'wins'
@@ -394,8 +366,13 @@ function renderSeason() {
   const ttl = {behind:'Points behind leader', pts:'Total points', rank:'Rank'}[metric];
   titleFn = () => `${season} ${D.title} — ${ttl}`;
   $('s-title').textContent = `${season} — ${ttl}`;
-  $('s-note').textContent = st.field ? `Dashed line = playoff reset after race ${st.nums[st.resetIdx-1]} (top ${RESET[season].size} reset to ${RESET[season].base}+bonus; others rank below, gap measured within group).`
-    : 'Cumulative race points. Playoff resets are only modelled for 2026.';
+  const F = NASCARFormats.FORMATS[st.format];
+  const era = NASCARFormats.eraFormat(season);
+  let note = st.field ? `${F.label}. Dashed line = reset after race ${st.nums[st.resetIdx-1]}; others rank below the field, gap measured within each group.` : `${F.label}: cumulative race points.`;
+  if ($('s-format').value === 'auto') note = (era === 'full' && season >= 2014 ? 'Elimination-round formats (2014–2025) are not modelled, showing full-season points. ' : '') + note;
+  else if (st.format !== era) note = `WHAT IF: ${note}`;
+  if (st.field && st.wild.size) note += ` Wild cards: ${[...st.wild].join(', ')}.`;
+  $('s-note').textContent = note;
   const ds = shown.map((d, i) => ({label:d, data: series.get(d).map((v,k)=> st.started.get(d)[k] ? v : null),
     borderColor: colorFor(i), backgroundColor: colorFor(i), borderDash: dashFor(i), borderWidth: 2, pointRadius: 0,
     pointHoverRadius: 4, tension: 0, spanGaps: false, hidden: hidden.has(d), _i: i, stepped: false}));
@@ -427,7 +404,7 @@ function highlight(idx) {
   ch.update('none');
 }
 function renderStandings() {
-  const season = +$('s-season').value, st = standings(season), rl = races(season);
+  const season = +$('s-season').value, st = seasonStandings(season), rl = races(season);
   const k = Math.min(+$('s-race').value, st.nums.length) - 1;
   $('s-racelabel').textContent = `${rl[k].num} of ${rl.length}`; $('s-racename').textContent = `${rl[k].name} — ${rl[k].track}`;
   const recent = d => { const out=[]; for (let j=Math.max(0,k-4); j<=k; j++){ const r = rl[j].rows.find(i=>drv(i)===d); out.push(r==null?null:D.finish[r]); } return out; };
@@ -450,7 +427,7 @@ function renderStandings() {
   ], rows);
 }
 const avgR = v => v==null ? null : Math.round(v*10)/10;
-['s-season','s-metric','s-top','s-topby'].forEach(id => $(id).onchange = () => { if (id==='s-season') { hidden.clear(); $('s-race').dataset.season=''; } renderSeason(); });
+['s-season','s-metric','s-top','s-topby','s-format','s-after','s-adj'].forEach(id => $(id).onchange = () => { if (id==='s-season') { hidden.clear(); $('s-race').dataset.season=''; fillFormats(); } renderSeason(); });
 $('s-race').oninput = renderStandings;
 
 // ============================================================ RACE
@@ -609,7 +586,13 @@ $('k-track').onchange = renderTrack;
 
 // ============================================================ init
 $('ttl').textContent = D.title; document.title = D.title + ' Dashboard';
-fillSelect($('s-season'), seasons.map(s=>[s,s]), seasons[0]);
+NASCARFormats.setAdjustments(D.adjustments);
+function fillFormats() {
+  const season = +$('s-season').value, cur = $('s-format').value || 'auto';
+  fillSelect($('s-format'), [['auto', `As run in ${season}: ${NASCARFormats.FORMATS[NASCARFormats.eraFormat(season)].short}`],
+    ...Object.entries(NASCARFormats.FORMATS).map(([k,f]) => [k, f.label])], cur);
+}
+fillSelect($('s-season'), seasons.map(s=>[s,s]), seasons[0]); fillFormats();
 fillSelect($('r-season'), seasons.map(s=>[s,s]), seasons[0]); fillRaces();
 // driver list: ordered by starts
 const startCount = new Array(D.drivers.length).fill(0); for (let i=0;i<N;i++) startCount[D.driver[i]]++;
