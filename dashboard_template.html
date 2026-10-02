@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NASCAR Dashboard</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#667085; --line:#e3e6eb; --accent:#1f6feb;
+  --good:#1a7f37; --bad:#cf222e; --chip:#eef1f5; --grid:#e8ebef;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1318; --card:#171c23; --ink:#e6e9ee; --muted:#8b95a3; --line:#262d37; --accent:#58a6ff;
+    --good:#3fb950; --bad:#f85149; --chip:#222a35; --grid:#242b35;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --card:#171c23; --ink:#e6e9ee; --muted:#8b95a3; --line:#262d37; --accent:#58a6ff;
+  --good:#3fb950; --bad:#f85149; --chip:#222a35; --grid:#242b35;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;font-weight:650}
+nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+nav button{border:0;background:none;color:var(--muted);padding:7px 14px;border-radius:8px;font:inherit;font-weight:550;cursor:pointer}
+nav button.on{background:var(--chip);color:var(--ink)}
+main{max-width:1280px;margin:0 auto;padding:16px 16px 48px}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.card h2{font-size:14px;margin:0 0 2px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:8px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+label{display:flex;flex-direction:column;font-size:11px;color:var(--muted);gap:3px;text-transform:uppercase;letter-spacing:.04em}
+select,input[type=text],input[type=search]{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:90px}
+input[type=range]{width:260px}
+.btn{font:inherit;font-size:12px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+.btn:hover{background:var(--chip)}
+.tools{display:flex;gap:6px;float:right}
+.chartbox{position:relative;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:1px 6px;border-radius:99px;user-select:none}
+.legend span:hover{background:var(--chip)}
+.legend span.off{opacity:.35}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.tablewrap{overflow:auto;max-height:640px;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{padding:5px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{position:sticky;top:0;background:var(--card);color:var(--muted);font-weight:600;cursor:pointer;z-index:1}
+th:hover{color:var(--ink)}
+td.l,th.l{text-align:left}
+tr:hover td{background:var(--chip)}
+td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cursor:pointer}
+.up{color:var(--good)}.dn{color:var(--bad)}.mut{color:var(--muted)}
+.chips{display:inline-flex;gap:2px}
+.chips b{font-weight:600;min-width:24px;text-align:center;border-radius:4px;padding:0 3px;font-size:11.5px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat .v{font-size:18px;font-weight:650;line-height:1.25}.stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}input[type=range]{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="ttl">NASCAR</h1>
+  <nav id="nav">
+    <button data-tab="season" class="on">Season</button>
+    <button data-tab="race">Race</button>
+    <button data-tab="driver">Driver history</button>
+    <button data-tab="track">Track history</button>
+  </nav>
+  <button class="btn" id="theme" title="Toggle theme">Theme</button>
+</header>
+<main>
+
+<!-- ============================ SEASON ============================ -->
+<section class="panel on" id="p-season">
+  <div class="controls">
+    <label>Season<select id="s-season"></select></label>
+    <label>Metric<select id="s-metric">
+      <option value="behind">Points behind leader</option>
+      <option value="pts">Total points</option>
+      <option value="rank">Rank</option>
+    </select></label>
+    <label>Drivers shown<select id="s-top">
+      <option value="5">Top 5</option><option value="10" selected>Top 10</option>
+      <option value="16">Top 16</option><option value="99">Everyone</option>
+    </select></label>
+    <label>Top N by<select id="s-topby"><option value="final">Current standings</option><option value="wins">Wins</option></select></label>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-png="c-season">PNG</button><button class="btn" data-csv="season-chart">CSV</button></div>
+    <h2 id="s-title">Points race</h2>
+    <div class="sub" id="s-note"></div>
+    <div class="chartbox" style="height:420px"><canvas id="c-season"></canvas></div>
+    <div class="legend" id="s-legend"></div>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="standings">CSV</button></div>
+    <h2>Standings after race <span id="s-racelabel"></span></h2>
+    <div class="sub" id="s-racename"></div>
+    <div class="controls"><label>Race<input type="range" id="s-race" min="1" max="36" value="36"></label></div>
+    <div class="tablewrap"><table id="t-standings"></table></div>
+  </div>
+</section>
+
+<!-- ============================ RACE ============================ -->
+<section class="panel" id="p-race">
+  <div class="controls">
+    <label>Season<select id="r-season"></select></label>
+    <label>Race<select id="r-race" style="min-width:260px"></select></label>
+    <button class="btn" id="r-prev">&larr; Prev</button><button class="btn" id="r-next">Next &rarr;</button>
+  </div>
+  <div class="cards" id="r-cards"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="tools"><button class="btn" data-png="c-race">PNG</button></div>
+      <h2>Start &rarr; finish</h2>
+      <div class="sub">Green = gained positions, red = lost. Sorted by finish.</div>
+      <div class="chartbox" id="r-box1"><canvas id="c-race"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="tools"><button class="btn" data-png="c-led">PNG</button></div>
+      <h2>Laps led</h2>
+      <div class="sub">Every driver who led at least one lap. Stage points are in the table below.</div>
+      <div class="chartbox" id="r-box2"><canvas id="c-led"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="race">CSV</button></div>
+    <h2>Race results</h2>
+    <div class="tablewrap"><table id="t-race"></table></div>
+  </div>
+</section>
+
+<!-- ============================ DRIVER ============================ -->
+<section class="panel" id="p-driver">
+  <div class="controls">
+    <label>Driver<input type="search" id="d-driver" list="d-list" placeholder="type a name" style="min-width:220px"></label>
+    <datalist id="d-list"></datalist>
+    <label>Season detail<select id="d-season"></select></label>
+  </div>
+  <div class="cards" id="d-cards"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="tools"><button class="btn" data-png="c-dseasons">PNG</button></div>
+      <h2>Season by season</h2>
+      <div class="controls" style="margin:6px 0"><label>Metric<select id="d-metric">
+        <option value="avgfin">Average finish</option><option value="wins">Wins</option>
+        <option value="top5">Top 5s</option><option value="top10">Top 10s</option>
+        <option value="rating">Average driver rating</option><option value="led">Laps led</option>
+        <option value="dnf">DNFs</option><option value="rank">Final points rank</option>
+      </select></label></div>
+      <div class="chartbox" style="height:300px"><canvas id="c-dseasons"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="tools"><button class="btn" data-png="c-dform">PNG</button></div>
+      <h2>Race-by-race form <span id="d-formyr"></span></h2>
+      <div class="sub">Finish position per race with 5-race rolling average. Wins highlighted.</div>
+      <div class="chartbox" style="height:300px"><canvas id="c-dform"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="driver">CSV</button></div>
+    <h2>Seasons</h2>
+    <div class="tablewrap"><table id="t-driver"></table></div>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="driver-best-tracks">CSV</button></div>
+    <h2>Best tracks</h2><div class="sub">Tracks with at least 3 starts, ranked by average finish.</div>
+    <div class="tablewrap" style="max-height:360px"><table id="t-dtracks"></table></div>
+  </div>
+</section>
+
+<!-- ============================ TRACK ============================ -->
+<section class="panel" id="p-track">
+  <div class="controls">
+    <label>Track<select id="k-track" style="min-width:280px"></select></label>
+  </div>
+  <div class="cards" id="k-cards"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="tools"><button class="btn" data-png="c-kwins">PNG</button></div>
+      <h2>Most wins</h2>
+      <div class="chartbox" id="k-box1"><canvas id="c-kwins"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="tools"><button class="btn" data-png="c-kwinstart">PNG</button></div>
+      <h2>Where winners start</h2>
+      <div class="sub">Starting position of each winner, by year.</div>
+      <div class="chartbox" style="height:300px"><canvas id="c-kwinstart"></canvas></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="tools"><button class="btn" data-csv="track-winners">CSV</button></div>
+      <h2>Winners</h2>
+      <div class="tablewrap"><table id="t-kwin"></table></div>
+    </div>
+    <div class="card">
+      <div class="tools"><button class="btn" data-csv="track-drivers">CSV</button></div>
+      <h2>Driver record here</h2><div class="sub">Minimum 3 starts.</div>
+      <div class="tablewrap"><table id="t-kdrv"></table></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>/*__CHARTJS__*/</script>
+<script>
+/*__DATA__*/
+"use strict";
+// ============================================================ data prep
+const N = D.season.length;
+const $ = id => document.getElementById(id);
+const PALETTE = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#6f7f8f',
+                 '#2f5d8a','#c4690d','#a52f31','#3f8a85','#3a7a35','#b89a1f','#8a5a82','#d46a76'];
+const colorFor = i => PALETTE[i % PALETTE.length];
+const dashFor = i => i >= PALETTE.length ? [5,3] : (i >= 10 ? [2,2] : []);
+
+const rowsBySeason = new Map();     // season -> [row index]
+for (let i = 0; i < N; i++) {
+  const s = D.season[i];
+  if (!rowsBySeason.has(s)) rowsBySeason.set(s, []);
+  rowsBySeason.get(s).push(i);
+}
+const seasons = [...rowsBySeason.keys()].sort((a,b)=>b-a);
+const dnf = i => D.status[i] !== undefined && D.statuses[D.status[i]] !== 'running';
+const drv = i => D.drivers[D.driver[i]];
+const nz = v => v == null ? 0 : v;
+const avg = a => { const b=a.filter(v=>v!=null); return b.length ? b.reduce((x,y)=>x+y,0)/b.length : null; };
+const f1 = v => v == null ? '' : v.toFixed(1);
+
+function raceList(season) {
+  const m = new Map();
+  for (const i of rowsBySeason.get(season)) {
+    if (!m.has(D.race[i])) m.set(D.race[i], {num:D.race[i], name:D.names[D.name[i]], track:D.tracks[D.track[i]],
+      length:D.length[i], surface:D.surfaces[D.surface[i]], rows:[]});
+    m.get(D.race[i]).rows.push(i);
+  }
+  return [...m.values()].sort((a,b)=>a.num-b.num);
+}
+const raceCache = new Map();
+const races = s => { if (!raceCache.has(s)) raceCache.set(s, raceList(s)); return raceCache.get(s); };
+
+// ---------------------------------------------------------------- standings
+// 2026 format: after race 26 the top 16 are reset to 2000 + bonus (see nascar_weekly_export.py).
+const RESET = {2026: {after:26, size:16, base:2000}};
+const BONUS = [100,75,65,60,55,50,45,40,35,30,25,20,15,10,5,0];
+const standCache = new Map();
+function standings(season) {
+  if (standCache.has(season)) return standCache.get(season);
+  const rl = races(season), pts = new Map(), wins = new Map(), fin = new Map();
+  const names = new Set(); rl.forEach(r => r.rows.forEach(i => names.add(drv(i))));
+  const ds = [...names];
+  const cum = new Map(ds.map(d => [d, 0]));
+  const out = {drivers: ds, nums: rl.map(r=>r.num), pts: new Map(ds.map(d=>[d,[]])),
+               rank: new Map(ds.map(d=>[d,[]])), behind: new Map(ds.map(d=>[d,[]])), field: null, resetIdx: null,
+               started: new Map(ds.map(d=>[d,[]]))};
+  const cfg = RESET[season];
+  rl.forEach((r, k) => {
+    const got = new Set();
+    for (const i of r.rows) { cum.set(drv(i), cum.get(drv(i)) + nz(D.pts[i])); got.add(drv(i)); }
+    if (cfg && r.num === cfg.after + 1) {
+      // reset applies from this race on; rank by regular-season points at the cut
+      const prev = k - 1;
+      const ord = ds.map(d => ({d, p: out.pts.get(d)[prev] ?? 0,
+                     w: rl.slice(0,k).reduce((a,x)=>a+x.rows.filter(i=>drv(i)===d&&D.finish[i]===1).length,0)}))
+        .sort((a,b)=> b.p-a.p || b.w-a.w);
+      out.field = new Set(ord.slice(0,cfg.size).map(o=>o.d));
+      out.resetIdx = k;
+      ord.slice(0,cfg.size).forEach((o,j)=> cum.set(o.d, cfg.base + (BONUS[j]||0) +
+        (cum.get(o.d) - (out.pts.get(o.d)[prev] ?? 0)) ));
+    }
+    for (const d of ds) { out.pts.get(d).push(cum.get(d)); out.started.get(d).push(got.has(d) || (out.started.get(d)[k-1] ?? false)); }
+    // rank & gap, grouped after the reset
+    const active = ds.filter(d => out.started.get(d)[k]);
+    const grouped = out.field && k >= out.resetIdx;
+    const groups = grouped ? [active.filter(d=>out.field.has(d)), active.filter(d=>!out.field.has(d))] : [active];
+    let base = 0;
+    for (const g of groups) {
+      g.sort((a,b)=> cum.get(b)-cum.get(a));
+      const top = g.length ? cum.get(g[0]) : 0;
+      g.forEach((d,j)=>{ const rk = j>0 && cum.get(g[j-1])===cum.get(d) ? out.rank.get(g[j-1])[k] : base+j+1;
+        out.rank.get(d)[k]=rk; out.behind.get(d)[k]=cum.get(d)-top; });
+      base += g.length;
+    }
+    for (const d of ds) if (out.rank.get(d)[k]===undefined) { out.rank.get(d)[k]=null; out.behind.get(d)[k]=null; }
+  });
+  standCache.set(season, out);
+  return out;
+}
+
+// ============================================================ helpers
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function themeColors(){ return {ink:css('--ink'), muted:css('--muted'), grid:css('--grid'), card:css('--card'),
+  good:css('--good'), bad:css('--bad'), accent:css('--accent')}; }
+const charts = {};
+function mount(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  const t = themeColors();
+  Chart.defaults.color = t.muted; Chart.defaults.borderColor = t.grid;
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  cfg.options = cfg.options || {}; cfg.options.maintainAspectRatio = false; cfg.options.animation = false;
+  charts[id] = new Chart($(id), cfg); return charts[id];
+}
+function esc(s){ return String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function fillSelect(sel, items, val) {
+  sel.innerHTML = items.map(([v,l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+  if (val !== undefined) sel.value = val;
+}
+const finishColor = f => f===1 ? 'background:#f5c518;color:#222' : f<=5 ? 'background:rgba(63,185,80,.35)' :
+  f<=10 ? 'background:rgba(63,185,80,.16)' : f>=30 ? 'background:rgba(248,81,73,.22)' : '';
+const chips = fs => `<span class="chips">${fs.map(f => f==null?'<b class="mut">–</b>':`<b style="${finishColor(f)}">${f}</b>`).join('')}</span>`;
+const delta = v => v==null||v===0 ? '<span class="mut">0</span>' : v>0 ? `<span class="up">▲${v}</span>` : `<span class="dn">▼${-v}</span>`;
+
+// ---- tables: render + sortable + CSV registry
+const exportsCSV = {};      // key -> {cols, rows}  (plain values for CSV)
+function renderTable(el, key, cols, rows, opts={}) {
+  // cols: [{h, k (value fn), html (optional fn), l (left align)}]
+  exportsCSV[key] = {file: opts.file || key, cols: cols.filter(c=>!c.nocsv).map(c=>c.h), rows: rows.map(r => cols.filter(c=>!c.nocsv).map(c => c.k(r)))};
+  const st = el._sort || {};
+  let data = rows.slice();
+  if (st.col != null) { const c = cols[st.col]; data.sort((a,b)=>{ const x=c.k(a), y=c.k(b);
+    return (x==null)-(y==null) || (typeof x==='string' ? x.localeCompare(y) : x-y) ; }); if (st.dir<0) data.reverse(); }
+  el.innerHTML = '<thead><tr>' + cols.map((c,i)=>`<th data-i="${i}" class="${c.l?'l':''}">${c.h}${st.col===i?(st.dir>0?' ▲':' ▼'):''}</th>`).join('') + '</tr></thead><tbody>' +
+    data.map(r => '<tr>' + cols.map(c=>`<td class="${c.l?'l':''}">${c.html ? c.html(r) : esc(c.k(r) ?? '')}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  el.querySelectorAll('th').forEach(th => th.onclick = () => {
+    const i = +th.dataset.i; el._sort = {col:i, dir: st.col===i ? -st.dir : (typeof cols[i].k(rows[0] ?? {}) === 'string' ? 1 : -1)};
+    renderTable(el, key, cols, rows, opts); });
+}
+const driverLink = n => `<a data-driver="${esc(n)}">${esc(n)}</a>`;
+
+// ---- exports
+function toCSV(key) {
+  const e = exportsCSV[key]; if (!e) return;
+  const q = v => v==null ? '' : /[",\n]/.test(String(v)) ? '"'+String(v).replace(/"/g,'""')+'"' : v;
+  const txt = [e.cols.map(q).join(','), ...e.rows.map(r=>r.map(q).join(','))].join('\n');
+  download(new Blob([txt], {type:'text/csv'}), e.file + '.csv');
+}
+function toPNG(id) {
+  const ch = charts[id]; if (!ch) return;
+  const t = themeColors(), src = ch.canvas, pad = 24 * (window.devicePixelRatio||1), head = 40 * (window.devicePixelRatio||1);
+  const c = document.createElement('canvas');
+  c.width = src.width + pad*2; c.height = src.height + pad*2 + head;
+  const g = c.getContext('2d'); g.fillStyle = t.card; g.fillRect(0,0,c.width,c.height);
+  g.fillStyle = t.ink; g.font = `600 ${16*(window.devicePixelRatio||1)}px sans-serif`;
+  g.fillText(currentTitle(), pad, pad + 12*(window.devicePixelRatio||1));
+  g.drawImage(src, pad, pad + head);
+  c.toBlob(b => download(b, id + '.png'));
+}
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-png],[data-csv]'); if (b) { b.dataset.png ? toPNG(b.dataset.png) : toCSV(b.dataset.csv); return; }
+  const l = e.target.closest('[data-driver]'); if (l) { $('d-driver').value = l.dataset.driver; show('driver'); renderDriver(); }
+  const t = e.target.closest('[data-track]'); if (t) { $('k-track').value = t.dataset.track; show('track'); renderTrack(); }
+  const rr = e.target.closest('[data-race]'); if (rr) { const [s,n] = rr.dataset.race.split('-'); $('r-season').value=s; fillRaces(); $('r-race').value=n; show('race'); renderRace(); }
+});
+let titleFn = () => D.title;
+function currentTitle(){ return titleFn(); }
+
+// ============================================================ tabs
+function show(tab) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + tab));
+  ({season:renderSeason, race:renderRace, driver:renderDriver, track:renderTrack})[tab]();
+  window.scrollTo(0,0);
+}
+$('nav').onclick = e => { const b = e.target.closest('button'); if (b) show(b.dataset.tab); };
+$('theme').onclick = () => {
+  const dark = document.documentElement.dataset.theme === 'dark' ||
+    (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  const on = document.querySelector('nav .on').dataset.tab; show(on);
+};
+
+// ============================================================ SEASON
+const hidden = new Set();
+function renderSeason() {
+  const season = +$('s-season').value, st = standings(season), rl = races(season);
+  const metric = $('s-metric').value, topN = +$('s-top').value;
+  const last = st.nums.length - 1;
+  const ordKey = d => $('s-topby').value === 'wins'
+    ? -rl.reduce((a,r)=>a+r.rows.filter(i=>drv(i)===d && D.finish[i]===1).length,0)*1e6 + (st.rank.get(d)[last] ?? 999)
+    : (st.rank.get(d)[last] ?? 999);
+  const shown = st.drivers.filter(d => st.started.get(d)[last] !== undefined).sort((a,b)=>ordKey(a)-ordKey(b)).slice(0, topN);
+  const series = metric === 'rank' ? st.rank : metric === 'pts' ? st.pts : st.behind;
+  const ttl = {behind:'Points behind leader', pts:'Total points', rank:'Rank'}[metric];
+  titleFn = () => `${season} ${D.title} — ${ttl}`;
+  $('s-title').textContent = `${season} — ${ttl}`;
+  $('s-note').textContent = st.field ? `Dashed line = playoff reset after race ${st.nums[st.resetIdx-1]} (top ${RESET[season].size} reset to ${RESET[season].base}+bonus; others rank below, gap measured within group).`
+    : 'Cumulative race points. Playoff resets are only modelled for 2026.';
+  const ds = shown.map((d, i) => ({label:d, data: series.get(d).map((v,k)=> st.started.get(d)[k] ? v : null),
+    borderColor: colorFor(i), backgroundColor: colorFor(i), borderDash: dashFor(i), borderWidth: 2, pointRadius: 0,
+    pointHoverRadius: 4, tension: 0, spanGaps: false, hidden: hidden.has(d), _i: i, stepped: false}));
+  const resetPlugin = {id:'reset', afterDatasetsDraw(c){ if (st.resetIdx==null) return;
+    const x = (c.scales.x.getPixelForValue(st.resetIdx-1)+c.scales.x.getPixelForValue(st.resetIdx))/2, g=c.ctx;
+    g.save(); g.setLineDash([5,4]); g.strokeStyle=themeColors().muted; g.beginPath(); g.moveTo(x,c.chartArea.top); g.lineTo(x,c.chartArea.bottom); g.stroke(); g.restore(); }};
+  mount('c-season', {type:'line', data:{labels: st.nums.map((n,k)=> n), datasets: ds}, plugins:[resetPlugin],
+    options:{interaction:{mode:'nearest', intersect:false},
+      scales:{x:{title:{display:true,text:'Race #'}}, y:{reverse: metric==='rank', min: metric==='rank'?1:undefined,
+        ticks:{precision:0}, title:{display:true,text:ttl}}},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{title: it => `Race ${it[0].label}: ${rl[it[0].dataIndex]?.name ?? ''}`,
+        label: it => `${it.dataset.label}: ${it.formattedValue}`}}}}});
+  // legend
+  const lg = $('s-legend'); lg.innerHTML = shown.map((d,i)=>`<span data-d="${esc(d)}" class="${hidden.has(d)?'off':''}"><i style="background:${colorFor(i)}"></i>${esc(d)}</span>`).join('');
+  lg.onclick = e => { const s = e.target.closest('span'); if (!s) return; const d=s.dataset.d; hidden.has(d)?hidden.delete(d):hidden.add(d); renderSeason(); };
+  lg.onmouseover = e => { const s = e.target.closest('span'); if (!s) return; highlight(shown.indexOf(s.dataset.d)); };
+  lg.onmouseleave = () => highlight(-1);
+  // chart data export
+  exportsCSV['season-chart'] = {cols:['race_num','race', ...shown],
+    rows: st.nums.map((n,k)=>[n, rl[k].name, ...shown.map(d => st.started.get(d)[k] ? series.get(d)[k] : null)])};
+  // slider
+  const sl = $('s-race'); sl.max = st.nums.length; if (!(+sl.value >= 1 && +sl.value <= st.nums.length) || sl.dataset.season !== String(season)) sl.value = st.nums.length;
+  sl.dataset.season = season;
+  renderStandings();
+}
+function highlight(idx) {
+  const ch = charts['c-season']; if (!ch) return;
+  ch.data.datasets.forEach((d,i)=>{ const on = idx<0 || i===idx; d.borderColor = on ? colorFor(d._i) : colorFor(d._i)+'33'; d.borderWidth = i===idx?4:2; });
+  ch.update('none');
+}
+function renderStandings() {
+  const season = +$('s-season').value, st = standings(season), rl = races(season);
+  const k = Math.min(+$('s-race').value, st.nums.length) - 1;
+  $('s-racelabel').textContent = `${rl[k].num} of ${rl.length}`; $('s-racename').textContent = `${rl[k].name} — ${rl[k].track}`;
+  const recent = d => { const out=[]; for (let j=Math.max(0,k-4); j<=k; j++){ const r = rl[j].rows.find(i=>drv(i)===d); out.push(r==null?null:D.finish[r]); } return out; };
+  const rows = st.drivers.filter(d => st.started.get(d)[k]).map(d => {
+    const mine = []; for (let j=0;j<=k;j++){ const r = rl[j].rows.find(i=>drv(i)===d); if (r!=null) mine.push(r); }
+    const fin = mine.map(i=>D.finish[i]);
+    return {d, rank: st.rank.get(d)[k], prev: k>0 ? st.rank.get(d)[k-1] : null, pts: st.pts.get(d)[k], behind: st.behind.get(d)[k],
+      car: D.car[mine[mine.length-1]], starts: mine.length, wins: fin.filter(f=>f===1).length, t5: fin.filter(f=>f<=5).length,
+      t10: fin.filter(f=>f<=10).length, avgfin: avg(fin), avgstart: avg(mine.map(i=>D.start[i])), led: mine.reduce((a,i)=>a+nz(D.led[i]),0),
+      dnf: mine.filter(dnf).length, rating: avg(mine.map(i=>D.rating[i])), recent: recent(d)};
+  }).sort((a,b)=>a.rank-b.rank || b.pts-a.pts);
+  renderTable($('t-standings'), 'standings', [
+    {h:'Rank', k:r=>r.rank}, {h:'+/-', k:r=>r.prev==null?0:r.prev-r.rank, html:r=>delta(r.prev==null||r.prev==null?0:r.prev-r.rank)},
+    {h:'Driver', k:r=>r.d, l:1, html:r=>driverLink(r.d)}, {h:'Car', k:r=>r.car, l:1},
+    {h:'Points', k:r=>r.pts}, {h:'Behind', k:r=>r.behind}, {h:'Races', k:r=>r.starts}, {h:'W', k:r=>r.wins},
+    {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10}, {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)},
+    {h:'Avg Start', k:r=>avgR(r.avgstart), html:r=>f1(r.avgstart)}, {h:'Laps Led', k:r=>r.led}, {h:'DNF', k:r=>r.dnf},
+    {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
+    {h:'Last 5', k:r=>r.recent.join(' '), html:r=>chips(r.recent)},
+  ], rows);
+}
+const avgR = v => v==null ? null : Math.round(v*10)/10;
+['s-season','s-metric','s-top','s-topby'].forEach(id => $(id).onchange = () => { if (id==='s-season') { hidden.clear(); $('s-race').dataset.season=''; } renderSeason(); });
+$('s-race').oninput = renderStandings;
+
+// ============================================================ RACE
+function fillRaces() {
+  const rl = races(+$('r-season').value);
+  fillSelect($('r-race'), rl.map(r => [r.num, `${r.num}. ${r.name} — ${r.track}`]), rl[rl.length-1].num);
+}
+function renderRace() {
+  const season = +$('r-season').value, rl = races(season), r = rl.find(x => x.num === +$('r-race').value) ?? rl[rl.length-1];
+  const rows = r.rows.slice().sort((a,b)=>D.finish[a]-D.finish[b]);
+  const w = rows[0], poleI = rows.find(i=>D.start[i]===1), mostLed = rows.slice().sort((a,b)=>nz(D.led[b])-nz(D.led[a]))[0];
+  const gainer = rows.filter(i=>D.start[i]!=null).sort((a,b)=>(D.start[b]-D.finish[b])-(D.start[a]-D.finish[a]))[0];
+  titleFn = () => `${season} ${r.name} (race ${r.num}) at ${r.track}`;
+  const stat = (k,v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
+  $('r-cards').innerHTML = stat('Winner', driverLink(drv(w))) + stat('Started', D.start[w]==null?'–':'P'+D.start[w]) +
+    stat('Pole', poleI==null?'–':driverLink(drv(poleI))) + stat('Most laps led', nz(D.led[mostLed])>0 ? `${driverLink(drv(mostLed))} (${D.led[mostLed]})` : '–') +
+    stat('Biggest gain', gainer==null?'–':`${driverLink(drv(gainer))} (+${D.start[gainer]-D.finish[gainer]})`) +
+    stat('Track', `<a data-track="${D.tracks.indexOf(r.track)}">${esc(r.track)}</a>`) + stat('Length / surface', `${r.length ?? '–'} mi · ${esc(r.surface||'–')}`) +
+    stat('Drivers who led', rows.filter(i=>nz(D.led[i])>0).length) +
+    stat('DNFs', rows.filter(dnf).length);
+  const px = Math.max(300, rows.length * 20 + 60);
+  $('r-box1').style.height = px + 'px';
+  const t = themeColors();
+  const bars = rows.map(i => { const s = D.start[i] ?? D.finish[i], f = D.finish[i]; return [Math.min(s,f)-0.4, Math.max(s,f)+0.4]; });
+  mount('c-race', {type:'bar', data:{labels: rows.map(i=>`${D.finish[i]}. ${drv(i)}`), datasets:[{data:bars,
+      backgroundColor: rows.map(i => D.start[i]==null||D.start[i]===D.finish[i] ? t.muted : D.finish[i]<D.start[i] ? t.good : t.bad),
+      borderRadius:3, barPercentage:.7}]},
+    options:{indexAxis:'y', scales:{x:{min:0, reverse:false, title:{display:true,text:'Position (start → finish)'}, ticks:{precision:0}}, y:{ticks:{autoSkip:false,font:{size:11}}}},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label: c => { const i=rows[c.dataIndex]; const s=D.start[i];
+        return s==null ? `Finish ${D.finish[i]}` : `Start ${s} → Finish ${D.finish[i]} (${s-D.finish[i]>0?'+':''}${s-D.finish[i]})`; }}}}}});
+  const active = rows.filter(i => nz(D.led[i])>0).sort((a,b)=>nz(D.led[b])-nz(D.led[a]));
+  $('r-box2').style.height = Math.max(200, active.length*24+60) + 'px';
+  mount('c-led', {type:'bar', data:{labels: active.map(drv), datasets:[{data: active.map(i=>nz(D.led[i])), backgroundColor:t.accent, borderRadius:3}]},
+    options:{indexAxis:'y', scales:{x:{title:{display:true,text:'Laps led'}}, y:{ticks:{autoSkip:false,font:{size:11}}}}, plugins:{legend:{display:false}}}});
+  renderTable($('t-race'), 'race', [
+    {h:'Fin', k:i=>D.finish[i]}, {h:'Start', k:i=>D.start[i]}, {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
+    {h:'Driver', k:drv, l:1, html:i=>driverLink(drv(i))}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Team', k:i=>D.teams[D.team[i]], l:1},
+    {h:'Make', k:i=>D.makes[D.make[i]], l:1}, {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]},
+    {h:'S1', k:i=>D.s1[i]}, {h:'S2', k:i=>D.s2[i]}, {h:'S3', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i]},
+    {h:'Rating', k:i=>D.rating[i]}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
+  ], rows, {file:`race-${season}-${r.num}`});
+}
+$('r-season').onchange = () => { fillRaces(); renderRace(); };
+$('r-race').onchange = renderRace;
+const stepRace = d => { const o=[...$('r-race').options], k=Math.min(o.length-1,Math.max(0,$('r-race').selectedIndex+d)); $('r-race').selectedIndex=k; renderRace(); };
+$('r-prev').onclick = () => stepRace(-1); $('r-next').onclick = () => stepRace(1);
+
+// ============================================================ DRIVER
+function driverRows(name) {
+  const di = D.drivers.indexOf(name); const out = [];
+  for (let i=0;i<N;i++) if (D.driver[i]===di) out.push(i);
+  return out;
+}
+function renderDriver() {
+  let name = $('d-driver').value;
+  if (!D.drivers.includes(name)) { const m = D.drivers.filter(x=>x.toLowerCase().includes(name.toLowerCase())); if (m.length===1) name = m[0]; else return; }
+  const rows = driverRows(name); if (!rows.length) return;
+  $('d-driver').value = name;
+  const bySeason = new Map(); rows.forEach(i => { const s=D.season[i]; if(!bySeason.has(s)) bySeason.set(s,[]); bySeason.get(s).push(i); });
+  const ss = [...bySeason.keys()].sort((a,b)=>a-b);
+  const fin = rows.map(i=>D.finish[i]);
+  const stat = (k,v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
+  titleFn = () => name;
+  $('d-cards').innerHTML = stat('Seasons', `${ss[0]}–${ss[ss.length-1]}`) + stat('Starts', rows.length) + stat('Wins', fin.filter(f=>f===1).length) +
+    stat('Top 5', fin.filter(f=>f<=5).length) + stat('Top 10', fin.filter(f=>f<=10).length) + stat('Avg finish', f1(avg(fin))) +
+    stat('Laps led', rows.reduce((a,i)=>a+nz(D.led[i]),0).toLocaleString()) + stat('Avg rating', f1(avg(rows.map(i=>D.rating[i]))) || '–');
+  const seasonStats = ss.map(s => { const rr = bySeason.get(s), f = rr.map(i=>D.finish[i]), st = standings(s);
+    const di = name, last = st.nums.length-1;
+    const rk = st.rank.get(di)?.[last] ?? null;
+    return {s, starts: rr.length, wins: f.filter(x=>x===1).length, t5: f.filter(x=>x<=5).length, t10: f.filter(x=>x<=10).length,
+      avgfin: avg(f), avgstart: avg(rr.map(i=>D.start[i])), led: rr.reduce((a,i)=>a+nz(D.led[i]),0),
+      dnf: rr.filter(dnf).length, rating: avg(rr.map(i=>D.rating[i])), rank: rk, pts: st.pts.get(di)?.[last] ?? null,
+      team: D.teams[D.team[rr[rr.length-1]]], make: D.makes[D.make[rr[rr.length-1]]], car: D.car[rr[rr.length-1]]}; });
+  const sel = $('d-season'), cur = sel.value;
+  fillSelect(sel, ss.slice().reverse().map(s=>[s,s]), ss.includes(+cur) && sel.dataset.driver===name ? cur : ss[ss.length-1]); sel.dataset.driver = name;
+  const m = $('d-metric').value, t = themeColors();
+  const mv = {avgfin:s=>avgR(s.avgfin), wins:s=>s.wins, top5:s=>s.t5, top10:s=>s.t10, rating:s=>avgR(s.rating), led:s=>s.led, dnf:s=>s.dnf, rank:s=>s.rank};
+  const mlabel = $('d-metric').selectedOptions[0].textContent;
+  const lowGood = m==='avgfin' || m==='rank';
+  mount('c-dseasons', {type: lowGood ? 'line' : 'bar', data:{labels: ss, datasets:[{label:mlabel, data: seasonStats.map(mv[m]),
+      borderColor:t.accent, backgroundColor:t.accent, pointRadius:4, tension:.15, borderRadius:3}]},
+    options:{scales:{y:{reverse: lowGood, beginAtZero: !lowGood, title:{display:true,text:mlabel}}}, plugins:{legend:{display:false}}}});
+  renderDriverForm(name, bySeason);
+  renderTable($('t-driver'), 'driver', [
+    {h:'Season', k:r=>r.s}, {h:'Rank', k:r=>r.rank}, {h:'Pts', k:r=>r.pts}, {h:'Car', k:r=>r.car, l:1}, {h:'Team', k:r=>r.team, l:1}, {h:'Make', k:r=>r.make, l:1},
+    {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins}, {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10},
+    {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Avg Start', k:r=>avgR(r.avgstart), html:r=>f1(r.avgstart)},
+    {h:'Laps Led', k:r=>r.led}, {h:'DNF', k:r=>r.dnf}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
+  ], seasonStats.slice().reverse(), {file:'driver-' + name.replace(/\W+/g,'_')});
+  // best tracks
+  const byTrack = new Map(); rows.forEach(i => { const t=D.track[i]; if(!byTrack.has(t)) byTrack.set(t,[]); byTrack.get(t).push(i); });
+  const tr = [...byTrack.entries()].filter(([,v])=>v.length>=3).map(([t,v])=>{ const f=v.map(i=>D.finish[i]);
+    return {t, name:D.tracks[t], starts:v.length, wins:f.filter(x=>x===1).length, t5:f.filter(x=>x<=5).length, t10:f.filter(x=>x<=10).length, avgfin:avg(f), rating:avg(v.map(i=>D.rating[i]))}; })
+    .sort((a,b)=>a.avgfin-b.avgfin);
+  renderTable($('t-dtracks'), 'driver-best-tracks', [
+    {h:'Track', k:r=>r.name, l:1, html:r=>`<a data-track="${r.t}">${esc(r.name)}</a>`}, {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins},
+    {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10}, {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
+  ], tr);
+}
+function renderDriverForm(name, bySeason) {
+  const s = +$('d-season').value, rr = (bySeason.get(s) || []).slice().sort((a,b)=>D.race[a]-D.race[b]);
+  $('d-formyr').textContent = '— ' + s; const t = themeColors();
+  const f = rr.map(i=>D.finish[i]);
+  const roll = f.map((_,k)=> avg(f.slice(Math.max(0,k-4),k+1)));
+  mount('c-dform', {type:'line', data:{labels: rr.map(i=>D.race[i]), datasets:[
+      {label:'Finish', data:f, showLine:false, pointRadius:rr.map((_,k)=>f[k]===1?7:4), pointStyle:f.map(x=>x===1?'star':'circle'),
+       pointBackgroundColor:f.map(x=>x===1?'#f5c518':t.accent), pointBorderColor:f.map(x=>x===1?'#a87f00':t.accent)},
+      {label:'5-race avg', data:roll, borderColor:'#f28e2b', pointRadius:0, borderWidth:2, tension:.2}]},
+    options:{scales:{y:{reverse:true, min:1, title:{display:true,text:'Finish position'}}, x:{title:{display:true,text:'Race #'}}},
+      plugins:{tooltip:{callbacks:{title: it => { const i=rr[it[0].dataIndex]; return `Race ${D.race[i]}: ${D.tracks[D.track[i]]}`; }}}}}});
+}
+$('d-driver').onchange = renderDriver;
+$('d-metric').onchange = renderDriver;
+$('d-season').onchange = () => { const name=$('d-driver').value; const by=new Map(); driverRows(name).forEach(i=>{const s=D.season[i]; if(!by.has(s)) by.set(s,[]); by.get(s).push(i);}); renderDriverForm(name, by); };
+
+// ============================================================ TRACK
+function renderTrack() {
+  const ti = +$('k-track').value, tname = D.tracks[ti];
+  const rows = []; for (let i=0;i<N;i++) if (D.track[i]===ti) rows.push(i);
+  const winners = rows.filter(i=>D.finish[i]===1).sort((a,b)=>D.season[b]-D.season[a]||D.race[b]-D.race[a]);
+  const stat = (k,v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
+  titleFn = () => tname;
+  const yrs = [...new Set(rows.map(i=>D.season[i]))].sort();
+  const racesHere = new Set(rows.map(i=>D.season[i]*100+D.race[i])).size;
+  const wc = new Map(); winners.forEach(i => wc.set(D.driver[i], (wc.get(D.driver[i])||0)+1));
+  const topW = [...wc.entries()].sort((a,b)=>b[1]-a[1]);
+  const len = D.length[rows[0]];
+  const sp = winners.map(i=>D.start[i]).filter(v=>v!=null);
+  $('k-cards').innerHTML = stat('Races', racesHere) + stat('Years', `${yrs[0]}–${yrs[yrs.length-1]}`) + stat('Length', len ? len+' mi' : '–') +
+    stat('Surface', esc(D.surfaces[D.surface[rows[0]]]||'–')) + stat('Most wins', topW.length ? `${driverLink(D.drivers[topW[0][0]])} (${topW[0][1]})` : '–') +
+    stat('Avg winner start', sp.length ? f1(avg(sp)) : '–') + stat('Pole winners', winners.filter(i=>D.start[i]===1).length) +
+    stat('Avg DNFs / race', f1(rows.filter(dnf).length / racesHere));
+  const t = themeColors(), top = topW.slice(0,12);
+  $('k-box1').style.height = Math.max(240, top.length*26+60) + 'px';
+  mount('c-kwins', {type:'bar', data:{labels: top.map(([d])=>D.drivers[d]), datasets:[{data:top.map(([,n])=>n), backgroundColor:t.accent, borderRadius:3}]},
+    options:{indexAxis:'y', scales:{x:{ticks:{precision:0}, title:{display:true,text:'Wins'}}, y:{ticks:{autoSkip:false}}}, plugins:{legend:{display:false}}}});
+  const wr = winners.slice().sort((a,b)=>D.season[a]-D.season[b]||D.race[a]-D.race[b]);
+  mount('c-kwinstart', {type:'scatter', data:{datasets:[{data: wr.map(i=>({x:D.season[i]+ (D.race[i]%2? 0.15:-0.15)*0, y:D.start[i]})).filter(p=>p.y!=null),
+      backgroundColor:t.accent, pointRadius:5}]},
+    options:{scales:{x:{type:'linear', title:{display:true,text:'Year'}, ticks:{precision:0, callback:v=>String(v)}}, y:{reverse:true, min:1, title:{display:true,text:'Winner started'}}},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label: c => { const p = wr.filter(i=>D.start[i]!=null)[c.dataIndex]; return `${drv(p)} (${D.season[p]}): started ${D.start[p]}`; }}}}}});
+  renderTable($('t-kwin'), 'track-winners', [
+    {h:'Year', k:i=>D.season[i]}, {h:'Race', k:i=>D.names[D.name[i]], l:1, html:i=>`<a data-race="${D.season[i]}-${D.race[i]}">${esc(D.names[D.name[i]])}</a>`},
+    {h:'Winner', k:drv, l:1, html:i=>driverLink(drv(i))}, {h:'Start', k:i=>D.start[i]}, {h:'Led', k:i=>D.led[i]}, {h:'Make', k:i=>D.makes[D.make[i]], l:1},
+  ], winners);
+  const by = new Map(); rows.forEach(i=>{ if(!by.has(D.driver[i])) by.set(D.driver[i],[]); by.get(D.driver[i]).push(i); });
+  const dr = [...by.entries()].filter(([,v])=>v.length>=3).map(([d,v])=>{ const f=v.map(i=>D.finish[i]);
+    return {d:D.drivers[d], starts:v.length, wins:f.filter(x=>x===1).length, t5:f.filter(x=>x<=5).length, t10:f.filter(x=>x<=10).length,
+      avgfin:avg(f), rating:avg(v.map(i=>D.rating[i])), led:v.reduce((a,i)=>a+nz(D.led[i]),0)}; }).sort((a,b)=>a.avgfin-b.avgfin);
+  renderTable($('t-kdrv'), 'track-drivers', [
+    {h:'Driver', k:r=>r.d, l:1, html:r=>driverLink(r.d)}, {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins}, {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10},
+    {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Laps Led', k:r=>r.led}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
+  ], dr);
+}
+$('k-track').onchange = renderTrack;
+
+// ============================================================ init
+$('ttl').textContent = D.title; document.title = D.title + ' Dashboard';
+fillSelect($('s-season'), seasons.map(s=>[s,s]), seasons[0]);
+fillSelect($('r-season'), seasons.map(s=>[s,s]), seasons[0]); fillRaces();
+// driver list: ordered by starts
+const startCount = new Array(D.drivers.length).fill(0); for (let i=0;i<N;i++) startCount[D.driver[i]]++;
+$('d-list').innerHTML = D.drivers.map(d=>`<option value="${esc(d)}">`).join('');
+const cur = standings(seasons[0]); $('d-driver').value = [...cur.drivers].sort((a,b)=>(cur.rank.get(a).at(-1)??999)-(cur.rank.get(b).at(-1)??999))[0];
+const trackCount = new Array(D.tracks.length).fill(0), seen = new Set(); for (let i=0;i<N;i++){ const k=D.season[i]*100+D.race[i]; if(!seen.has(k)){seen.add(k); trackCount[D.track[i]]++;} }
+fillSelect($('k-track'), D.tracks.map((t,i)=>[i,t]).filter(([i])=>trackCount[i]).sort((a,b)=>trackCount[b[0]]-trackCount[a[0]]).map(([i,t])=>[i,`${t} (${trackCount[i]} races)`]));
+renderSeason();
+</script>
+</body>
+</html>
