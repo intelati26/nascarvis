@@ -127,7 +127,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <div class="card">
       <div class="tools"><button class="btn" data-png="c-led">PNG</button></div>
       <h2>Laps led</h2>
-      <div class="sub">Every driver who led at least one lap. Stage points are in the table below.</div>
+      <div class="sub">Every driver who led at least one lap. Stage finishing positions (top 10) are in the table below.</div>
       <div class="chartbox" id="r-box2"><canvas id="c-led"></canvas></div>
     </div>
   </div>
@@ -258,7 +258,7 @@ function standings(season, opts = {}) {
   const fmt = opts.fmt || 'auto', after = opts.after || 26, adj = opts.adj !== false;
   const key = `${season}|${fmt}|${after}|${adj}`;
   if (standCache.has(key)) return standCache.get(key);
-  const rl = races(season).map(r => ({num: r.num, rows: r.rows.map(i => ({driver: drv(i), pts: nz(D.pts[i]), finish: D.finish[i]}))}));
+  const rl = races(season).map(r => ({num: r.num, rows: r.rows.map(i => ({driver: drv(i), pts: nz(D.pts[i]), finish: D.finish[i], sw: (D.s1[i]===1)+(D.s2[i]===1)+(D.s3[i]===1)}))}));
   const out = NASCARFormats.compute(season, rl, fmt, {after, adj});
   standCache.set(key, out);
   return out;
@@ -368,17 +368,21 @@ function renderSeason() {
   $('s-title').textContent = `${season} — ${ttl}`;
   const F = NASCARFormats.FORMATS[st.format];
   const era = NASCARFormats.eraFormat(season);
-  let note = st.field ? `${F.label}. Dashed line = reset after race ${st.nums[st.resetIdx-1]}; others rank below the field, gap measured within each group.` : `${F.label}: cumulative race points.`;
-  if ($('s-format').value === 'auto') note = (era === 'full' && season >= 2014 ? 'Elimination-round formats (2014–2025) are not modelled, showing full-season points. ' : '') + note;
-  else if (st.format !== era) note = `WHAT IF: ${note}`;
-  if (st.field && st.wild.size) note += ` Wild cards: ${[...st.wild].join(', ')}.`;
+  let note;
+  if (st.rounds && st.rounds.length) {
+    const lab = ['Round of 16','Round of 12','Round of 8'];
+    note = `${F.label}. Dashed lines = round resets. ` + st.rounds.map((r,i) => `After the ${lab[i]}: out – ${r.eliminated.join(', ')}.`).join(' ');
+  } else if (st.field) note = `${F.label}. Dashed line = reset after race ${st.nums[st.resetIdx-1]}; others rank below the field, gap measured within each group.`;
+  else note = `${F.label}: cumulative race points.`;
+  if ($('s-format').value !== 'auto' && st.format !== era) note = `WHAT IF: ${note}`;
+  if (st.field && st.wild && st.wild.size) note += ` Wild cards: ${[...st.wild].join(', ')}.`;
   $('s-note').textContent = note;
   const ds = shown.map((d, i) => ({label:d, data: series.get(d).map((v,k)=> st.started.get(d)[k] ? v : null),
     borderColor: colorFor(i), backgroundColor: colorFor(i), borderDash: dashFor(i), borderWidth: 2, pointRadius: 0,
     pointHoverRadius: 4, tension: 0, spanGaps: false, hidden: hidden.has(d), _i: i, stepped: false}));
-  const resetPlugin = {id:'reset', afterDatasetsDraw(c){ if (st.resetIdx==null) return;
-    const x = (c.scales.x.getPixelForValue(st.resetIdx-1)+c.scales.x.getPixelForValue(st.resetIdx))/2, g=c.ctx;
-    g.save(); g.setLineDash([5,4]); g.strokeStyle=themeColors().muted; g.beginPath(); g.moveTo(x,c.chartArea.top); g.lineTo(x,c.chartArea.bottom); g.stroke(); g.restore(); }};
+  const resetPlugin = {id:'reset', afterDatasetsDraw(c){ const idxs = st.resetIdxs && st.resetIdxs.length ? st.resetIdxs : (st.resetIdx==null ? [] : [st.resetIdx]);
+    const g=c.ctx; idxs.forEach(i => { if (i < 1) return; const x = (c.scales.x.getPixelForValue(i-1)+c.scales.x.getPixelForValue(i))/2;
+      g.save(); g.setLineDash([5,4]); g.strokeStyle=themeColors().muted; g.beginPath(); g.moveTo(x,c.chartArea.top); g.lineTo(x,c.chartArea.bottom); g.stroke(); g.restore(); }); }};
   mount('c-season', {type:'line', data:{labels: st.nums.map((n,k)=> n), datasets: ds}, plugins:[resetPlugin],
     options:{interaction:{mode:'nearest', intersect:false},
       scales:{x:{title:{display:true,text:'Race #'}}, y:{reverse: metric==='rank', min: metric==='rank'?1:undefined,
@@ -414,7 +418,7 @@ function renderStandings() {
     return {d, rank: st.rank.get(d)[k], prev: k>0 ? st.rank.get(d)[k-1] : null, pts: st.pts.get(d)[k], behind: st.behind.get(d)[k],
       car: D.car[mine[mine.length-1]], starts: mine.length, wins: fin.filter(f=>f===1).length, t5: fin.filter(f=>f<=5).length,
       t10: fin.filter(f=>f<=10).length, avgfin: avg(fin), avgstart: avg(mine.map(i=>D.start[i])), led: mine.reduce((a,i)=>a+nz(D.led[i]),0),
-      dnf: mine.filter(dnf).length, rating: avg(mine.map(i=>D.rating[i])), recent: recent(d)};
+      dnf: mine.filter(dnf).length, rating: avg(mine.map(i=>D.rating[i])), recent: recent(d), status: playoffStatus(st, d, k)};
   }).sort((a,b)=>a.rank-b.rank || b.pts-a.pts);
   renderTable($('t-standings'), 'standings', [
     {h:'Rank', k:r=>r.rank}, {h:'+/-', k:r=>r.prev==null?0:r.prev-r.rank, html:r=>delta(r.prev==null||r.prev==null?0:r.prev-r.rank)},
@@ -423,8 +427,15 @@ function renderStandings() {
     {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10}, {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)},
     {h:'Avg Start', k:r=>avgR(r.avgstart), html:r=>f1(r.avgstart)}, {h:'Laps Led', k:r=>r.led}, {h:'DNF', k:r=>r.dnf},
     {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
+    ...(st.rounds && st.rounds.length ? [{h:'Playoffs', k:r=>r.status, l:1}] : []),
     {h:'Last 5', k:r=>r.recent.join(' '), html:r=>chips(r.recent)},
   ], rows);
+}
+function playoffStatus(st, d, k) {
+  if (!st.rounds || !st.rounds.length || !st.field || !st.field.has(d) || k < st.resetIdx) return '';
+  const lab = ['R16','R12','R8'];
+  for (let i = 0; i < st.rounds.length; i++) if (st.rounds[i].eliminated.includes(d) && k >= st.rounds[i].start + 2) return 'Out after ' + lab[i];
+  return st.rounds.length > 2 && k >= st.rounds[2].start + 2 ? 'Final 4' : 'In';
 }
 const avgR = v => v==null ? null : Math.round(v*10)/10;
 ['s-season','s-metric','s-top','s-topby','s-format','s-after','s-adj'].forEach(id => $(id).onchange = () => { if (id==='s-season') { hidden.clear(); $('s-race').dataset.season=''; fillFormats(); } renderSeason(); });
@@ -466,7 +477,7 @@ function renderRace() {
     {h:'Fin', k:i=>D.finish[i]}, {h:'Start', k:i=>D.start[i]}, {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
     {h:'Driver', k:drv, l:1, html:i=>driverLink(drv(i))}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Team', k:i=>D.teams[D.team[i]], l:1},
     {h:'Make', k:i=>D.makes[D.make[i]], l:1}, {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]},
-    {h:'S1', k:i=>D.s1[i]}, {h:'S2', k:i=>D.s2[i]}, {h:'S3', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i]},
+    {h:'Stg 1', k:i=>D.s1[i]}, {h:'Stg 2', k:i=>D.s2[i]}, {h:'Stg 3', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i]},
     {h:'Rating', k:i=>D.rating[i]}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
   ], rows, {file:`race-${season}-${r.num}`});
 }

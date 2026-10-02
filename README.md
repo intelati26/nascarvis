@@ -52,36 +52,56 @@ The Season tab has a **Points format** picker. By default it shows the format th
 you can apply any other format to any season, change the race the playoff starts after (default 26), and
 switch known penalties off.
 
-| Format | Field | Reset |
-|---|---|---|
-| Full season | everyone | none (2001–03; also used for 2014–2025, see below) |
-| 2004–06 Chase | top 10 + anyone within 400 pts of the leader | 5050 down by 5 per rank |
-| 2007–10 Chase | top 12 | 5000 + 10 per win in the first 26 races |
-| 2011–13 Chase | top 10 + 2 wild cards (most wins among 11th–20th) | 2000 + 3 per win; wild cards get no win bonus |
-| 2026 Chase | top 16 | 2000 + 100/75/65, then 60 down to 0 in steps of 5 |
+| Format | Seasons | Field | Reset / rounds |
+|---|---|---|---|
+| Full season | 2001–03 | everyone | none |
+| 2004–06 Chase | 2004–06 | top 10 + anyone within 400 pts of the leader | 5050 down by 5 per rank, 10 races |
+| 2007–10 Chase | 2007–10 | top 12 | 5000 + 10 per win |
+| 2011–13 Chase | 2011–13 | top 10 + 2 wild cards (most wins among 11th–20th) | 2000 + 3 per win; wild cards get no win bonus |
+| 2014–16 Elimination | 2014–16 | 16: winners first, then points | 2000 + 3/win; rounds of 16/12/8/4 reset to 3000 / 4000 / 5000 |
+| 2017–25 Elimination | 2017–25 | 16: winners first, then points | 2000 + playoff points; resets 3000+PP / 4000+PP / 5000 |
+| 2026 Chase | 2026 | top 16 | 2000 + 100/75/65, then 60 down to 0 in steps of 5 |
 
-Drivers outside the field keep their season totals and rank below it, with the gap measured within each
-group. Ties are broken by wins, then 2nd places, 3rd places and so on. 2013 includes its one-off field
-(Truex removed, Newman and Gordon added).
+How the models work:
+- **Chase formats:** drivers outside the field keep their season totals and rank below it, with the gap
+  measured within each group. Ties are broken by wins, then 2nd places, 3rd places and so on. 2013 includes
+  its one-off field (Truex removed, Newman and Gordon added).
+- **Elimination formats:** in each round, race winners advance first, then the best of the rest by round points.
+  The four finalists are ranked by finish in the finale (points are 5000 plus finishing points; the best
+  finisher is champion). Eliminated drivers keep a continuing total (2000 + playoff points + every race since),
+  and all eliminated drivers rank together by that total, as in the official final standings.
+- **Playoff points (2017–25):** 5 per win, 1 per stage win, plus 15/10/8/7/6/5/4/3/2/1 for the regular-season
+  top 10. A win only counts if the driver was in the top 30 in points or attempted every race.
+  Exceptions in `SPECIAL` (`formats.js`): Logano 2017 and Dillon 2024 (win not playoff-eligible) and Kurt
+  Busch 2022 (withdrew).
 
-**Not modelled:** the 2014–2025 elimination formats (rounds of 16/12/8/4 with playoff points). Those seasons
-default to full-season points, so their ranks are *not* the official final standings.
-
-The engine is `formats.js` (pure functions, no DOM). The rules were checked against NASCAR rule summaries
-(Wikipedia's *NASCAR Chase* and season articles) and the 2026 changes in press coverage.
+The engine is `formats.js` (pure functions, no DOM). Rules were checked against Wikipedia's *NASCAR Chase* and
+season articles, and the 2026 changes in press coverage.
 
 ### Validation
 
-`tests/test_formats.js` recomputes the final standings for 2004–2013 and compares the top 15 with the
-official final points in `tests/official_standings_2004_2013.json` (copied from the Wikipedia season articles;
-CC BY-SA). Run it with `python tests/make_fixture.py && node tests/test_formats.js`. It reproduces every checked
-total except one name-spelling quirk in the test data. Getting there needed
-`adjustments.json`, a list of **penalties the results data doesn't contain** (for example Dale Earnhardt Jr.'s
-2004 deductions and Clint Bowyer's 150 points in 2010). Those entries were **inferred from the gap to the
-official standings**, so their causes and exact races are not confirmed; each carries a note saying so. Two
-small ones (2005 Kenseth +5, 2008 Kenseth −2) are unexplained data differences. Seasons outside 2004–2013
-and the 2026 reset have not been checked against official tables, and penalties for other years are not
-included, so interim standings can differ slightly from the official ones.
+`tests/test_formats.js` recomputes standings and compares them with the official final tables in
+`tests/official_standings_*.json` (copied from the Wikipedia season articles; CC BY-SA). Run it with
+`python tests/make_fixture.py && node tests/test_formats.js`.
+
+| Seasons | Result |
+|---|---|
+| 2004–2013 Chase | Every checked total and rank in the top 15 matches |
+| 2014–2025 field | The 16-driver playoff field matches the official one in every season 2017–2025 (2014–16 matched on points) |
+| 2014–2025 champions | All 12 champions and final-four orders match, with exact finale totals |
+| 2014–2025 eliminated drivers | Final total within 5 points for 126 of 136 (93%); exact final rank for 125 of 136 (92%) |
+
+The rest of the gap comes from small residuals I could not explain from the data: playoff points lost to
+penalties (for example "encumbered" wins), and points differences of a few points. Interim standings during the
+playoffs have *not* been checked against official round-by-round tables, only the final standings have.
+
+`adjustments.json` lists **penalties the results data doesn't contain** (for example Dale Earnhardt Jr.'s 2004
+deductions, Bowyer's 150 points in 2010, Byron's 60 in 2023). Most were **inferred from the gap to the
+official standings**, so their causes and exact races are not confirmed; each carries a note saying so.
+The 2026 reset and seasons before 2004 have not been checked against official tables.
+
+**Data note:** in `cup_series.parquet` the `S1`/`S2`/`S3` columns are stage *finishing positions* (1–10), not stage
+points, so a stage win is `1`.
 
 ## Weekly scorecard exporter (original tooling)
 

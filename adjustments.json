@@ -1,21 +1,142 @@
 [
- {"season":2004,"race":26,"driver":"Dale Earnhardt Jr.","pts":-25,"note":"penalty before the Chase (inferred from official final standings)"},
- {"season":2004,"race":27,"driver":"Dale Earnhardt Jr.","pts":-25,"note":"penalty during the Chase (inferred)"},
- {"season":2004,"race":26,"driver":"Jamie McMurray","pts":-25,"note":"penalty before the Chase; dropped him out of the field (inferred)"},
- {"season":2004,"race":26,"driver":"Kasey Kahne","pts":-25,"note":"penalty (inferred)"},
- {"season":2005,"race":26,"driver":"Jimmie Johnson","pts":-25,"note":"penalty before the Chase (inferred)"},
- {"season":2005,"race":26,"driver":"Kevin Harvick","pts":-25,"note":"penalty (inferred)"},
- {"season":2006,"race":26,"driver":"Kurt Busch","pts":-50,"note":"penalty (inferred)"},
- {"season":2007,"race":27,"driver":"Carl Edwards","pts":-25,"note":"penalty during the Chase (inferred)"},
- {"season":2007,"race":26,"driver":"Dale Earnhardt Jr.","pts":-100,"note":"penalty (inferred)"},
- {"season":2008,"race":27,"driver":"Carl Edwards","pts":-10,"note":"seed/win-count difference or penalty (inferred)"},
- {"season":2008,"race":26,"driver":"Martin Truex Jr.","pts":-150,"note":"penalty (inferred)"},
- {"season":2009,"race":26,"driver":"Kyle Busch","pts":-25,"note":"penalty (inferred)"},
- {"season":2010,"race":27,"driver":"Clint Bowyer","pts":-150,"note":"post-Richmond penalty, applied after the reset (inferred)"},
- {"season":2011,"race":26,"driver":"Martin Truex Jr.","pts":-25,"note":"penalty (inferred)"},
- {"season":2012,"race":26,"driver":"Paul Menard","pts":-25,"note":"penalty (inferred)"},
- {"season":2012,"race":27,"driver":"Jeff Gordon","pts":-25,"note":"penalty during the Chase (inferred)"},
- {"season":2013,"race":26,"driver":"Martin Truex Jr.","pts":-50,"note":"Richmond race-manipulation penalty; removed from the Chase (inferred from official standings)"},
- {"season":2008,"race":27,"driver":"Matt Kenseth","pts":-2,"note":"2-point difference from official standings, cause unknown"},
- {"season":2005,"race":27,"driver":"Matt Kenseth","pts":5,"note":"5-point difference from official standings, cause unknown (probably a bonus missing from the data)"}
+ {
+  "season": 2004,
+  "race": 26,
+  "driver": "Dale Earnhardt Jr.",
+  "pts": -25,
+  "note": "penalty before the Chase (inferred from official final standings)"
+ },
+ {
+  "season": 2004,
+  "race": 27,
+  "driver": "Dale Earnhardt Jr.",
+  "pts": -25,
+  "note": "penalty during the Chase (inferred)"
+ },
+ {
+  "season": 2004,
+  "race": 26,
+  "driver": "Jamie McMurray",
+  "pts": -25,
+  "note": "penalty before the Chase; dropped him out of the field (inferred)"
+ },
+ {
+  "season": 2004,
+  "race": 26,
+  "driver": "Kasey Kahne",
+  "pts": -25,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2005,
+  "race": 26,
+  "driver": "Jimmie Johnson",
+  "pts": -25,
+  "note": "penalty before the Chase (inferred)"
+ },
+ {
+  "season": 2005,
+  "race": 26,
+  "driver": "Kevin Harvick",
+  "pts": -25,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2006,
+  "race": 26,
+  "driver": "Kurt Busch",
+  "pts": -50,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2007,
+  "race": 27,
+  "driver": "Carl Edwards",
+  "pts": -25,
+  "note": "penalty during the Chase (inferred)"
+ },
+ {
+  "season": 2007,
+  "race": 26,
+  "driver": "Dale Earnhardt Jr.",
+  "pts": -100,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2008,
+  "race": 27,
+  "driver": "Carl Edwards",
+  "pts": -10,
+  "note": "seed/win-count difference or penalty (inferred)"
+ },
+ {
+  "season": 2008,
+  "race": 26,
+  "driver": "Martin Truex Jr.",
+  "pts": -150,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2009,
+  "race": 26,
+  "driver": "Kyle Busch",
+  "pts": -25,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2010,
+  "race": 27,
+  "driver": "Clint Bowyer",
+  "pts": -150,
+  "note": "post-Richmond penalty, applied after the reset (inferred)"
+ },
+ {
+  "season": 2011,
+  "race": 26,
+  "driver": "Martin Truex Jr.",
+  "pts": -25,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2012,
+  "race": 26,
+  "driver": "Paul Menard",
+  "pts": -25,
+  "note": "penalty (inferred)"
+ },
+ {
+  "season": 2012,
+  "race": 27,
+  "driver": "Jeff Gordon",
+  "pts": -25,
+  "note": "penalty during the Chase (inferred)"
+ },
+ {
+  "season": 2013,
+  "race": 26,
+  "driver": "Martin Truex Jr.",
+  "pts": -50,
+  "note": "Richmond race-manipulation penalty; removed from the Chase (inferred from official standings)"
+ },
+ {
+  "season": 2008,
+  "race": 27,
+  "driver": "Matt Kenseth",
+  "pts": -2,
+  "note": "2-point difference from official standings, cause unknown"
+ },
+ {
+  "season": 2005,
+  "race": 27,
+  "driver": "Matt Kenseth",
+  "pts": 5,
+  "note": "5-point difference from official standings, cause unknown (probably a bonus missing from the data)"
+ },
+ {
+  "season": 2023,
+  "race": 7,
+  "driver": "William Byron",
+  "pts": -60,
+  "note": "Richmond: illegally modified greenhouse; also lost 5 playoff points (not modelled). Source: 2023 season article footnote"
+ }
 ]
