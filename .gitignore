@@ -1,7 +1,3 @@
-.venv/
-__pycache__/
-*.pyc
-.server.pid
 # Data and generated output (the data is GPL-3 and the dashboard embeds it -- see README)
 cup_series.parquet
 cup_series.parquet.meta.json
@@ -9,6 +5,8 @@ nascar.db
 results_*.csv
 fastest_laps.csv
 race_events.csv
+lap_times_*.parquet
+lap_data/
 lap_data_sample.txt
 dashboard.html
 out/
