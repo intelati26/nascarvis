@@ -13,12 +13,16 @@ offline HTML file: copy it to a phone, or serve it (python -m http.server) and o
 If a lap-data file is available, build_dashboard also writes one lap JSON file per season
 next to the dashboard, which the browser can fetch offline for lap-by-lap charts.
 If lap coverage is incomplete the build will write lap_gaps.csv into --lap-dir to list missing races.
+
+New: --embed-laps will embed per-season lap JSON into the generated dashboard.html (may be large).
+New: --fetch-all-laps will fetch every season's lap data and write compressed parquet sidecars.
 """
 import argparse
 import csv
 import json
 import math
 import os
+import time
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -45,7 +49,10 @@ def read_table_rows(path):
         return list(csv.DictReader(f))
 
 
-def export_lap_json_for_season(season, lap_input, out_dir):
+def build_lap_dict_for_season(season, lap_input):
+    """Return an in-memory dict of races -> driver -> lap rows for the given season.
+    This mirrors export_lap_json_for_season but does not write files.
+    """
     if not lap_input or not os.path.exists(lap_input):
         return None
     rows = read_table_rows(lap_input)
@@ -79,9 +86,17 @@ def export_lap_json_for_season(season, lap_input, out_dir):
             "lap_speed": None if lap_speed is None else float(lap_speed),
             "position": None if position is None else int(position),
         })
-    for driver, laps in list(races.items()):
-        for dname, data in list(laps.items()):
+    for _, race in list(races.items()):
+        for dname, data in list(race.items()):
             data.sort(key=lambda item: item.get("lap", 0))
+    return races
+
+
+def export_lap_json_for_season(season, lap_input, out_dir):
+    # compatibility: writes a file and returns the path (used when not embedding)
+    races = build_lap_dict_for_season(season, lap_input)
+    if races is None:
+        return None
     out_path = os.path.join(out_dir, f"lap_times_{season}.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(races, f, separators=(",", ":"), ensure_ascii=False)
@@ -104,6 +119,111 @@ def check_lap_json_completeness(expected_by_season, lap_dir):
     return missing
 
 
+# ----- optional: fetch laps using nascar-api and write compressed parquet per-season -----
+try:
+    from nascar_api.repos import HistoricNascarRepo
+    from nascar_api.enums import Series as NascarSeries
+except Exception:
+    HistoricNascarRepo = None
+    NascarSeries = None
+
+
+def fetch_laps_for_season_parquet(season, out_dir, series=None, compression='snappy', force=False, sleep_between=0.5):
+    """
+    Fetch lap times for every race in `season` using nascar-api and write them to
+    a compressed parquet file: lap_times_<season>.parquet in out_dir.
+
+    - series: if None, uses NascarSeries.CUP (if available).
+    - compression: 'snappy' or 'gzip' (snappy recommended).
+    - force: if False and file exists, skip (resume-friendly).
+    - sleep_between: seconds to wait between race API calls to be kinder to the API.
+    Returns path to parquet or None on error.
+    """
+    if HistoricNascarRepo is None or NascarSeries is None:
+        raise RuntimeError("nascar-api library not available; install it in the build environment")
+
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, f"lap_times_{season}.parquet")
+    if os.path.exists(out_path) and not force:
+        print(f"skipping existing parquet: {out_path}")
+        return out_path
+
+    repo = HistoricNascarRepo()
+    target_series = series or NascarSeries.CUP
+
+    print(f"fetching races list for season {season} ...")
+    try:
+        races = repo.get_races(series=target_series, season=season)
+    except Exception as e:
+        print(f"failed fetching races for {season}: {e}")
+        return None
+
+    rows = []
+    for idx, race in enumerate(races, start=1):
+        # race objects may be dict-like or pydantic models; handle both
+        race_id = race.get("race_id") if isinstance(race, dict) else getattr(race, "race_id", None)
+        race_num = race.get("race_number", idx) if isinstance(race, dict) else getattr(race, "race_number", idx)
+        print(f"  fetching lap times for season {season} race {race_num} (id={race_id}) ...")
+        try:
+            lap_resp = repo.get_lap_times(series=target_series, season=season, race_id=race_id)
+        except Exception as e:
+            print(f"    error fetching lap times for race {race_num}: {e}")
+            time.sleep(sleep_between)
+            continue
+
+        for drv in lap_resp:
+            if isinstance(drv, dict):
+                name = drv.get("full_name") or drv.get("display_name") or drv.get("driver") or "unknown"
+                laps_list = drv.get("laps") or []
+            else:
+                name = getattr(drv, "full_name", None) or getattr(drv, "display_name", None) or getattr(drv, "driver", "unknown")
+                laps_list = getattr(drv, "laps", []) or []
+
+            for lap in laps_list:
+                lap_no = lap.get("lap") if isinstance(lap, dict) else getattr(lap, "lap", None)
+                lap_time = lap.get("lap_time") if isinstance(lap, dict) else getattr(lap, "lap_time", None)
+                lap_speed = lap.get("lap_speed") if isinstance(lap, dict) else getattr(lap, "lap_speed", None)
+                pos = lap.get("position") if isinstance(lap, dict) else getattr(lap, "position", None)
+                if lap_no is None:
+                    continue
+                rows.append({
+                    "season": int(season),
+                    "race_num": int(race_num),
+                    "race_id": race_id,
+                    "driver": str(name).strip(),
+                    "lap": int(lap_no),
+                    "lap_time": None if lap_time is None else float(lap_time),
+                    "lap_speed": None if lap_speed is None else float(lap_speed),
+                    "position": None if pos is None else int(pos),
+                })
+        time.sleep(sleep_between)
+
+    if not rows:
+        print(f"no lap rows fetched for season {season}")
+        return None
+
+    try:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+    except Exception:
+        print("pyarrow is required to write parquet: install pyarrow in your environment")
+        raise
+
+    table = pa.Table.from_pylist(rows)
+    pq.write_table(table, out_path, compression=compression)
+    print(f"wrote parquet: {out_path} ({len(rows):,} rows)")
+    return out_path
+
+
+def fetch_all_history_parquet(seasons, out_dir, compression='snappy', force=False, series=None, sleep_between=0.5):
+    written = []
+    for s in sorted(seasons):
+        p = fetch_laps_for_season_parquet(s, out_dir, series=series, compression=compression, force=force, sleep_between=sleep_between)
+        if p:
+            written.append(p)
+    return written
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("data", nargs="?", default=os.path.join(HERE, "cup_series.parquet"))
@@ -114,6 +234,11 @@ def main():
     ap.add_argument("--lap-input", default=None, help="optional lap parquet/csv file used to generate lap JSON sidecars")
     ap.add_argument("--lap-dir", default=HERE, help="directory to write lap JSON files")
     ap.add_argument("--strict-lap-check", action="store_true", help="fail the build if historical lap-data coverage is incomplete")
+    ap.add_argument("--embed-laps", action="store_true", help="embed per-season lap JSON into dashboard.html (may be very large)")
+    ap.add_argument("--fetch-all-laps", action="store_true", help="fetch lap times for all seasons and write compressed parquet sidecars")
+    ap.add_argument("--lap-parquet-dir", default=None, help="where to write per-season lap parquet files (defaults to --lap-dir)")
+    ap.add_argument("--lap-parquet-compression", default="snappy", choices=["snappy", "gzip"], help="parquet compression for lap files")
+    ap.add_argument("--fetch-force", action="store_true", help="overwrite existing parquet files when fetching")
     a = ap.parse_args()
 
     import pyarrow.parquet as pq
@@ -161,19 +286,37 @@ def main():
         s1=stage_pts("S1"), s2=stage_pts("S2"), s3=stage_pts("S3"), rating=num("Rating", 1), win=num("Win"),
     )
 
+    lap_parquet_dir = a.lap_parquet_dir or a.lap_dir
+
+    # If requested, fetch all history parquet files first (resume-friendly)
+    if a.fetch_all_laps:
+        if HistoricNascarRepo is None:
+            print("nascar-api not available in this environment. Install it and rerun (pip install nascar-api).")
+            raise SystemExit(1)
+        seasons_to_fetch = sorted(expected_by_season.keys())
+        print(f"fetching lap parquet for seasons: {seasons_to_fetch}")
+        fetched = fetch_all_history_parquet(seasons_to_fetch, lap_parquet_dir, compression=a.lap_parquet_compression, force=a.fetch_force, series=None, sleep_between=0.5)
+        print(f"fetched {len(fetched)} parquet files")
+
     lap_files = {}
+    lap_data_embed = {} if a.embed_laps else None
+
     if a.lap_input:
         os.makedirs(a.lap_dir, exist_ok=True)
         for season in sorted(expected_by_season):
-            out_path = export_lap_json_for_season(season, a.lap_input, a.lap_dir)
-            if out_path:
-                lap_files[str(season)] = os.path.basename(out_path)
+            # build in-memory dict from the supplied lap_input (parquet or csv)
+            races_dict = build_lap_dict_for_season(season, a.lap_input)
+            if races_dict:
+                out_path = export_lap_json_for_season(season, a.lap_input, a.lap_dir)
+                if out_path:
+                    lap_files[str(season)] = os.path.basename(out_path)
+                if a.embed_laps:
+                    lap_data_embed[str(season)] = races_dict
         missing_by_season = check_lap_json_completeness(expected_by_season, a.lap_dir)
         if missing_by_season:
             print("lap JSON completeness warning:")
             for season, missing in sorted(missing_by_season.items()):
                 print(f"  season {season}: missing races {missing}")
-            # write CSV report of gaps for easier inspection
             gaps_csv = os.path.join(a.lap_dir, "lap_gaps.csv")
             with open(gaps_csv, "w", newline="", encoding="utf-8") as gf:
                 w = csv.writer(gf)
@@ -188,11 +331,49 @@ def main():
             if a.strict_lap_check:
                 raise SystemExit("historical lap coverage is incomplete")
     else:
+        # try to find parquet sidecars first (if fetch_all_laps wrote them), then json sidecars
         for season in sorted(expected_by_season):
-            json_path = os.path.join(a.lap_dir, f"lap_times_{season}.json")
-            if os.path.exists(json_path):
-                lap_files[str(season)] = os.path.basename(json_path)
+            pq_path = os.path.join(lap_parquet_dir, f"lap_times_{season}.parquet")
+            if os.path.exists(pq_path):
+                # if embedding, convert parquet to in-memory dict; otherwise leave parquet on disk and also generate json sidecar
+                lap_files[str(season)] = os.path.basename(pq_path)
+                if a.embed_laps:
+                    # convert parquet to our races dict and embed
+                    import pyarrow.parquet as pq
+                    table = pq.read_table(pq_path)
+                    rows = table.to_pylist()
+                    # transform to races dict shape
+                    races = {}
+                    for r in rows:
+                        sn = int(r.get('season'))
+                        if sn != season: continue
+                        rn = int(r.get('race_num'))
+                        drv = r.get('driver') or 'unknown'
+                        lap = int(r.get('lap'))
+                        lt = r.get('lap_time')
+                        ls = r.get('lap_speed')
+                        pos = r.get('position')
+                        race_map = races.setdefault(rn, {})
+                        drv_list = race_map.setdefault(drv, [])
+                        drv_list.append({
+                            'lap': lap,
+                            'lap_time': None if lt is None else float(lt),
+                            'lap_speed': None if ls is None else float(ls),
+                            'position': None if pos is None else int(pos),
+                        })
+                    for _, race in list(races.items()):
+                        for dname, data in list(race.items()):
+                            data.sort(key=lambda item: item.get('lap', 0))
+                    lap_data_embed[str(season)] = races
+            else:
+                json_path = os.path.join(a.lap_dir, f"lap_times_{season}.json")
+                if os.path.exists(json_path):
+                    lap_files[str(season)] = os.path.basename(json_path)
+                    if a.embed_laps:
+                        lap_data_embed[str(season)] = json.load(open(json_path, encoding='utf-8'))
     data["lapFiles"] = lap_files
+    if lap_data_embed is not None:
+        data["lapData"] = lap_data_embed
 
     tpl = open(os.path.join(HERE, "dashboard_template.html"), encoding="utf-8").read()
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()
@@ -205,7 +386,9 @@ def main():
     print(f"wrote {a.out}: {len(keep):,} rows, seasons {data['season'][0]}-{data['season'][-1]}, "
           f"{os.path.getsize(a.out)/1e6:.1f} MB")
     if lap_files:
-        print(f"lap JSON sidecars: {len(lap_files)} seasons; examples: {', '.join(sorted(lap_files.items())[:3])}")
+        print(f"lap JSON/parquet sidecars: {len(lap_files)} seasons; examples: {', '.join(sorted(lap_files.items())[:3])}")
+    if lap_data_embed is not None:
+        print(f"embedded lap data for {len(lap_data_embed)} seasons (this increases dashboard size).")
 
 
 if __name__ == "__main__":
