@@ -24,6 +24,7 @@ import math
 import os
 import time
 import urllib.request
+import inspect
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 URL = "https://nascar.kylegrealis.com/cup_series.parquet"
@@ -128,16 +129,39 @@ except Exception:
     NascarSeries = None
 
 
+def _call_with_variants(func, kwargs_variants, *args, **base_kwargs):
+    """Try calling func with a sequence of keyword dicts. Return first successful result.
+    Only pass parameters that exist in the function signature to avoid unexpected kw errors.
+    """
+    sig = None
+    try:
+        sig = inspect.signature(func)
+        params = sig.parameters
+    except Exception:
+        params = {}
+    last_exc = None
+    for kv in kwargs_variants:
+        call_kwargs = {k: v for k, v in kv.items() if k in params}
+        try:
+            return func(*args, **call_kwargs)
+        except TypeError as e:
+            last_exc = e
+            continue
+    # final fallback: try calling with no kwargs
+    try:
+        return func(*args)
+    except Exception as e:
+        # raise the most informative exception
+        raise last_exc or e
+
+
 def fetch_laps_for_season_parquet(season, out_dir, series=None, compression='snappy', force=False, sleep_between=0.5):
     """
     Fetch lap times for every race in `season` using nascar-api and write them to
     a compressed parquet file: lap_times_<season>.parquet in out_dir.
 
-    - series: if None, uses NascarSeries.CUP (if available).
-    - compression: 'snappy' or 'gzip' (snappy recommended).
-    - force: if False and file exists, skip (resume-friendly).
-    - sleep_between: seconds to wait between race API calls to be kinder to the API.
-    Returns path to parquet or None on error.
+    This function is defensive about nascar-api method signatures and will try
+    common parameter names (season/year) and fall back to filtering returned races.
     """
     if HistoricNascarRepo is None or NascarSeries is None:
         raise RuntimeError("nascar-api library not available; install it in the build environment")
@@ -152,26 +176,59 @@ def fetch_laps_for_season_parquet(season, out_dir, series=None, compression='sna
     target_series = series or NascarSeries.CUP
 
     print(f"fetching races list for season {season} ...")
+    # try common calling forms for get_races
+    kwargs_options = [
+        {"series": target_series, "season": season},
+        {"series": target_series, "year": season},
+        {"season": season},
+        {"year": season},
+        {"series": target_series},
+        {},
+    ]
     try:
-        races = repo.get_races(series=target_series, season=season)
+        races = _call_with_variants(repo.get_races, kwargs_options)
     except Exception as e:
         print(f"failed fetching races for {season}: {e}")
         return None
 
+    # Ensure races is iterable and filter to the requested season if necessary
+    races_list = list(races or [])
+    def race_season_val(r):
+        if isinstance(r, dict):
+            return r.get('season') or r.get('year') or r.get('season_year')
+        return getattr(r, 'season', None) or getattr(r, 'year', None) or getattr(r, 'season_year', None)
+    # If races contain multiple seasons, filter by season
+    if any(race_season_val(r) not in (None, season) for r in races_list):
+        races_list = [r for r in races_list if (race_season_val(r) in (None, season) or int(race_season_val(r)) == int(season))]
+
+    if not races_list:
+        print(f"no races found for season {season}")
+        return None
+
     rows = []
-    for idx, race in enumerate(races, start=1):
-        # race objects may be dict-like or pydantic models; handle both
+    for idx, race in enumerate(races_list, start=1):
         race_id = race.get("race_id") if isinstance(race, dict) else getattr(race, "race_id", None)
         race_num = race.get("race_number", idx) if isinstance(race, dict) else getattr(race, "race_number", idx)
         print(f"  fetching lap times for season {season} race {race_num} (id={race_id}) ...")
+        # try variants for get_lap_times
+        lap_kwargs_options = [
+            {"series": target_series, "race_id": race_id},
+            {"series": target_series, "season": season, "race_id": race_id},
+            {"series": target_series, "year": season, "race_id": race_id},
+            {"season": season, "race_id": race_id},
+            {"year": season, "race_id": race_id},
+            {"race_id": race_id},
+            {},
+        ]
         try:
-            lap_resp = repo.get_lap_times(series=target_series, season=season, race_id=race_id)
+            lap_resp = _call_with_variants(repo.get_lap_times, lap_kwargs_options)
         except Exception as e:
             print(f"    error fetching lap times for race {race_num}: {e}")
             time.sleep(sleep_between)
             continue
 
-        for drv in lap_resp:
+        # lap_resp expected to be list-like of driver entries
+        for drv in lap_resp or []:
             if isinstance(drv, dict):
                 name = drv.get("full_name") or drv.get("display_name") or drv.get("driver") or "unknown"
                 laps_list = drv.get("laps") or []
