@@ -12,6 +12,7 @@ offline HTML file: copy it to a phone, or serve it (python -m http.server) and o
 
 If a lap-data file is available, build_dashboard also writes one lap JSON file per season
 next to the dashboard, which the browser can fetch offline for lap-by-lap charts.
+If lap coverage is incomplete the build will write lap_gaps.csv into --lap-dir to list missing races.
 """
 import argparse
 import csv
@@ -172,6 +173,18 @@ def main():
             print("lap JSON completeness warning:")
             for season, missing in sorted(missing_by_season.items()):
                 print(f"  season {season}: missing races {missing}")
+            # write CSV report of gaps for easier inspection
+            gaps_csv = os.path.join(a.lap_dir, "lap_gaps.csv")
+            with open(gaps_csv, "w", newline="", encoding="utf-8") as gf:
+                w = csv.writer(gf)
+                w.writerow(["season", "race", "reason"])
+                for season, missing in sorted(missing_by_season.items()):
+                    if missing == "missing JSON":
+                        w.writerow([season, "ALL", "missing JSON"])
+                    else:
+                        for r in missing:
+                            w.writerow([season, r, "missing race"])
+            print(f"wrote lap gaps CSV: {gaps_csv}")
             if a.strict_lap_check:
                 raise SystemExit("historical lap coverage is incomplete")
     else:
