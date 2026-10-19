@@ -14,7 +14,7 @@ If a lap-data file is available, build_dashboard also writes one lap JSON file p
 next to the dashboard, which the browser can fetch offline for lap-by-lap charts.
 If lap coverage is incomplete the build will write lap_gaps.csv into --lap-dir to list missing races.
 
-New: --embed-laps will embed per-season lap JSON into the generated dashboard.html (may be large).
+New: --embed-laps will embed per-season lap JSON into dashboard.html (may be large).
 New: --fetch-all-laps will fetch every season's lap data and write compressed parquet sidecars.
 """
 import argparse
@@ -155,6 +155,191 @@ def _call_with_variants(func, kwargs_variants, *args, **base_kwargs):
         raise last_exc or e
 
 
+def try_racing_reference_for_race(slug_candidates):
+    """Best-effort fetch from racing-reference.info given candidate slugs.
+    Returns a dict {"url": url, "rows": rows} where rows is a list of parsed rows,
+    or None on failure. This helper uses requests + bs4 if available and is intentionally
+    tolerant: it will try candidate slugs until one returns a plausible table.
+    """
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+    except Exception:
+        return None
+
+    HEADERS = {"User-Agent": "Mozilla/5.0"}
+    for slug in slug_candidates:
+        if not slug:
+            continue
+        url = f"https://www.racing-reference.info/race/{slug}/"
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=20)
+            if r.status_code != 200:
+                continue
+            soup = BeautifulSoup(r.text, "html.parser")
+            # look for tables with header cells mentioning lap/time/position
+            for t in soup.find_all("table"):
+                ths = [th.get_text(strip=True).lower() for th in t.find_all("th")]
+                if not ths:
+                    continue
+                if any(k in " ".join(ths) for k in ("lap", "lap time", "time", "pos", "position")):
+                    rows = []
+                    for tr in t.find_all("tr"):
+                        cols = [td.get_text(strip=True) for td in tr.find_all(["td", "th"])]
+                        if len(cols) >= 2:
+                            rows.append(cols)
+                    if rows:
+                        return {"url": url, "headers": ths, "rows": rows}
+        except Exception:
+            time.sleep(1.0)
+            continue
+    return None
+
+
+def try_motorsportstats_for_race(season, race_num, slug_candidates, race_id=None):
+    """Lightweight best-effort fetch from motorsportstats (if reachable).
+    Motorsportstats pages are often JS-driven; this helper tries a few plausible
+    URL patterns on results.motorsportstats.com and motorsportstats.com and parses
+    any static tables it finds. Returns similar payload as the racing-reference helper
+    or None if nothing useful is found.
+    """
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+    except Exception:
+        return None
+
+    HEADERS = {"User-Agent": "Mozilla/5.0"}
+    hosts = ["https://results.motorsportstats.com", "https://www.motorsportstats.com"]
+    candidates = []
+    # add provided slugs
+    for slug in slug_candidates:
+        if not slug:
+            continue
+        candidates.append(slug)
+        candidates.append(f"races/{slug}")
+    # add structured paths
+    candidates.append(f"series/nascar-cup/season/{season}/race/{race_num}")
+    if race_id:
+        candidates.append(f"races/{race_id}")
+
+    for host in hosts:
+        for p in candidates:
+            url = f"{host.rstrip('/')}/{p.lstrip('/')}"
+            try:
+                r = requests.get(url, headers=HEADERS, timeout=20)
+                if r.status_code != 200:
+                    continue
+                soup = BeautifulSoup(r.text, "html.parser")
+                for t in soup.find_all("table"):
+                    ths = [th.get_text(strip=True).lower() for th in t.find_all("th")]
+                    if not ths:
+                        continue
+                    if any(k in " ".join(ths) for k in ("lap", "lap time", "time", "pos", "position")):
+                        rows = []
+                        for tr in t.find_all("tr"):
+                            cols = [td.get_text(strip=True) for td in tr.find_all(["td", "th"])]
+                            if len(cols) >= 2:
+                                rows.append(cols)
+                        if rows:
+                            return {"url": url, "headers": ths, "rows": rows}
+            except Exception:
+                time.sleep(1.0)
+                continue
+    return None
+
+
+def _map_rr_table_to_lap_rows(rr_payload, season, race_num):
+    """Map a racing-reference / motorsportstats table payload to our standard lap rows.
+    This is heuristic: we look for columns that look like driver, lap, time, speed, pos.
+    Returns a list of dicts with keys matching write schema.
+    """
+    headers = rr_payload.get("headers", [])
+    rows = rr_payload.get("rows", [])
+    # normalize headers to indices
+    hmap = {h: i for i, h in enumerate(headers)}
+    # attempt to identify likely columns
+    # fallback: scan header tokens for keywords
+    def find_idx(keywords):
+        for i, h in enumerate(headers):
+            for k in keywords:
+                if k in h:
+                    return i
+        return None
+    idx_driver = find_idx(["driver", "name"]) or find_idx(["car"]) or 0
+    idx_lap = find_idx(["lap"]) or find_idx(["lap #"]) or 0
+    idx_time = find_idx(["lap time", "time"]) or None
+    idx_speed = find_idx(["speed"]) or None
+    idx_pos = find_idx(["pos", "position"]) or None
+
+    out = []
+    for r in rows:
+        try:
+            drv = r[idx_driver] if idx_driver < len(r) else "unknown"
+            lap_val = r[idx_lap] if idx_lap < len(r) else None
+            # try to parse integer lap
+            lap_no = None
+            if lap_val:
+                try:
+                    lap_no = int(lap_val)
+                except Exception:
+                    # sometimes lap column contains 'Lap X' or 'X/XX' - extract digits
+                    import re
+                    m = re.search(r"(\d+)", lap_val)
+                    if m:
+                        lap_no = int(m.group(1))
+            if lap_no is None:
+                continue
+            lt = None
+            if idx_time is not None and idx_time < len(r):
+                try:
+                    lt = float(r[idx_time])
+                except Exception:
+                    # strip non-numeric
+                    import re
+                    m = re.search(r"([0-9]+\.?[0-9]*)", r[idx_time]) if r[idx_time] else None
+                    if m:
+                        try:
+                            lt = float(m.group(1))
+                        except Exception:
+                            lt = None
+            ls = None
+            if idx_speed is not None and idx_speed < len(r):
+                try:
+                    ls = float(r[idx_speed])
+                except Exception:
+                    import re
+                    m = re.search(r"([0-9]+\.?[0-9]*)", r[idx_speed]) if r[idx_speed] else None
+                    if m:
+                        try:
+                            ls = float(m.group(1))
+                        except Exception:
+                            ls = None
+            pos = None
+            if idx_pos is not None and idx_pos < len(r):
+                try:
+                    pos = int(r[idx_pos])
+                except Exception:
+                    import re
+                    m = re.search(r"(\d+)", r[idx_pos]) if r[idx_pos] else None
+                    if m:
+                        pos = int(m.group(1))
+
+            out.append({
+                "season": int(season),
+                "race_num": int(race_num),
+                "race_id": None,
+                "driver": drv or "unknown",
+                "lap": int(lap_no),
+                "lap_time": None if lt is None else float(lt),
+                "lap_speed": None if ls is None else float(ls),
+                "position": None if pos is None else int(pos),
+            })
+        except Exception:
+            continue
+    return out
+
+
 def fetch_laps_for_season_parquet(season, out_dir, series=None, compression='snappy', force=False, sleep_between=0.5):
     """
     Fetch lap times for every race in `season` using nascar-api and write them to
@@ -162,6 +347,9 @@ def fetch_laps_for_season_parquet(season, out_dir, series=None, compression='sna
 
     This function is defensive about nascar-api method signatures and will try
     common parameter names (season/year) and fall back to filtering returned races.
+    If nascar-api fails to provide lap rows for a race we attempt best-effort
+    fallbacks to racing-reference.info and motorsportstats. Both fallbacks are
+    heuristic HTML parsers and may not find JS-rendered tables.
     """
     if HistoricNascarRepo is None or NascarSeries is None:
         raise RuntimeError("nascar-api library not available; install it in the build environment")
@@ -220,14 +408,51 @@ def fetch_laps_for_season_parquet(season, out_dir, series=None, compression='sna
             {"race_id": race_id},
             {},
         ]
+        lap_resp = None
         try:
             lap_resp = _call_with_variants(repo.get_lap_times, lap_kwargs_options)
         except Exception as e:
             print(f"    error fetching lap times for race {race_num}: {e}")
+
+        # lap_resp expected to be list-like of driver entries
+        if not lap_resp:
+            # attempt lightweight fallback to racing-reference if available
+            try:
+                slug_candidates = []
+                # prefer explicit slug if provided
+                if isinstance(race, dict):
+                    for k in ("slug", "race_slug", "race_url", "url"):
+                        v = race.get(k)
+                        if v and isinstance(v, str):
+                            # try to extract last path part if it's a URL
+                            if "/" in v:
+                                slug_candidates.append(v.rstrip("/").split("/")[-1])
+                            else:
+                                slug_candidates.append(v)
+                # add simple candidates: year-racenum and race_id
+                slug_candidates.append(str(race_id) if race_id is not None else "")
+                slug_candidates.append(f"{season}-{race_num}")
+                rr = try_racing_reference_for_race(slug_candidates)
+                if rr:
+                    rr_rows = _map_rr_table_to_lap_rows(rr, season, race_num)
+                    if rr_rows:
+                        rows.extend(rr_rows)
+                        print(f"    racing-reference fallback returned {len(rr_rows):,} lap rows for race {race_num}")
+                else:
+                    # try motorsportstats as a second fallback
+                    ms = try_motorsportstats_for_race(season, race_num, slug_candidates, race_id=race_id)
+                    if ms:
+                        ms_rows = _map_rr_table_to_lap_rows(ms, season, race_num)
+                        if ms_rows:
+                            rows.extend(ms_rows)
+                            print(f"    motorsportstats fallback returned {len(ms_rows):,} lap rows for race {race_num}")
+                    else:
+                        print(f"    no lap rows from nascar-api, racing-reference, or motorsportstats for race {race_num}")
+            except Exception as e:
+                print(f"    fallback error for race {race_num}: {e}")
             time.sleep(sleep_between)
             continue
 
-        # lap_resp expected to be list-like of driver entries
         for drv in lap_resp or []:
             if isinstance(drv, dict):
                 name = drv.get("full_name") or drv.get("display_name") or drv.get("driver") or "unknown"
