@@ -605,7 +605,7 @@ def main():
                 w.writerow(["season", "race", "reason"])
                 for season, missing in sorted(missing_by_season.items()):
                     if missing == "missing JSON":
-                        w.writerow([season, "ALL", "missing JSON"])
+                        w.writerow([season, "ALL", "missing JSON"]) 
                     else:
                         for r in missing:
                             w.writerow([season, r, "missing race"])
@@ -653,6 +653,10 @@ def main():
                     lap_files[str(season)] = os.path.basename(json_path)
                     if a.embed_laps:
                         lap_data_embed[str(season)] = json.load(open(json_path, encoding='utf-8'))
+    # runtime guard: ensure 'data' is a dict before using string keys (helps diagnose accidental overwrite)
+    if not isinstance(data, dict):
+        raise TypeError(f"build_dashboard.py: expected 'data' to be dict before adding lapFiles, but got {type(data).__name__}: {repr(data)[:400]}")
+
     data["lapFiles"] = lap_files
     if lap_data_embed is not None:
         data["lapData"] = lap_data_embed
