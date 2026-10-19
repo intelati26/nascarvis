@@ -443,7 +443,9 @@ def main():
     print(f"wrote {a.out}: {len(keep):,} rows, seasons {data['season'][0]}-{data['season'][-1]}, "
           f"{os.path.getsize(a.out)/1e6:.1f} MB")
     if lap_files:
-        print(f"lap JSON/parquet sidecars: {len(lap_files)} seasons; examples: {', '.join(sorted(lap_files.items())[:3])}")
+        # lap_files is a dict mapping season->filename; present a concise examples list of filenames
+        examples = sorted(lap_files.values())[:3]
+        print(f"lap JSON/parquet sidecars: {len(lap_files)} seasons; examples: {', '.join(examples)}")
     if lap_data_embed is not None:
         print(f"embedded lap data for {len(lap_data_embed)} seasons (this increases dashboard size).")
 
