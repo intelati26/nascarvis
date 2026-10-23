@@ -51,7 +51,7 @@ The output is designed for later dashboard or analysis work without requiring an
 ## Early-season points (curation)
 
 `curation/` holds hand-curated and derived points for seasons where nascaR.data has none or incomplete values (1949, 1950,
-1972, 1973), plus Wikipedia final-standings references for 1949-1955, 1957, 1960 and 1972-1974 and a champion check for
-every season 1949-2003 (41 of 55 match exactly). `build_dashboard.py` applies `curation/points_*.csv`
+1951, 1972, 1973), plus Wikipedia final-standings references for 1949-1955, 1957, 1960 and 1972-1974 and a champion check for
+every season 1949-2003 (42 of 55 match exactly). `build_dashboard.py` applies `curation/points_*.csv`
 to blank `Pts`. See `curation/WIKIPEDIA_SUMMARY.md` for what exists per season and what is still missing, and
 `curation/SOURCES.md` for sources and licences.

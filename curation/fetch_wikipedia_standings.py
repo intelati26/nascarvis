@@ -84,6 +84,20 @@ def list_points(txt, start):
     return [(i, m.group(1), float(m.group(2).replace(",", ""))) for i, m in enumerate(re.finditer(rx, txt[start:], re.M), 1)]
 
 
+def continuation(txt, start, rows):
+    """Some articles show only the top drivers and put the rest in a collapsed table straight after (Fin, Driver, Pts ...).
+    Append such tables while their first position follows on from the last one."""
+    pos = txt.find("\n|}", txt.find("{|", start)) + 3
+    for _ in range(6):
+        nxt = txt.find("{|", pos)
+        if nxt < 0 or nxt - pos > 400: break
+        more = table_points(txt, nxt - 1)
+        if not more or more[0][0] != rows[-1][0] + 1: break
+        rows = rows + more
+        pos = txt.find("\n|}", nxt) + 3
+    return rows
+
+
 def standings(txt):
     for m in re.finditer(r"\n=+ *([^=\n]*(?:tandings|hampionship|Points)[^=\n]*?) *=+ *\n", txt):
         if re.search(r"^#\s*\[\[", txt[m.end():m.end() + 3000], re.M):
@@ -92,7 +106,7 @@ def standings(txt):
         a = txt.find("{|", m.end())
         if a >= 0 and a - m.end() < 2500:
             o = table_points(txt, m.end())
-            if len(o) >= 5: return m.group(1).strip(), o
+            if len(o) >= 5: return m.group(1).strip(), continuation(txt, m.end(), o)
     return None, []
 
 

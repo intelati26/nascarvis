@@ -33,7 +33,7 @@ finishing position (not name); `driver_in_source` is the spelling used by the so
   (winner = 50 points per $1,000, places 1-10 step down by a tenth, places 11-14 at 0.08/0.06/0.04/0.02 of the
   winner's points); (3) the season article's Drivers' championship table, 62 drivers (`final_standings_1950.csv`,
   parsed from the article text; the table image the project owner supplied matched it except one digit I misread).
-- **Method:** `derive_points_1950.py` computes each result row's points from its purse and finishing position.
+- **Method:** `derive_points_prize.py` computes each result row's points from its purse and finishing position.
   Rounding the purse to the nearest $1,000 (a $5,500 purse down) fits the official totals best.
 - **Reconciliation:** the rule alone gives Lee Petty 2336 points against his official 1590 (a 746-point gap). The article says
   NASCAR deducted 809 points from Petty for racing in a non-NASCAR-sanctioned event, and other drivers lost points the same way; the 63-point difference is consistent with points below 14th place.
@@ -65,3 +65,19 @@ See `WIKIPEDIA_SUMMARY.md` for what each season's article provides and what is s
   Reconcile entries (1972: 43, 1973: 36) use `final_standings_1972.csv` and `final_standings_1973.csv`.
 - `champions_points.csv` is from Wikipedia's *List of NASCAR Cup Series champions* (CC BY-SA 4.0); the Racing-Reference URL
   in each row is the page Wikipedia cites. It was not fetched; it is recorded for hand checking.
+
+## points_1951.csv (derived)
+
+- **Inputs, all from Wikipedia (CC BY-SA 4.0):** the 41 race purses in the schedule table of *1951 NASCAR Grand National Series*
+  (`race_purses_1951.csv`), the prize-money scale (as for 1950), and the article's Drivers' championship (top 10) plus its
+  collapsed continuation table (places 11-75): 75 drivers in `final_standings_1951.csv`.
+- **Method:** `derive_points_prize.py 1951`. The rule was found by fitting: with all 41 winner-point values free, the
+  winner's points land on 200 for the typical $3,300-3,900 purse (the points-systems page says most races were worth 200),
+  and one parameter (round the purse up from $350) reproduces that almost as well as 41 free values. The tail below 14th
+  place (0.8% of the winner's points down to 26th) was fitted too. Because these parameters were fitted on the same totals
+  they are checked against, the per-race values are approximate (mean error about 15 points per driver) and every listed
+  driver gets a reconcile entry in `adjustments.json`.
+- **Zeroed placeholders:** twelve drivers the rule scores above the table's lowest listed total (120) are missing from it, among
+  them Marshall Teague, Hershel McGriff, Curtis Turner, Leon Sales and Red Byron. The article does not say why. They are
+  zeroed (flagged in `adjustments.json`) until real totals are found.
+- Three race winners had `Pts` of 0 in the data file; those rows carry `override=1`.

@@ -140,349 +140,6 @@
   "note": "Richmond: illegally modified greenhouse; also lost 5 playoff points (not modelled). Source: 2023 season article footnote"
  },
  {
-  "season": 1950,
-  "race": 19,
-  "driver": "Bill Rexford",
-  "pts": 17.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Fireball Roberts",
-  "pts": 43.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Lee Petty",
-  "pts": -746.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Lloyd Moore",
-  "pts": -71.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Curtis Turner",
-  "pts": 21.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Chuck Mahoney",
-  "pts": 7.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Dick Linder",
-  "pts": 5.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Jimmy Florian",
-  "pts": 21.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Bill Blair",
-  "pts": -536.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Herb Thomas",
-  "pts": -199.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Buck Baker",
-  "pts": -81.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Cotton Owens",
-  "pts": -6.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Fonty Flock",
-  "pts": 38.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Weldon Adams",
-  "pts": 20.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Tim Flock",
-  "pts": -594.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Clyde Minter",
-  "pts": 23.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Dick Burns",
-  "pts": 1.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Bob Flock",
-  "pts": -26.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "George Hartley",
-  "pts": 1.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Gayle Warren",
-  "pts": 38.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Frank Mundy",
-  "pts": -5.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Jim Paschal",
-  "pts": 0.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Jack White",
-  "pts": 11.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Pappy Hough",
-  "pts": 51.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Ray Duhigg",
-  "pts": -17.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Harold Kite",
-  "pts": -125.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Neil Cole",
-  "pts": 33.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Pepper Cunningham",
-  "pts": 27.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Ewell Weddle",
-  "pts": 0.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Donald Thomas",
-  "pts": 4.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Bill Snowden",
-  "pts": 15.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Dick Clothier",
-  "pts": 1.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Paul Parks",
-  "pts": 9.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Al Gross",
-  "pts": -86.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Jim Delaney",
-  "pts": 35.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Jack Holloway",
-  "pts": 2.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "J.C. Van Landingham",
-  "pts": -75.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Bob Dickson",
-  "pts": -2.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Gene Austin",
-  "pts": 2.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Johnny Grubb",
-  "pts": -58.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Herbert Burns",
-  "pts": 5.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Lyle Scott",
-  "pts": 4.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Fred Johnson",
-  "pts": 7.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Ted Chamberlain",
-  "pts": -14.0,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Pap White",
-  "pts": 57.5,
-  "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Red Byron",
-  "pts": -1410.0,
-  "note": "1950 reconcile: all points deducted (article's list of drivers who did not score points)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Glenn Dunaway",
-  "pts": -432.0,
-  "note": "1950 reconcile: all points deducted (article's list of drivers who did not score points)"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Hershel McGriff",
-  "pts": -250.0,
-  "note": "1950 reconcile: listed by the article as scoring no points"
- },
- {
-  "season": 1950,
-  "race": 19,
-  "driver": "Otis Martin",
-  "pts": -90.0,
-  "note": "1950 reconcile: not in the official top-65 table (total below 57.5, exact value unknown); zeroed as a placeholder"
- },
- {
   "season": 1949,
   "race": 8,
   "driver": "Bob Flock",
@@ -1104,5 +761,943 @@
   "driver": "Richard D. Brown",
   "pts": -19.5,
   "note": "official total 827.75 (Wikipedia) minus rank + distance points 847.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Bill Rexford",
+  "pts": 17.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Fireball Roberts",
+  "pts": 43.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Lee Petty",
+  "pts": -746.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Lloyd Moore",
+  "pts": -71.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Curtis Turner",
+  "pts": 21.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Chuck Mahoney",
+  "pts": 7.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Dick Linder",
+  "pts": 5.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Jimmy Florian",
+  "pts": 21.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Bill Blair",
+  "pts": -536.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Herb Thomas",
+  "pts": -199.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Buck Baker",
+  "pts": -81.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Cotton Owens",
+  "pts": -6.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Fonty Flock",
+  "pts": 38.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Weldon Adams",
+  "pts": 20.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Tim Flock",
+  "pts": -594.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Clyde Minter",
+  "pts": 23.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Dick Burns",
+  "pts": 1.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Bob Flock",
+  "pts": -26.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "George Hartley",
+  "pts": 1.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Gayle Warren",
+  "pts": 38.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Frank Mundy",
+  "pts": -5.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Jim Paschal",
+  "pts": 0.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Jack White",
+  "pts": 11.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Pappy Hough",
+  "pts": 51.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Ray Duhigg",
+  "pts": -17.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Harold Kite",
+  "pts": -125.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Neil Cole",
+  "pts": 33.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Pepper Cunningham",
+  "pts": 27.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Ewell Weddle",
+  "pts": 0.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Donald Thomas",
+  "pts": 4.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Bill Snowden",
+  "pts": 15.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Dick Clothier",
+  "pts": 1.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Paul Parks",
+  "pts": 9.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Al Gross",
+  "pts": -86.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Jim Delaney",
+  "pts": 35.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Jack Holloway",
+  "pts": 2.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "J.C. Van Landingham",
+  "pts": -75.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Bob Dickson",
+  "pts": -2.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Gene Austin",
+  "pts": 2.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Johnny Grubb",
+  "pts": -58.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Herbert Burns",
+  "pts": 5.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Lyle Scott",
+  "pts": 4.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Fred Johnson",
+  "pts": 7.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Ted Chamberlain",
+  "pts": -14.0,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Pap White",
+  "pts": 57.5,
+  "note": "1950 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Red Byron",
+  "pts": -1410.0,
+  "note": "1950 reconcile: all points deducted (article's list of drivers who did not score points)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Glenn Dunaway",
+  "pts": -432.0,
+  "note": "1950 reconcile: all points deducted (article's list of drivers who did not score points)"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Hershel McGriff",
+  "pts": -250.0,
+  "note": "1950 reconcile: listed by the article as scoring no points"
+ },
+ {
+  "season": 1950,
+  "race": 19,
+  "driver": "Otis Martin",
+  "pts": -90.0,
+  "note": "1950 reconcile: not in the official top-65 table (total below 57.5, exact value unknown); zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Herb Thomas",
+  "pts": 186.25,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Fonty Flock",
+  "pts": 19.25,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Tim Flock",
+  "pts": -51.1,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Lee Petty",
+  "pts": -34.95,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Frank Mundy",
+  "pts": 146.9,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Buddy Shuman",
+  "pts": 33.75,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jesse James Taylor",
+  "pts": -11.4,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Dick Rathman",
+  "pts": 144.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bill Snowden",
+  "pts": 24.05,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Joe Eubanks",
+  "pts": 173.7,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Lloyd Moore",
+  "pts": 17.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Fireball Roberts",
+  "pts": -38.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jimmie Lewallen",
+  "pts": 14.25,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bob Flock",
+  "pts": -18.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jim Paschal",
+  "pts": 50.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bill Blair",
+  "pts": -54.6,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Gober Sosebee",
+  "pts": 31.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Erick Erickson",
+  "pts": -34.1,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Tommy Thompson",
+  "pts": 75.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Donald Thomas",
+  "pts": -116.7,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Johnny Mantz",
+  "pts": -15.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Lou Figaro",
+  "pts": 32.85,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Buck Baker",
+  "pts": -9.1,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Dick Meyer",
+  "pts": -23.1,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Harold Kite",
+  "pts": 25.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Billy Carden",
+  "pts": 18.55,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jimmy Florian",
+  "pts": -2.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jim Fiebelkorn",
+  "pts": -4.8,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Danny Weinberg",
+  "pts": -27.5,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Pappy Hough",
+  "pts": -2.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Woody Brown",
+  "pts": 19.4,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Neil Cole",
+  "pts": -151.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Paul Newkirk",
+  "pts": 45.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "John McGinley",
+  "pts": 9.9,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Marvin Panch",
+  "pts": 14.9,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Oda Greene",
+  "pts": 0.5,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jack Goodwin",
+  "pts": 39.5,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jack Smith",
+  "pts": 10.9,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Robert Caswell",
+  "pts": 31.8,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Lloyd Dane",
+  "pts": -14.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Cotton Owens",
+  "pts": 1.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Fred Steinbroner",
+  "pts": -7.5,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Ewell Weddle",
+  "pts": 26.9,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "George Seeger",
+  "pts": 25.6,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Sam Hawks",
+  "pts": 14.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Don Bailey",
+  "pts": 2.7,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bud Farrell",
+  "pts": 1.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bud Riley",
+  "pts": 50.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Fred Bince",
+  "pts": -20.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Dick Eagan",
+  "pts": -2.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Red Duvall",
+  "pts": 13.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Augie Walackas",
+  "pts": 12.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Charles Gattalia",
+  "pts": -1.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bill Holland",
+  "pts": -15.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jim Reed",
+  "pts": 2.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Shorty York",
+  "pts": -0.2,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Chuck Meekins",
+  "pts": 0.8,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Billy Myers",
+  "pts": -69.9,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bub King",
+  "pts": -5.4,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Ed Samples",
+  "pts": 4.25,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Pap White",
+  "pts": 38.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Don Oldenberg",
+  "pts": 7.5,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jim Delaney",
+  "pts": -3.3,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bill Miller",
+  "pts": 0.4,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "John DuBoise",
+  "pts": 1.4,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Jimmy Ayers",
+  "pts": 20.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bill Rexford",
+  "pts": -6.4,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Dell Pearson",
+  "pts": -194.5,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Reino Tulonen",
+  "pts": 1.0,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Speedy Thompson",
+  "pts": -2.4,
+  "note": "1951 reconcile: official total minus rule-based sum (deductions and below-tail points, not itemised)"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Marshall Teague",
+  "pts": -1696.6,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 1696.6; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Les Snow",
+  "pts": -154.4,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 154.4; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Curtis Turner",
+  "pts": -838.4,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 838.4; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Red Byron",
+  "pts": -518.6,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 518.6; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Weldon Adams",
+  "pts": -162.8,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 162.8; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Earl Moss",
+  "pts": -125.0,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 125; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Walt Sprague",
+  "pts": -279.6,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 279.6; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Hershel McGriff",
+  "pts": -856.0,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 856; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Tom Jerris",
+  "pts": -120.0,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 120; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Dick Moffitt",
+  "pts": -143.2,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 143.2; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Perry Smith",
+  "pts": -140.0,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 140; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Leon Sales",
+  "pts": -557.6,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 557.6; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Leonard Tippett",
+  "pts": -264.4,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 264.4; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Marvin Burke",
+  "pts": -350.0,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 350; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 1951,
+  "race": 41,
+  "driver": "Bill Norton",
+  "pts": -465.0,
+  "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 465; exact total unknown, zeroed as a placeholder"
  }
 ]
