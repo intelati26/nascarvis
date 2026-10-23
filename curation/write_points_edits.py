@@ -25,6 +25,7 @@ for a in json.load(open(os.path.join(ROOT, "adjustments.json"), encoding="utf-8"
 by_driver = collections.defaultdict(list)
 for r in calc.values(): by_driver[(int(r["season"]), norm(r["driver"]))].append(r)
 
+ordinal = lambda n: f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
 edits = []; per = collections.defaultdict(list)
 for p in sorted(glob.glob(os.path.join(HERE, "points_19[789]*.csv")) + glob.glob(os.path.join(HERE, "points_200*.csv"))):
     s = int(re.search(r"points_(\d{4})\.csv$", p).group(1))
@@ -93,7 +94,7 @@ for e in edits:
     k = (e[0], norm(e[3]))
     if k in done: continue
     done.add(k)
-    races = ", ".join(f"race {x[1]} ({x[4]}th, {x[6]})" for x in edits if (x[0], norm(x[3])) == k)
+    races = ", ".join(f"race {x[1]} ({ordinal(x[4])}, {x[6]})" for x in edits if (x[0], norm(x[3])) == k)
     w(f"- **{e[3]} {e[0]}**: {races}. {why(k)}")
 w("")
 
