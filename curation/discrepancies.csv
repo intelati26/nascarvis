@@ -291,7 +291,6 @@ season,kind,subject,expected,found,difference,detail,sources
 1982,standings_vs_data,Travis Tiller,316.0,231.0,-85.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 51],final_standings_1982.csv (Wikipedia); data + curation
 1983,standings_vs_data,Blackie Wangerin,115.0,107.0,-8.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 80],final_standings_1983.csv (Wikipedia); data + curation
 1983,standings_vs_data,Buddy Baker,2621.0,2611.0,-10.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 21],final_standings_1983.csv (Wikipedia); data + curation
-1983,standings_vs_data,Dick Brooks,3230.0,2946.0,-284.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 14],final_standings_1983.csv (Wikipedia); data + curation
 1983,standings_vs_data,Jim Vandiver,88.0,0.0,-88.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 88],final_standings_1983.csv (Wikipedia); data + curation
 1983,standings_vs_data,Jimmy Walker,82.0,76.0,-6.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 89],final_standings_1983.csv (Wikipedia); data + curation
 1983,standings_vs_data,Joe Fields,121.0,118.0,-3.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 78],final_standings_1983.csv (Wikipedia); data + curation
