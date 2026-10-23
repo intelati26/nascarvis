@@ -1,11 +1,11 @@
 season,driver,wikipedia_total,data_total,gap_wikipedia_minus_data,fits,rows,noted
-1975,Buddy Arrington,2654.0,2766.0,-112.0,ambiguous,2 sets of 1 row(s),0
-1975,Bill Champion,1218.0,1219.0,-1.0,unexplained,,0
+1975,Buddy Arrington,2654.0,2766.0,-112.0,ambiguous,2 sets of 1 row(s),1
+1975,Bill Champion,1218.0,1219.0,-1.0,unexplained,,1
 1975,Joe Frasson,939.0,860.0,79.0,unexplained,,0
 1975,Henley Gray,747.0,826.0,-79.0,exclude_row,"race 13 World 600 (finish 28, 79)",0
 1975,Ray Elder,372.0,377.0,-5.0,bonus_sized,,0
 1975,Randy Tissot,364.0,595.0,-231.0,exclude_row,"race 2 Daytona 500 (finish 29, 76); race 8 Rebel 500 (finish 29, 76); race 10 Winston 500 (finish 28, 79)",0
-1975,Chuck Wahl,322.0,320.0,2.0,unexplained,,0
+1975,Chuck Wahl,322.0,320.0,2.0,unexplained,,1
 1975,Skip Manning,297.0,415.0,-118.0,ambiguous,2 sets of 1 row(s),0
 1975,Hershel McGriff,205.0,518.0,-313.0,exclude_row,"race 1 Winston Western 500 (finish 10, 134); race 2 Daytona 500 (finish 30, 73); race 14 Tuborg 400 (finish 19, 106)",0
 1975,Ivan Baldwin,58.0,116.0,-58.0,ambiguous,2 sets of 1 row(s),0

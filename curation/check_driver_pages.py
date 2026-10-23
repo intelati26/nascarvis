@@ -83,15 +83,19 @@ if __name__ == "__main__": main()
 
 
 def review_csv():
-    """driver_page_review.csv: one row per remaining gap driver with the three readings side by side, what explain_gaps.py found, and blank columns for the Racing-Reference check."""
+    """driver_page_review.csv: one row per remaining gap driver with the three readings side by side, what explain_gaps.py found, and the Racing-Reference check columns, filled from rr_checks.csv."""
     pages = {(int(r["season"]), r["driver"]): r for r in csv.DictReader(open(os.path.join(HERE, "driver_page_points.csv"), encoding="utf-8"))}
+    checks = {}                                               # the project owner's Racing-Reference checks, kept in rr_checks.csv so a rebuild does not wipe them
+    if os.path.exists(os.path.join(HERE, "rr_checks.csv")):
+        checks = {(int(r["season"]), r["driver"]): r for r in csv.DictReader(open(os.path.join(HERE, "rr_checks.csv"), encoding="utf-8"))}
     rr_id = lambda n: (lambda p: re.sub(r"[^a-z]", "", p[-1].lower())[:5] + re.sub(r"[^a-z]", "", p[0].lower())[:2] + "01")([x for x in re.sub(r"\b(Jr|Sr|II|III)\.?$", "", n).split() if x])
     out = []
     for g in csv.DictReader(open(os.path.join(HERE, "gap_explanations_1975_2003.csv"), encoding="utf-8")):
         s = int(g["season"]); p = pages.get((s, g["driver"]), {})
         out.append([s, g["driver"], g["wikipedia_total"], p.get("page_pts", ""), g["data_total"], g["gap_wikipedia_minus_data"], p.get("agrees_with", ""), g["fits"], g["rows"], g["noted"],
                     "https://en.wikipedia.org/wiki/" + p["article"].replace(" ", "_") if p.get("article") else "",
-                    f"https://www.racing-reference.info/driver-season-stats/{rr_id(g['driver'])}/{s}/W", "", "", ""])
+                    f"https://www.racing-reference.info/driver-season-stats/{rr_id(g['driver'])}/{s}/W",
+                    checks.get((s, g["driver"]), {}).get("rr_total_checked", ""), checks.get((s, g["driver"]), {}).get("rr_agrees_with", ""), checks.get((s, g["driver"]), {}).get("notes", "")])
     with open(os.path.join(HERE, "driver_page_review.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["season", "driver", "wikipedia_season_table", "wikipedia_driver_page", "data_total", "gap_table_minus_data", "driver_page_agrees_with", "explain_gaps_fits", "explain_gaps_rows", "noted",

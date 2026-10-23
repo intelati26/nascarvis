@@ -156,6 +156,6 @@ Race points for 1949-51, 1955, 1972 and 1973 were derived from purses, race clas
 
 ## Open differences, 1975-2003
 
-112 drivers still differ from Wikipedia's total after the edits above; 24 are noted as explained or probable errors, 88 are not yet noted. By what fits (see `explain_gaps.py`): place_shift 47, bonus_sized 26, unexplained 17, exclude_row 12, ambiguous 5, penalty_sized 3, restore_row 2.
+112 drivers still differ from Wikipedia's total after the edits above; 27 are noted as explained or probable errors, 85 are not yet noted. By what fits (see `explain_gaps.py`): place_shift 47, bonus_sized 26, unexplained 17, exclude_row 12, ambiguous 5, penalty_sized 3, restore_row 2.
 
 The 1981 group (22 drivers exactly 3 under Wikipedia's total) is consistent with one race, the Atlanta Journal 500 (race 30), being scored one place down for 13th and lower on Wikipedia's side; this is an inference from the pattern, not a shown cause.

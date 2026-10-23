@@ -24,9 +24,9 @@ by = collections.defaultdict(list)
 for r in rows: by[(int(r["season"]), norm(r["driver"]))].append(r)
 seasons = sorted({k[0] for k in by})
 
-noted = set()                                            # gaps already explained or investigated in discrepancies.csv (its notes start with EXPLAINED or PROBABLE)
+noted = set()                                            # gaps already explained or investigated in discrepancies.csv (its notes start with EXPLAINED, PROBABLE or INVESTIGATED)
 for r in csv.DictReader(open(os.path.join(HERE, "discrepancies.csv"), encoding="utf-8")):
-    if r["detail"].startswith(("EXPLAINED", "PROBABLE")): noted.add((int(r["season"]), norm(r["subject"])))
+    if r["detail"].startswith(("EXPLAINED", "PROBABLE", "INVESTIGATED")): noted.add((int(r["season"]), norm(r["subject"])))
 results = []; gaps = collections.defaultdict(dict)       # gaps[season][driver key] = gap
 for s in seasons:
     path = os.path.join(HERE, f"final_standings_{s}.csv")
