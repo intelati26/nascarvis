@@ -38,6 +38,7 @@ select,input[type=text],input[type=search]{font:inherit;color:var(--ink);backgro
 input[type=range]{width:260px}
 .btn{font:inherit;font-size:12px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
 .btn:hover{background:var(--chip)}
+textarea.wiki{width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;resize:vertical}
 .tools{display:flex;gap:6px;float:right}
 .chartbox{position:relative;width:100%}
 .legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px}
@@ -179,6 +180,19 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <div class="sub" id="d-racesum"></div>
     <div class="tablewrap" style="max-height:520px"><table id="t-draces"></table></div>
   </div>
+  <div class="card" id="d-wiki">
+    <div class="tools"><button class="btn" id="d-wikicopy">Copy</button> <button class="btn" id="d-wikisave">Save .txt</button></div>
+    <h2>Wikipedia export</h2>
+    <div class="sub">This driver's Cup results as wikitext, in <a href="https://en.wikipedia.org/wiki/Wikipedia:WikiProject_NASCAR/quickbio" target="_blank" rel="noopener">WikiProject NASCAR</a>'s layout and
+      <a href="https://en.wikipedia.org/wiki/Template:NASCAR_driver_results_legend" target="_blank" rel="noopener">colour key</a>. Points and rank follow the era's format (Pts shown are the curated values, so check them against the article's own references before pasting).</div>
+    <div class="controls" style="margin:6px 0">
+      <label>Table<select id="d-wikikind"><option value="grid">Race-by-race grid</option><option value="summary">Career summary (quickbio)</option><option value="both">Both</option></select></label>
+      <label><input type="checkbox" id="d-wikilink"> Link race names (may be red links)</label>
+      <label><input type="checkbox" id="d-wikipole"> Bold races started from 1st (not all poles were won on time)</label>
+      <label><input type="checkbox" id="d-wikiref" checked> Ref column</label>
+    </div>
+    <textarea class="wiki" id="d-wikitext" rows="14" readonly spellcheck="false"></textarea>
+  </div>
   <div class="card">
     <div class="tools"><button class="btn" data-csv="driver">CSV</button></div>
     <h2>Seasons</h2>
@@ -252,6 +266,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
 
 <script>/*__CHARTJS__*/</script>
 <script>/*__FORMATS__*/</script>
+<script>/*__WIKITEXT__*/</script>
 <script>/*__SHARDS__*/</script>
 <!--__DATA_TAGS__-->
 <script>
@@ -652,7 +667,38 @@ function renderDriver() {
     {h:'Track', k:r=>r.name, l:1, html:r=>`<a data-track="${r.t}">${esc(r.name)}</a>`}, {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins},
     {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10}, {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
   ], tr);
+  lastDriver = {name, bySeason, seasonStats}; renderWikitext();
 }
+// ---- Wikipedia export (wikitext.js builds the text; this only turns the dashboard's data into its input)
+let lastDriver = null;
+function wikiSeasons(d) {
+  return [...d.bySeason.keys()].sort((a,b)=>a-b).map(s => {
+    const st = d.seasonStats.find(x => x.s === s), entries = {};
+    for (const i of d.bySeason.get(s)) {
+      const status = D.statuses[D.status[i]] || '';
+      entries[D.race[i]] = {finish: D.finish[i], start: D.start[i], dnf: dnf(i), dsq: /disqual/i.test(status), dns: /did not start/i.test(status),
+        team: D.teams[D.team[i]], car: D.car[i], make: D.makes[D.make[i]]};
+    }
+    return {season: s, slots: races(s).map(r => ({num: r.num, track: r.track, name: r.name})), entries, rank: st.rank, pts: st.pts};
+  });
+}
+function wikiText() {
+  if (!lastDriver) return '';
+  const kind = $('d-wikikind').value, o = {link: $('d-wikilink').checked, pole: $('d-wikipole').checked, ref: $('d-wikiref').checked};
+  const parts = [];
+  if (kind !== 'summary') parts.push(NASCARWikitext.grid(wikiSeasons(lastDriver), o));
+  if (kind !== 'grid') parts.push(NASCARWikitext.summary(lastDriver.seasonStats.map(r => ({season: r.s, rank: r.rank, pts: r.pts, starts: r.starts, wins: r.wins,
+    t5: r.t5, t10: r.t10, avgstart: r.avgstart, avgfin: r.avgfin}))));
+  return parts.join('\n\n');
+}
+function renderWikitext() { $('d-wikitext').value = wikiText(); }
+['d-wikikind','d-wikilink','d-wikipole','d-wikiref'].forEach(id => $(id).onchange = renderWikitext);
+$('d-wikicopy').onclick = async () => {
+  const t = $('d-wikitext').value, b = $('d-wikicopy');
+  try { await navigator.clipboard.writeText(t); } catch (e) { $('d-wikitext').select(); document.execCommand('copy'); }
+  b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500);
+};
+$('d-wikisave').onclick = () => lastDriver && download(new Blob([wikiText()], {type:'text/plain'}), 'wikitext-' + lastDriver.name.replace(/\W+/g,'_') + '.txt');
 function renderDriverForm(name, bySeason) {
   const s = +$('d-season').value, rr = (bySeason.get(s) || []).slice().sort((a,b)=>D.race[a]-D.race[b]);
   $('d-formyr').textContent = '— ' + s; const t = themeColors();
