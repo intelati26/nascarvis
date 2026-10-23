@@ -17,11 +17,13 @@ const NV = (function () {
   const COLS = ['season', 'race', 'car', 'length', 'start', 'finish', 'pts', 'laps', 'led',
                 's1', 's2', 's3', 'rating', 'win'];
 
-  let manifest = null;
+  let manifest = null, dataDir = 'dashboard_data';
   const shards = new Map();
 
   // <script> tags for every shard, in season order, for document.write() right after manifest.js.
   function tags(dir) {
+    dataDir = dir;
+    if (!manifest) return '';             // manifest.js did not load; build() says so
     return manifest.shards.map(s =>
       '<script src="' + dir + '/' + s.file + '?v=' + s.v + '"><\/script>').join('');
   }
@@ -57,7 +59,12 @@ const NV = (function () {
     DICTS, COLS, merge, tags,
     manifest: m => { manifest = m; },
     shard: (season, data) => { shards.set(season, data); },
-    build: () => merge(manifest, shards),
+    build: () => {
+      if (!manifest) throw new Error(dataDir + '/manifest.js did not load. Keep the ' + dataDir +
+        ' folder next to this HTML file (opening a lone copy, e.g. from a file manager, cannot find it), ' +
+        'or serve the folder with: python -m http.server  -- or rebuild with --single-file.');
+      return merge(manifest, shards);
+    },
   };
 })();
 if (typeof module !== 'undefined') module.exports = NV;

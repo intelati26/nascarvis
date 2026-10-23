@@ -21,3 +21,10 @@ const embedded = JSON.parse(single.slice(a, b));
 assert.deepStrictEqual(merged, embedded);
 assert.deepStrictEqual(m.shards.map(s => s.season), [...new Set(embedded.season)]);
 console.log('shards OK:', m.shards.length, 'seasons,', embedded.season.length, 'rows, merged data equals embedded data');
+
+// a page that cannot find its manifest must say so, not fail with a null error
+delete require.cache[require.resolve('../shards.js')];
+const fresh = require('../shards.js');
+fresh.tags('dashboard_data');
+assert.throws(() => fresh.build(), /dashboard_data\/manifest\.js did not load/);
+console.log('missing manifest gives a clear message OK');
