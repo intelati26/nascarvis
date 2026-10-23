@@ -80,3 +80,23 @@ def main():
 
 
 if __name__ == "__main__": main()
+
+
+def review_csv():
+    """driver_page_review.csv: one row per remaining gap driver with the three readings side by side, what explain_gaps.py found, and blank columns for the Racing-Reference check."""
+    pages = {(int(r["season"]), r["driver"]): r for r in csv.DictReader(open(os.path.join(HERE, "driver_page_points.csv"), encoding="utf-8"))}
+    rr_id = lambda n: (lambda p: re.sub(r"[^a-z]", "", p[-1].lower())[:5] + re.sub(r"[^a-z]", "", p[0].lower())[:2] + "01")([x for x in re.sub(r"\b(Jr|Sr|II|III)\.?$", "", n).split() if x])
+    out = []
+    for g in csv.DictReader(open(os.path.join(HERE, "gap_explanations_1975_2003.csv"), encoding="utf-8")):
+        s = int(g["season"]); p = pages.get((s, g["driver"]), {})
+        out.append([s, g["driver"], g["wikipedia_total"], p.get("page_pts", ""), g["data_total"], g["gap_wikipedia_minus_data"], p.get("agrees_with", ""), g["fits"], g["rows"], g["noted"],
+                    "https://en.wikipedia.org/wiki/" + p["article"].replace(" ", "_") if p.get("article") else "",
+                    f"https://www.racing-reference.info/driver-season-stats/{rr_id(g['driver'])}/{s}/W", "", "", ""])
+    with open(os.path.join(HERE, "driver_page_review.csv"), "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["season", "driver", "wikipedia_season_table", "wikipedia_driver_page", "data_total", "gap_table_minus_data", "driver_page_agrees_with", "explain_gaps_fits", "explain_gaps_rows", "noted",
+                    "wikipedia_article", "racing_reference_url_guess", "rr_total_checked", "rr_agrees_with", "notes"])
+        w.writerows(sorted(out)); print("driver_page_review.csv:", len(out), "rows")
+
+
+if __name__ == "__main__" and not sys.argv[1:] and os.path.exists(os.path.join(HERE, "driver_page_points.csv")): review_csv()
