@@ -9,4 +9,4 @@ season,race,race_name,driver,finish,final_pts,calc_pts,gap_wikipedia_minus_data,
 1981,15,Warner W. Hodgdon 400,Jimmy Insolo,36,0.0,55,,no gap
 1982,4,Coca-Cola 500,Elliott Forbes-Robinson,40,0.0,43,,no gap
 1990,16,AC SparkPlug 500,Rich Vogler,40,0.0,43,,no gap
-1993,22,Mountain Dew Southern 500,Ken Bouchard,40,43.0,43,-43.0,gap = -points (Wikipedia leaves the row out)
+1993,22,Mountain Dew Southern 500,Ken Bouchard,40,0.0,43,,no gap

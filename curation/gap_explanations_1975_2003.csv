@@ -111,7 +111,3 @@ season,driver,wikipedia_total,data_total,gap_wikipedia_minus_data,fits,rows,note
 1991,Jimmy Spencer,2750.0,2790.0,-40.0,bonus_sized,,0
 1991,Larry Pearson,841.0,848.0,-7.0,unexplained,,0
 1991,Jerry Hill,94.0,98.0,-4.0,unexplained,,0
-1993,Ken Schrader,3714.0,3715.0,-1.0,unexplained,,0
-1993,Butch Gilliland,63.0,67.0,-4.0,unexplained,,0
-1993,Trevor Boys,58.0,63.0,-5.0,bonus_sized,,1
-1993,Mike Skinner,55.0,58.0,-3.0,place_shift,,1

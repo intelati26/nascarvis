@@ -17,6 +17,7 @@ To rerun: `python curation/calculated_points.py`, `python curation/explain_gaps.
 
 - **Wikipedia season articles** (final standings, CC BY-SA 4.0), by season:
   - 1949: <https://en.wikipedia.org/wiki/1949_NASCAR_Strictly_Stock_Series>
+  - 1950: <https://en.wikipedia.org/wiki/1950_NASCAR_Grand_National_Series>
   - 1951: <https://en.wikipedia.org/wiki/1951_NASCAR_Grand_National_Series>
   - 1952: <https://en.wikipedia.org/wiki/1952_NASCAR_Grand_National_Series>
   - 1953: <https://en.wikipedia.org/wiki/1953_NASCAR_Grand_National_Series>
@@ -148,13 +149,13 @@ Race points for 1949-51, 1955, 1972 and 1973 were derived from purses, race clas
 - **1957 Lee Petty (Wikipedia 1957 table)**: Wikipedia gives races/wins/poles 38/2/4 (identical to Speedy Thompson's row); Racing-Reference and the data give 41 starts, 4 wins, 3 poles. Wikipedia looks wrong.
 - **1972 nascaR.data Pts column**: Pts hold rank points only (max 100 in 1972, 125 in 1973); Wikipedia's totals add distance points per lap. Rebuilt in points_1972.csv / points_1973.csv.
 - **1984 Mike Alexander (Richmond, 26 Feb 1984, race 2)**: nascaR.data and a Driver Averages results page supplied by the project owner show 0 points for his 21st place (394 laps, running); Jayski's race page for the Miller High Life 400 at Richmond has the points as expected, 100 (reported by the project owner; the page was not fetched, Jayski refuses automated requests). His Wikipedia's total (1,862) is exactly 100 higher than the data. Restored to 100 in points_1984.csv.
-- **1993 Trevor Boys (Wikipedia 1993 standings)**: Wikipedia's table gives 58; Driver Averages shows 63 for his one start (35th + 5 for the lap led), as does the data. Open on Wikipedia: if it is corrected, re-run fetch_wikipedia_standings.py 1993 and the checks.
+- **1993 Trevor Boys (Wikipedia 1993 standings)**: Wikipedia's table gave 58; Driver Averages shows 63 for his one start (35th + 5 for the lap led), as does the data. Corrected on Wikipedia by the project owner; the 2026-10-23 re-fetch shows 63, so the gap is closed.
 - **1999 Ron Fellows (Wikipedia 1999 standings)**: Wikipedia's table gave 174; his single points race (Watkins Glen, 2nd, 3 laps led) scores 175 = 170 + 5 under the 1999 rules, and a Driver Averages results page supplied by the project owner shows 175. CORRECTED: the project owner fixed the Wikipedia table; a re-fetch (23 Oct 2026) shows 175 and final_standings_1999.csv was refreshed.
 - **2002 Mark Martin (Rockingham, race 34)**: nascaR.data already has his 25-point penalty (unapproved left front spring, Rockingham 3 Nov) inside the race row: 155 where the 2002 formula gives 180. The other five 2002 penalties are not in the race rows, so the data treats the same kind of penalty two ways. No adjustment needed for Martin (his total already matches).
 - Also recorded as Wikipedia errors in `discrepancies.csv` notes: Ron Fellows 1999 (corrected on Wikipedia by the project owner), Mike Skinner 1993 (55 for 58, probable typo), and the 1981 group below.
 
 ## Open differences, 1975-2003
 
-116 drivers still differ from Wikipedia's total after the edits above; 25 are noted as explained or probable errors, 91 are not yet noted. By what fits (see `explain_gaps.py`): place_shift 48, bonus_sized 27, unexplained 19, exclude_row 12, ambiguous 5, penalty_sized 3, restore_row 2.
+112 drivers still differ from Wikipedia's total after the edits above; 23 are noted as explained or probable errors, 89 are not yet noted. By what fits (see `explain_gaps.py`): place_shift 47, bonus_sized 26, unexplained 17, exclude_row 12, ambiguous 5, penalty_sized 3, restore_row 2.
 
 The 1981 group (22 drivers exactly 3 under Wikipedia's total) is consistent with one race, the Atlanta Journal 500 (race 30), being scored one place down for 13th and lower on Wikipedia's side; this is an inference from the pattern, not a shown cause.
