@@ -9,5 +9,6 @@ lap_times_*.parquet
 lap_data/
 lap_data_sample.txt
 dashboard.html
+dashboard_data/
 out/
 tests/results_2004_2013.json

@@ -1,3 +1,16 @@
+## Dashboard data files
+
+`python build_dashboard.py` writes `dashboard.html` plus a `dashboard_data/` folder next to it: one
+`season-YYYY.js` file per season and a `manifest.js`. The page loads them with `<script>` tags, so it
+works when opened straight from the folder (no server needed). Keep the folder next to the HTML when
+copying to another device. A rebuild only rewrites season files whose content changed.
+
+`--single-file` embeds everything in one HTML instead. `--data-dir` puts the data folder elsewhere.
+Lap-by-lap JSON (`lap_times_<season>.json`) is still loaded with `fetch()`, which needs
+`python -m http.server` (the Termux script already does this).
+
+Tests: `node tests/test_formats.js` and `python tests/test_shards.py` (needs pyarrow and node).
+
 ## Lap-by-lap data and offline storage
 
 The project already supports total race results and best-lap summaries. For full lap-by-lap detail, use the compact offline exporter:

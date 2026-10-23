@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 """
-Build a single self-contained HTML dashboard (season / race / driver / track history).
+Build the HTML dashboard (season / race / driver / track history).
 
-  python build_dashboard.py                  # downloads cup_series.parquet if missing, writes dashboard.html
+The results are NOT inside the HTML: they are written as one script file per season plus a manifest in
+dashboard_data/ (next to the HTML), and the page loads them with <script> tags, so it still works when
+opened straight from a folder. Files whose content did not change are left alone. Keep the folder next to
+dashboard.html when copying it to a phone. --single-file embeds everything in one HTML instead.
+
+  python build_dashboard.py                  # downloads cup_series.parquet if missing, writes dashboard.html + dashboard_data/
   python build_dashboard.py --from 2001 --update
   python build_dashboard.py --lap-input lap_times_2026.parquet --lap-dir .
 
 Only dependency: pyarrow (Termux: pkg install python-pyarrow). No pandas.
-The data is embedded in the page, so there is no results CSV to open. The output is one
-offline HTML file: copy it to a phone, or serve it (python -m http.server) and open it.
+Open dashboard.html directly, or serve the folder (python -m http.server). With --single-file the
+output is one offline HTML file with the data embedded.
 
 If a lap-data file is available, build_dashboard also writes one lap JSON file per season
 next to the dashboard, which the browser can fetch offline for lap-by-lap charts.
@@ -19,9 +24,11 @@ New: --fetch-all-laps will fetch every season's lap data and write compressed pa
 """
 import argparse
 import csv
+import hashlib
 import json
 import math
 import os
+import re
 import time
 import urllib.request
 import inspect
@@ -506,6 +513,61 @@ def fetch_all_history_parquet(seasons, out_dir, compression='snappy', force=Fals
     return written
 
 
+# ---- season shards (see shards.js): the dashboard data split into one script file per season
+SHARD_DICTS = {"drivers": "driver", "tracks": "track", "names": "name", "makes": "make",
+               "teams": "team", "statuses": "status", "surfaces": "surface"}
+SHARD_COLS = ["season", "race", "car", "length", "start", "finish", "pts", "laps", "led",
+              "s1", "s2", "s3", "rating", "win"]
+
+
+def season_shard(data, lo, hi):
+    """Rows lo:hi of the dashboard data as a self-contained shard with its own small dictionaries."""
+    out = {}
+    for dk, ik in SHARD_DICTS.items():
+        used = sorted({data[ik][i] for i in range(lo, hi)})    # global dictionaries are sorted, so this is too
+        local = {g: n for n, g in enumerate(used)}
+        out[dk] = [data[dk][g] for g in used]
+        out[ik] = [local[data[ik][i]] for i in range(lo, hi)]
+    for c in SHARD_COLS:
+        out[c] = data[c][lo:hi]
+    return out
+
+
+def write_if_changed(path, text):
+    if os.path.exists(path) and open(path, encoding="utf-8").read() == text:
+        return False
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
+    return True
+
+
+def write_data_files(data, data_dir):
+    """Write season-YYYY.js for every season and manifest.js. Returns (manifest version, files rewritten)."""
+    os.makedirs(data_dir, exist_ok=True)
+    seasons = data["season"]
+    shards, rewritten, keep = [], 0, {"manifest.js"}
+    lo = 0
+    while lo < len(seasons):               # rows are sorted by season
+        season, hi = seasons[lo], lo
+        while hi < len(seasons) and seasons[hi] == season:
+            hi += 1
+        text = "NV.shard(%d,%s);\n" % (season, json.dumps(season_shard(data, lo, hi), separators=(",", ":")))
+        fname = "season-%d.js" % season
+        rewritten += write_if_changed(os.path.join(data_dir, fname), text)
+        keep.add(fname)
+        shards.append({"season": season, "file": fname, "v": hashlib.sha1(text.encode("utf-8")).hexdigest()[:10],
+                       "rows": hi - lo})
+        lo = hi
+    manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"],
+                "adjustments": data["adjustments"]}
+    mtext = "NV.manifest(%s);\n" % json.dumps(manifest, separators=(",", ":"))
+    rewritten += write_if_changed(os.path.join(data_dir, "manifest.js"), mtext)
+    for f in os.listdir(data_dir):         # seasons no longer built (e.g. a later --from)
+        if re.fullmatch(r"season-\d+\.js", f) and f not in keep:
+            os.remove(os.path.join(data_dir, f))
+    return hashlib.sha1(mtext.encode("utf-8")).hexdigest()[:10], rewritten
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("data", nargs="?", default=os.path.join(HERE, "cup_series.parquet"))
@@ -516,6 +578,8 @@ def main():
     ap.add_argument("--lap-input", default=None, help="optional lap parquet/csv file used to generate lap JSON sidecars")
     ap.add_argument("--lap-dir", default=HERE, help="directory to write lap JSON files")
     ap.add_argument("--strict-lap-check", action="store_true", help="fail the build if historical lap-data coverage is incomplete")
+    ap.add_argument("--data-dir", default=None, help="folder for the season data files (default: dashboard_data next to --out)")
+    ap.add_argument("--single-file", action="store_true", help="embed all data in the HTML instead of writing data files")
     ap.add_argument("--embed-laps", action="store_true", help="embed per-season lap JSON into dashboard.html (may be very large)")
     ap.add_argument("--fetch-all-laps", action="store_true", help="fetch lap times for all seasons and write compressed parquet sidecars")
     ap.add_argument("--lap-parquet-dir", default=None, help="where to write per-season lap parquet files (defaults to --lap-dir)")
@@ -665,12 +729,33 @@ def main():
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()
     fmts = open(os.path.join(HERE, "formats.js"), encoding="utf-8").read()
     data["adjustments"] = json.load(open(os.path.join(HERE, "adjustments.json"), encoding="utf-8"))
+    if a.single_file:
+        shards_js, data_tags = "", ""
+        data_js = "const D = " + json.dumps(data, separators=(",", ":")) + ";"
+    else:
+        if data.pop("lapData", None) is not None:
+            print("note: --embed-laps is ignored without --single-file (lap data stays in its own files)")
+        data_dir = a.data_dir or os.path.join(os.path.dirname(os.path.abspath(a.out)), "dashboard_data")
+        mver, rewritten = write_data_files(data, data_dir)
+        rel = os.path.relpath(data_dir, os.path.dirname(os.path.abspath(a.out))).replace(os.sep, "/")
+        shards_js = open(os.path.join(HERE, "shards.js"), encoding="utf-8").read()
+        data_tags = ('<script src="%s/manifest.js?v=%s"></script>\n<script>document.write(NV.tags("%s"));</script>'
+                     % (rel, mver, rel))
+        data_js = ("let D;\ntry { D = NV.build(); } catch (e) {\n"
+                   "  document.body.insertAdjacentHTML('afterbegin', '<pre style=\"color:#c00;padding:1em\">' + e.message + '</pre>');\n"
+                   "  throw e;\n}")
     html = (tpl.replace("/*__CHARTJS__*/", chart.replace("</script", "<\\/script"))
                .replace("/*__FORMATS__*/", fmts)
-               .replace("/*__DATA__*/", "const D = " + json.dumps(data, separators=(",", ":")) + ";"))
+               .replace("/*__SHARDS__*/", shards_js.replace("</script", "<\\/script"))
+               .replace("<!--__DATA_TAGS__-->", data_tags)
+               .replace("/*__DATA__*/", data_js))
     open(a.out, "w", encoding="utf-8").write(html)
     print(f"wrote {a.out}: {len(keep):,} rows, seasons {data['season'][0]}-{data['season'][-1]}, "
           f"{os.path.getsize(a.out)/1e6:.1f} MB")
+    if not a.single_file:
+        total = sum(os.path.getsize(os.path.join(data_dir, f)) for f in os.listdir(data_dir))
+        print(f"wrote {data_dir}: {len(os.listdir(data_dir)) - 1} season files + manifest, {total/1e6:.1f} MB "
+              f"({rewritten} rewritten, rest unchanged)")
     if lap_files:
         # lap_files is a dict mapping season->filename; present a concise examples list of filenames
         examples = sorted(lap_files.values())[:3]
