@@ -1748,33 +1748,5 @@
   "driver": "Jimmie Johnson",
   "pts": -25,
   "note": "Penalty: 25 points for offset mounting bolts at Daytona on 07-06 (race 17); crew chief Chad Knaus fined $25,000. Source: Jayski 2002 penalties table (pasted by the project owner). Same Gainesville Sun article as Jarrett's headline (23 Jul 2002) announced Johnson's and Jarrett's penalties. Applied from race 20, the first race after the announcement"
- },
- {
-  "season": 1984,
-  "race": 2,
-  "driver": "Jimmy Hensley",
-  "pts": -97,
-  "note": "Not running for championship points: Jayski's race page shows the finishing-position score (97 for 22th) but Jayski's 1984 standings list him at 0 points. This cancels the restored race-page points in points_1984.csv so his season total stays 0."
- },
- {
-  "season": 1984,
-  "race": 8,
-  "driver": "Jimmy Hensley",
-  "pts": -103,
-  "note": "Not running for championship points: Jayski's race page shows the finishing-position score (103 for 20th) but Jayski's 1984 standings list him at 0 points. This cancels the restored race-page points in points_1984.csv so his season total stays 0."
- },
- {
-  "season": 1984,
-  "race": 23,
-  "driver": "Jimmy Hensley",
-  "pts": -97,
-  "note": "Not running for championship points: Jayski's race page shows the finishing-position score (97 for 22th) but Jayski's 1984 standings list him at 0 points. This cancels the restored race-page points in points_1984.csv so his season total stays 0."
- },
- {
-  "season": 1984,
-  "race": 25,
-  "driver": "Jimmy Hensley",
-  "pts": -97,
-  "note": "Not running for championship points: Jayski's race page shows the finishing-position score (97 for 22th) but Jayski's 1984 standings list him at 0 points. This cancels the restored race-page points in points_1984.csv so his season total stays 0."
  }
 ]

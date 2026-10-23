@@ -160,7 +160,7 @@ Jarrett (New Hampshire, race 19: the table says 1/8th of an inch, the Gainesvill
 Richmond, 26 Feb 1984 (race 2, Miller High Life 400 in nascaR.data): nascaR.data and a results page supplied by the project owner show 0 points for Mike Alexander (21st) and Jimmy Hensley
 (22nd). The project owner reports that Jayski's race page, <https://www.jayski.com/race-results/1984-nascar-winston-cup-series/miller-high-life-400-richmond/>, has the points as expected,
 100 and 97 (the finishing-position scores). The page was not fetched (Jayski refuses automated requests; its reuse terms are unchecked). `points_1984.csv` restores 100 and 97 with override=1.
-Alexander's official total (1,862) also confirms his 100. Hensley is not in the official 1984 table; the project owner then reported that Jayski's pages for his other three 1984 starts (races 8, 23, 25) show 103, 97 and 97, and those rows are restored too (4 rows in all).
+Alexander's official total (1,862) also confirms his 100. Jimmy Hensley's rows were first restored too (Jayski's race pages show 97, 103, 97, 97) and then taken out again: his standings value is 0 (see below), and the Pts column shows standings values.
 
 ## final_standings_1984_jayski.csv (Jayski 1984 standings, pasted by the project owner)
 
@@ -168,4 +168,10 @@ Alexander's official total (1,862) also confirms his 100. Hensley is not in the 
 race rows), including Mike Alexander at 1,762 (the data's Richmond zero) and Jimmy Hensley at 0; its ranking order follows the official totals (Alexander sits at 28th, between 1,870 and 1,811, which fits
 Wikipedia's 1,862; Bowman is ahead of Forbes-Robinson, which fits 362; Cope is ahead of Bailey, which fits 194). Drivers not running for championship points (Hensley, Gene Coyle, Laurent Rioux and others) are
 listed at 0 even though Jayski's race pages show finishing-position scores for them, so a zero in nascaR.data can mean "not a championship driver" and not a missing score: restoring such rows in bulk would
-break the standings. Hensley's four restored race rows are therefore cancelled by four adjustments.
+break the standings. Decision: the Pts column shows championship points as they count in the standings, so those zeros stay (Hensley's four rows are not restored). Only a zero for a driver who is in the official table, like Alexander's Richmond row, is an error.
+
+## Convention: what the Pts column means
+
+`Pts` is championship points as they count in the standings. Race result pages (Jayski, Racing-Reference) show a finishing-position score for every finisher, including drivers not running for
+championship points, while the standings count those drivers at 0. nascaR.data follows the standings, so a zero can mean "does not count". Do not restore zeros for such drivers; restore a zero only
+when the driver is in the official table and the official total confirms the missing points (Mike Alexander, Richmond 1984).

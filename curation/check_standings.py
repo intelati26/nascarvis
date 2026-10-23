@@ -15,6 +15,7 @@ for i, s in enumerate(t["Season"]):
     if p is not None and p == p: tot[s][k] += p
 out = []
 for f in sorted(glob.glob(os.path.join(HERE, "final_standings_*.csv"))):
+    if not re.fullmatch(r"final_standings_\d{4}\.csv", os.path.basename(f)): continue       # skip second-source files such as ..._jayski.csv
     s = int(re.search(r"(\d{4})", os.path.basename(f)).group(1)); rows = list(csv.DictReader(open(f, encoding="utf-8")))
     n = ex = 0; mx = 0.0
     for r in rows:
