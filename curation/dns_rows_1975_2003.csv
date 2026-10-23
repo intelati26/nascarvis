@@ -1,0 +1,12 @@
+season,race,race_name,driver,finish,final_pts,calc_pts,gap_wikipedia_minus_data,fit
+1977,5,Atlanta 500,Jim Hurtubise,42,37.0,37,,no gap
+1978,17,Nashville 420,Walter Ballard,30,73.0,73,,no gap
+1978,29,Dixie 500,John Kennedy,40,43.0,43,,no gap
+1979,10,Winston 500,Travis Tiller,40,0.0,43,,no gap
+1979,13,World 600,Chuck Bown,40,0.0,43,,no gap
+1979,13,World 600,Ron Hutcherson,41,40.0,40,,no gap
+1980,5,Atlanta 500,Randy Ogden,42,0.0,37,,no gap
+1981,15,Warner W. Hodgdon 400,Jimmy Insolo,36,0.0,55,,no gap
+1982,4,Coca-Cola 500,Elliott Forbes-Robinson,40,0.0,43,,no gap
+1990,16,AC SparkPlug 500,Rich Vogler,40,0.0,43,,no gap
+1993,22,Mountain Dew Southern 500,Ken Bouchard,40,43.0,43,-43.0,gap = -points (Wikipedia leaves the row out)
