@@ -9,8 +9,11 @@ finishing position (not name); `driver_in_source` is the spelling used by the so
 ## points_1949.csv
 
 - **Source:** "1949 NASCAR Strictly Stock Series Points", a race-by-race points chart by *Diecast Charv*
-  (provided by the project owner as an image; original URL and licence not recorded. **TODO: add the link and
-  confirm reuse terms.**) Transcribed by hand from the image on 2026-10-23, 8 races, 208 rows. Race 8 positions
+  (posted on Reddit, r/NASCAR, "1949 NASCAR points race by race breakdown (errors...)":
+  <https://old.reddit.com/r/NASCAR/comments/gzxfz5/1949_nascar_points_race_by_race_breakdown_errors>;
+  the image was provided by the project owner. The author has not been contacted and no reuse licence is stated
+  in what we have. The points are factual figures, credit stays with Diecast Charv, and anyone reusing this file
+  should check the thread and ask the author if in doubt.) Transcribed by hand from the image on 2026-10-23, 8 races, 208 rows. Race 8 positions
   21 and 22 are not on the chart; they are entered as 0 (below the last points position).
 - **Checks:** finishing order matches nascaR.data in all 8 races. Red Byron sums to 842.5, his official 1949
   championship total. Eleven names differ in spelling (for example Skimp Jersey/Hersey) and three differ at a
