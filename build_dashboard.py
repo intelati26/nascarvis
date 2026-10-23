@@ -24,6 +24,7 @@ New: --embed-laps will embed per-season lap JSON into dashboard.html (may be lar
 New: --fetch-all-laps will fetch every season's lap data and write compressed parquet sidecars.
 """
 import argparse
+import collections
 import csv
 import hashlib
 import json
@@ -560,7 +561,7 @@ def write_data_files(data, data_dir):
                        "rows": hi - lo})
         lo = hi
     manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"],
-                "adjustments": data["adjustments"]}
+                "adjustments": data["adjustments"], "curated": data.get("curated", {})}
     mtext = "NV.manifest(%s);\n" % json.dumps(manifest, separators=(",", ":"))
     rewritten += write_if_changed(os.path.join(data_dir, "manifest.js"), mtext)
     for f in os.listdir(data_dir):         # seasons no longer built (e.g. a later --from)
@@ -591,6 +592,30 @@ def apply_curation(t, folder):
     if filled or replaced or conflicts or unmatched:
         print(f"curation: filled {filled} blank Pts values, replaced {replaced} with override=1 rows; "
               f"{conflicts} disagree with the source (kept source); {unmatched} rows matched no result")
+
+
+def curated_exact(curation_dir, adjustments, season_drivers):
+    """For every season with curation/points_<season>.csv: the drivers whose derived points are verified exact, i.e. listed in
+    the official final standings (final_standings_<season>.csv) with no reconcile adjustment. Any other driver in a curated season
+    gets a marker in the dashboard (derived, reconciled or unverified). Returns {season: [driver names]}."""
+    import csv, difflib, glob
+    norm = lambda x: re.sub(r"[^a-z]", "", x.lower())
+    out = {}
+    for path in sorted(glob.glob(os.path.join(curation_dir, "points_*.csv"))):
+        m = re.search(r"points_(\d{4})\.csv$", path)
+        if not m: continue
+        season = int(m.group(1))
+        official_path = os.path.join(curation_dir, f"final_standings_{season}.csv")
+        if not os.path.exists(official_path): out[season] = []; continue
+        names = {norm(d): d for d in season_drivers.get(season, [])}
+        official = [norm(r["driver"]) for r in csv.DictReader(open(official_path, encoding="utf-8"))]
+        recon = {norm(a["driver"]) for a in adjustments if a["season"] == season and "reconcile" in a["note"] and abs(a["pts"]) > 0.005}
+        exact = []
+        for o in official:
+            k = o if o in names else next(iter(difflib.get_close_matches(o, list(names), n=1, cutoff=0.9)), None)
+            if k and k not in recon: exact.append(names[k])
+        out[season] = sorted(set(exact))
+    return out
 
 
 def main():
@@ -757,6 +782,9 @@ def main():
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()
     fmts = open(os.path.join(HERE, "formats.js"), encoding="utf-8").read()
     data["adjustments"] = json.load(open(os.path.join(HERE, "adjustments.json"), encoding="utf-8"))
+    sd = collections.defaultdict(set)
+    for i, sn in enumerate(data["season"]): sd[sn].add(data["drivers"][data["driver"][i]])
+    data["curated"] = {str(k): v for k, v in curated_exact(os.path.join(HERE, "curation"), data["adjustments"], sd).items() if k in sd}
     if a.single_file:
         shards_js, data_tags = "", ""
         data_js = "const D = " + json.dumps(data, separators=(",", ":")) + ";"

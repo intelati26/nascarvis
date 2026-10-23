@@ -341,6 +341,7 @@ function renderTable(el, key, cols, rows, opts={}) {
     return (x==null)-(y==null) || (typeof x==='string' ? x.localeCompare(y) : x-y) ; }); if (st.dir<0) data.reverse(); }
   el.innerHTML = '<thead><tr>' + cols.map((c,i)=>`<th data-i="${i}" class="${c.l?'l':''}">${c.h}${st.col===i?(st.dir>0?' ▲':' ▼'):''}</th>`).join('') + '</tr></thead><tbody>' +
     data.map(r => '<tr>' + cols.map(c=>`<td class="${c.l?'l':''}">${c.html ? c.html(r) : esc(c.k(r) ?? '')}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  if (cols.some(c => c.html === ptsCell)) ptsLegend(el, el.innerHTML.includes('≈'));
   el.querySelectorAll('th').forEach(th => th.onclick = () => {
     const i = +th.dataset.i; el._sort = {col:i, dir: st.col===i ? -st.dir : (typeof cols[i].k(rows[0] ?? {}) === 'string' ? 1 : -1)};
     renderTable(el, key, cols, rows, opts); });
@@ -478,6 +479,20 @@ function playoffStatus(st, d, k) {
   for (let i = 0; i < st.rounds.length; i++) if (st.rounds[i].eliminated.includes(d) && k >= st.rounds[i].start + 2) return 'Out after ' + lab[i];
   return st.rounds.length > 2 && k >= st.rounds[2].start + 2 ? 'Final 4' : 'In';
 }
+// Points in seasons rebuilt in curation/ are marked with ≈ unless the driver's derived total matches the official standings exactly.
+const exactSets = {};
+function ptsCell(i) {
+  const v = D.pts[i], cur = D.curated && D.curated[D.season[i]];
+  if (!cur) return v == null ? '' : esc(v);
+  const set = exactSets[D.season[i]] || (exactSets[D.season[i]] = new Set(cur));
+  if (set.has(drv(i))) return v == null ? '' : esc(v);
+  return `<span title="Derived from race purses and the scoring scale (or rebuilt from other sources); this driver's season total is reconciled to the official one, or could not be checked. See curation/WIKIPEDIA_SUMMARY.md.">≈${v == null ? '' : esc(v)}</span>`;
+}
+function ptsLegend(el, anyMarked) {
+  let n = el.parentElement.parentElement.querySelector('.ptslegend');
+  if (!n) { n = document.createElement('div'); n.className = 'sub ptslegend'; n.style.marginTop = '6px'; el.parentElement.after(n); }
+  n.textContent = anyMarked ? '≈ points derived from race purses and the scoring scale (or rebuilt from other sources); the driver\'s season total is reconciled to the official total or could not be checked. See curation/WIKIPEDIA_SUMMARY.md.' : '';
+}
 const avgR = v => v==null ? null : Math.round(v*10)/10;
 ['s-season','s-metric','s-top','s-topby','s-format','s-after','s-adj'].forEach(id => $(id).onchange = () => { if (id==='s-season') { hidden.clear(); $('s-race').dataset.season=''; fillFormats(); }
     renderSeason(); });
@@ -591,7 +606,7 @@ function renderRace() {
     {h:'Fin', k:i=>D.finish[i]}, {h:'Start', k:i=>D.start[i]}, {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
     {h:'Driver', k:drv, l:1, html:i=>driverLink(drv(i))}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Team', k:i=>D.teams[D.team[i]], l:1},
     {h:'Make', k:i=>D.makes[D.make[i]], l:1}, {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]},
-    {h:'Stg 1 pts', k:i=>D.s1[i]}, {h:'Stg 2 pts', k:i=>D.s2[i]}, {h:'Stg 3 pts', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i]},
+    {h:'Stg 1 pts', k:i=>D.s1[i]}, {h:'Stg 2 pts', k:i=>D.s2[i]}, {h:'Stg 3 pts', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i], html:ptsCell},
     {h:'Rating', k:i=>D.rating[i]}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
   ], rows, {file:`race-${season}-${r.num}`});
   renderRaceLapData();
@@ -678,7 +693,7 @@ function renderDriverForm(name, bySeason) {
     {h:'Start', k:i=>D.start[i]}, {h:'Finish', k:i=>D.finish[i], html:i=>`<b style="${finishColor(D.finish[i])};padding:1px 6px;border-radius:4px">${D.finish[i]}</b>`},
     {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
     {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]}, {h:'Stage pts', k:i=>nz(D.s1[i])+nz(D.s2[i])+nz(D.s3[i])},
-    {h:'Pts', k:i=>D.pts[i]}, {h:'Rating', k:i=>D.rating[i]}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
+    {h:'Pts', k:i=>D.pts[i], html:ptsCell}, {h:'Rating', k:i=>D.rating[i]}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
   ], rr, {file:`driver-${name.replace(/\W+/g,'_')}-${s}-races`});
 }
 $('d-driver').onchange = renderDriver;

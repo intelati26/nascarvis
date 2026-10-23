@@ -55,3 +55,10 @@ The output is designed for later dashboard or analysis work without requiring an
 every season 1949-2003 (42 of 55 match exactly). `build_dashboard.py` applies `curation/points_*.csv`
 to blank `Pts`. See `curation/WIKIPEDIA_SUMMARY.md` for what exists per season and what is still missing, and
 `curation/SOURCES.md` for sources and licences.
+
+### Marked points
+
+In seasons rebuilt from `curation/` (1949-1951, 1972-1973) the dashboard shows `≈` before a driver's race points unless that
+driver's derived season total matches the official standings exactly. Drivers who were reconciled to the official total, or who
+are not in the official table and so cannot be checked, are marked; exact ones are not. The list of exact drivers per season is
+computed at build time (`curated` in the manifest) from `final_standings_<season>.csv` and the reconcile entries in `adjustments.json`.
