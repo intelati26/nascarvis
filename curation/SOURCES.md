@@ -175,3 +175,9 @@ break the standings. Decision: the Pts column shows championship points as they 
 `Pts` is championship points as they count in the standings. Race result pages (Jayski, Racing-Reference) show a finishing-position score for every finisher, including drivers not running for
 championship points, while the standings count those drivers at 0. nascaR.data follows the standings, so a zero can mean "does not count". Do not restore zeros for such drivers; restore a zero only
 when the driver is in the official table and the official total confirms the missing points (Mike Alexander, Richmond 1984).
+
+## Driver Averages results pages
+
+The per-driver and per-race results pages the project owner has been supplying as screenshots (Jeff Gordon and Jeff Burton 2000, Ron Fellows 1999, Trevor Boys 1993 and similar) are from Driver Averages,
+the site nascaR.data was built from (confirmed by the project owner for Trevor Boys 1993). They are therefore independent of Wikipedia but not of nascaR.data: where they agree with the data it is the same
+source twice. Nothing is fetched from Driver Averages (its robots.txt disallows scrapers; the package author's permission covers the package only).
