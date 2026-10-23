@@ -152,7 +152,7 @@ Race points for 1949-51, 1955, 1972 and 1973 were derived from purses, race clas
 - **1993 Trevor Boys (Wikipedia 1993 standings)**: Wikipedia's table gave 58; Driver Averages shows 63 for his one start (35th + 5 for the lap led), as does the data. Corrected on Wikipedia by the project owner; the 2026-10-23 re-fetch shows 63, so the gap is closed.
 - **1999 Ron Fellows (Wikipedia 1999 standings)**: Wikipedia's table gave 174; his single points race (Watkins Glen, 2nd, 3 laps led) scores 175 = 170 + 5 under the 1999 rules, and a Driver Averages results page supplied by the project owner shows 175. CORRECTED: the project owner fixed the Wikipedia table; a re-fetch (23 Oct 2026) shows 175 and final_standings_1999.csv was refreshed.
 - **2002 Mark Martin (Rockingham, race 34)**: nascaR.data already has his 25-point penalty (unapproved left front spring, Rockingham 3 Nov) inside the race row: 155 where the 2002 formula gives 180. The other five 2002 penalties are not in the race rows, so the data treats the same kind of penalty two ways. No adjustment needed for Martin (his total already matches).
-- Also recorded as Wikipedia errors in `discrepancies.csv` notes: Ron Fellows 1999 (corrected on Wikipedia by the project owner), Mike Skinner 1993 (55 for 58, probable typo), and the 1981 group below.
+- Also Wikipedia errors, corrected on Wikipedia by the project owner and confirmed by a re-fetch: Ron Fellows 1999, and in 1993 Mike Skinner (55 for 58, a typo), Ken Schrader (3,714 for 3,715) and Butch Gilliland (63 for 67). The 1981 group below is not corrected.
 
 ## Open differences, 1975-2003
 

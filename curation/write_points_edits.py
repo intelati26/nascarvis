@@ -116,7 +116,7 @@ w("")
 
 w("## Errors found in Wikipedia's tables\n")
 for r in src_err: w(f"- **{r['season']} {r['subject']}**: {r['detail']}")
-w("- Also recorded as Wikipedia errors in `discrepancies.csv` notes: Ron Fellows 1999 (corrected on Wikipedia by the project owner), Mike Skinner 1993 (55 for 58, probable typo), and the 1981 group below.\n")
+w("- Also Wikipedia errors, corrected on Wikipedia by the project owner and confirmed by a re-fetch: Ron Fellows 1999, and in 1993 Mike Skinner (55 for 58, a typo), Ken Schrader (3,714 for 3,715) and Butch Gilliland (63 for 67). The 1981 group below is not corrected.\n")
 
 w("## Open differences, 1975-2003\n")
 w(f"{sum(fits.values())} drivers still differ from Wikipedia's total after the edits above; {noted['1']} are noted as explained or probable errors, {noted['0']} are not yet noted. By what fits (see `explain_gaps.py`): "
