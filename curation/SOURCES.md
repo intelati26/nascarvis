@@ -96,3 +96,10 @@ supplied by the project owner; the site blocks automated access and nothing was 
 $12,240) equals the sum of winnings in Wikipedia's *1957 Virginia 500* table, whose winner scored 500 points, so the purse
 column is the figure the points were based on. Races 19/20 and 30/31 were run on the same day and are numbered in the opposite
 order in nascaR.data; this file uses the data's numbering and keeps the original in `rr_race`. Winners match the data in all 53.
+
+## final_standings_1957.csv
+
+101 drivers' final points and starts, transcribed by hand from screenshots of Racing-Reference's 1957 standings page (supplied by the
+project owner; nothing fetched). Points are all multiples of 4 except Billy Myers (4,682); the top ten equal Wikipedia's table; order is
+strictly non-increasing. Six listed drivers were not found in the data by name (Chuck Hanson, Bud Erma, Lenny Page, Mike McGreevy,
+Lemoin Frey, Bill Jarick), probably spelling variants, and Lucky Long has 2 starts here against 1 in the data.

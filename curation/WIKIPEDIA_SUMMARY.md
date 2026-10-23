@@ -37,7 +37,7 @@ standings table the article has (CSV `final_standings_<season>.csv`).
 | 1954 | Lee Petty | 8,649 | 0 | no data | 1125 of 1134 | 212 | [article](https://en.wikipedia.org/wiki/1954_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1954/W) | Full standings only. |
 | 1955 | Tim Flock | 9,596 | 9,246 | differs | 83 of 1179 | 52 | [article](https://en.wikipedia.org/wiki/1955_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1955/W) | One blank row for Flock: the missing 350 is the gap (recoverable). |
 | 1956 | Buck Baker | 9,272 | 0 | no data | 1503 of 1519 | none found | [article](https://en.wikipedia.org/wiki/1956_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1956/W) | No standings table in the article. Champion total from the champions list only. |
-| 1957 | Buck Baker | 10,716 | 0 | no data | 1305 of 1313 | top 10 | [article](https://en.wikipedia.org/wiki/1957_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1957/W) | Purses of all 53 races are now in `race_purses_1957.csv` (Racing-Reference season list, supplied as a screenshot). Not derived: with those purses the best purse-to-points mapping still leaves errors of 400-1,100 points for several of the 10 listed drivers. |
+| 1957 | Buck Baker | 10,716 | 0 | no data | 1305 of 1313 | top 10 | [article](https://en.wikipedia.org/wiki/1957_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1957/W) | Purses of all 53 races (`race_purses_1957.csv`) and a 101-driver standings table (`final_standings_1957.csv`, Racing-Reference screenshot; top 10 equal Wikipedia's). Not derived: see "1957 findings" below. |
 | 1958 | Lee Petty | 12,232 | 9,552 | differs | 499 of 1401 | none found | [article](https://en.wikipedia.org/wiki/1958_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1958/W) | No article for the season. Champion total from the champions list only. Data has blanks. |
 | 1959 | Lee Petty | 11,792 | 9,032 | differs | 545 of 1187 | none found | [article](https://en.wikipedia.org/wiki/1959_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1959/W) | No standings table. Champion total from the champions list only. Data has blanks. |
 | 1960 | Rex White | 21,164 | 21,164 | **match** | 113 of 1195 | 151 | [article](https://en.wikipedia.org/wiki/1960_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1960/W) | Match even with 113 blank rows (the champion's rows are complete). |
@@ -95,6 +95,20 @@ Racing-Reference. Having purses is necessary but not sufficient: see the 1952 an
 | `champion_check.csv` | The check above | generated |
 | `fetch_wikipedia_standings.py`, `derive_points_prize.py`, `derive_points_1972_73.py`, `reconcile_1949.py`, `check_champions.py` | Reproducible scripts | |
 | `adjustments.json` (repo root) | Reconcile entries: 1949 (10), 1950 (49), 1951 (85), 1972 (43), 1973 (36) | each entry's note says why |
+
+## 1957 findings (what was learned, and why no per-race points were derived)
+
+- The results data is right: Lee Petty's 41 finishes match Racing-Reference race for race, and average start and finish match for the
+  twelve top drivers checked; starts, wins and poles match Wikipedia's table for nine of ten (Wikipedia's Petty row is wrong).
+- Drivers with a single start pin the scale: the winner's points are **200** for purses up to $4,535 (Eubanks, Joslin, Yiskis, Dodd),
+  and **500** for the $13,640 Daytona Beach race (Beauchamp 2nd = 480, Lutz 6th = 400). That, with the 1957 Virginia 500 ($12,240 = 500),
+  confirms points = W x (26 - place) / 25.
+- A monotone purse-to-W map fitted on 55 well-behaved drivers plus the top five gives 200 (to $4,550), 250 ($4,585-$4,910), 350
+  ($6,625-$7,230), 500 ($12,240-$13,640), 750 ($14,250), 1,000 ($15,350-$18,415), 2,100 (Darlington $41,175). Median error 12 points.
+- It still leaves large one-sided misses for about 40% of drivers: L. D. Austin, Brownie King and Jim Paschal are 600-1,100 points *below*
+  their official totals, while Joe Weatherly, Possum Jones, Mel Larson and Gwyn Staley are 1,000-3,000 *above* (their official totals look
+  like points were removed). A tail below 25th place does not explain it. Reconciling these with adjustments would hide a scheme I do not
+  understand, so `points_1957.csv` was not created.
 
 ## Findings worth knowing
 
