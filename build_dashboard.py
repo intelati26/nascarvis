@@ -569,12 +569,32 @@ def write_data_files(data, data_dir):
     return hashlib.sha1(mtext.encode("utf-8")).hexdigest()[:10], rewritten
 
 
+def apply_curation(t, folder):
+    """Fill blank `Pts` from curation/points_*.csv (hand-entered, keyed by season, race, finishing position).
+    Source values are never overwritten; disagreements are only reported."""
+    import csv, glob
+    idx = {(s, r, f): i for i, (s, r, f) in enumerate(zip(t["Season"], t["Race"], t["Finish"]))}
+    filled = conflicts = unmatched = 0
+    for path in sorted(glob.glob(os.path.join(folder, "points_*.csv"))):
+        for row in csv.DictReader(open(path, encoding="utf-8")):
+            i = idx.get((int(row["season"]), int(row["race"]), int(row["finish"])))
+            if i is None:
+                unmatched += 1
+            elif clean(t["Pts"][i]) is None:
+                t["Pts"][i] = float(row["pts"]); filled += 1
+            elif abs(t["Pts"][i] - float(row["pts"])) > 1e-9:
+                conflicts += 1
+    if filled or conflicts or unmatched:
+        print(f"curation: filled {filled} blank Pts values; {conflicts} disagree with the source (kept source); {unmatched} rows matched no result")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("data", nargs="?", default=os.path.join(HERE, "cup_series.parquet"))
     ap.add_argument("--from", dest="first", type=int, default=2001, help="first season to include")
     ap.add_argument("--update", action="store_true", help="re-download the data first")
     ap.add_argument("--out", default=os.path.join(HERE, "dashboard.html"))
+    ap.add_argument("--no-curation", action="store_true", help="ignore curation/points_*.csv")
     ap.add_argument("--title", default="NASCAR Cup Series")
     ap.add_argument("--lap-input", default=None, help="optional lap parquet/csv file used to generate lap JSON sidecars")
     ap.add_argument("--lap-dir", default=HERE, help="directory to write lap JSON files")
@@ -591,6 +611,8 @@ def main():
     import pyarrow.parquet as pq
     fetch(a.data, a.update)
     t = pq.read_table(a.data).to_pydict()
+    if not a.no_curation:
+        apply_curation(t, os.path.join(HERE, "curation"))
     keep = sorted((i for i, s in enumerate(t["Season"]) if s >= a.first),
                   key=lambda i: (t["Season"][i], t["Race"][i], t["Finish"][i]))
     col = lambda name: [clean(t[name][i]) for i in keep]
