@@ -44,6 +44,8 @@ def name_of(cell):
     n = re.sub(r"\{\{[^}]*\}\}", "", n)
     n = re.sub(r"\[\[(?:[^\]|]+\|)?([^\]|]+)\]\]", r"\1", n)
     n = re.sub(r"^[|!]\s*(?:[a-z\-]+=[^|]*\|)?", "", n)
+    n = re.sub(r"'{2,}", "", n)                                              # bold/italic markup, including the rookie marker
+    n = re.sub(r"\s*\((?:R|r|Rookie)\)|[✝†‡*]+", "", n)
     return re.sub(r"[}\s]+$", "", n).strip().strip("'")
 
 

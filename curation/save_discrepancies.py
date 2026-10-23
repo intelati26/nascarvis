@@ -67,11 +67,12 @@ KNOWN = {
     (1993, "Ken Schrader"): "NARROWED, cause open: the Driver Averages page supplied by the project owner (30 points races) matches the data race for race and sums to 3,715, and every one of his rows follows the 1993 scoring formula (so does every row of 1993). Wikipedia's table gives 3,714, one point lower, which no race row can produce; a table error is likely, but no adjustment",
 }
 
-_NOTE_1981 = ("INVESTIGATED, cause unknown: the data total is exactly 3 above Wikipedia's, one finishing place on the scale below 12th, for 22 drivers. "
-              "The only race all 22 ran is race 30 (Atlanta Journal 500); a results page supplied by the project owner scores that race exactly as the data does (Brooks 13th = 124, Speed 14th = 121, and so on), "
-              "so that race is not the source. The page also shows formula points for Anderson, Wallace, Bodine and Bailey, who have 0 in the standings (Wallace and Bodine's official totals equal the data without race 30). "
-              "Jayski carries no driver points, so it cannot settle whether Wikipedia's 1981 table is 3 low for these drivers or a real adjustment applies. Data left as is")
+_NOTE_1981 = ("EXPLAINED (source error in the official total, localised to race 30; why the table is off is unknown): the data total is exactly 3 above Wikipedia's, one finishing place on the scale below 12th. "
+              "In race 30 (Atlanta Journal 500) all 12 drivers who finished 12th or better match the official totals exactly, and 23 of the 24 who finished 13th or lower and scored points are exactly 3 over (McDuffie 4 over; Chuck Bown, 15th, is the one exact match, unexplained). "
+              "A results page supplied by the project owner scores the race as the data does (Brooks 13th = 124, Speed 14th = 121, and so on), so the official table is the outlier: it scores 13th and lower one place down. "
+              "Finishing positions are trusted over the site's season totals (the running totals do not add up on the site's own driver pages, per the project owner). The page also shows formula points for Anderson, Wallace, Bodine and Bailey, who have 0 in the standings (Wallace and Bodine's official totals equal the data without race 30). Data left as is")
 KNOWN.update({(1981, n): _NOTE_1981 for n in ['Benny Parsons', 'Buddy Arrington', 'D.K. Ulrich', 'Dale Earnhardt', 'Dave Marcis', 'Delma Cowart', 'Dick Brooks', 'Gary Balough', 'Harry Gant', 'James Hylton', 'Jimmy Means', 'Joe Ruttman', 'Johnny Rutherford', 'Lake Speed', 'Morgan Shepherd', 'Richard Petty', 'Ricky Rudd', 'Ron Bouchard', 'Tim Richmond', 'Tommy Ellis', 'Tommy Gale', 'Travis Tiller']})
+KNOWN[(1981, "J.D. McDuffie")] = _NOTE_1981 + ". McDuffie is 4 over, not 3: the extra 1 is not explained"
 KNOWN[(1981, "Dick Brooks")] = (_NOTE_1981 + ". Brooks in detail: Driver Averages shows 297 (reported by the project owner; the same source as the data, so not independent) against Wikipedia's 294. "
     "His Daytona 500 (16th, formula 120) and Rockingham American 500 (21st, formula 100) are 0 in both and are not in the official total either, so they stay zero. "
     "294 = 118 + 55 + 121, 121 being the formula score for 14th at Atlanta, but the results page and Jayski score him 124 there as 13th")
