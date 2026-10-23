@@ -8,7 +8,11 @@ Usage
       Downloads cup_series.parquet if it is missing, re-downloads only if the server's copy
       changed, otherwise uses the local file. Then loads it into nascar.db.
   Give a .csv name instead (python import_nascar_data.py cup_series.csv --season 2026)
-  to use the CSV version. Parquet needs:  pip install pyarrow
+  to use the CSV version.
+  Leave out --season to load every season in the file (history); re-running replaces each season.
+  --series cup|nxs|truck picks the series and its default file (cup_series.parquet, nxs_series.parquet,
+  truck_series.parquet). The nxs/truck file names are assumed from the nascaR.data layout -- if the
+  server uses other names, pass the file name and --url. Parquet needs:  pip install pyarrow
   Flags: --force (always re-download)  --no-update (never check)  --db  --url  --export-csv
 
 Columns in the source file (from the package docs):
@@ -34,6 +38,12 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCHEMA = os.path.join(HERE, "nascar_schema.sql")
 BASE_URL = "https://nascar.kylegrealis.com/"
+# key -> (series name stored in the database, default data file)
+SERIES = {
+    "cup":   ("Cup",      "cup_series.parquet"),
+    "nxs":   ("O'Reilly", "nxs_series.parquet"),     # second series (was "xfinity" before nascaR.data v3)
+    "truck": ("Truck",    "truck_series.parquet"),
+}
 NEEDED = ["Season", "Race", "Track", "Name", "Finish", "Start", "Car", "Driver",
           "Team", "Make", "Pts", "Laps", "Led", "Status", "S1", "S2", "S3", "Rating"]
 
@@ -87,7 +97,7 @@ def ensure_fresh(dest, url, force=False, skip_check=False):
     return True
 
 
-def load_data(path, season):
+def load_data(path, season=None):
     if path.lower().endswith(".parquet"):
         try:
             df = pd.read_parquet(path)
@@ -99,9 +109,16 @@ def load_data(path, season):
     missing = [c for c in NEEDED if c not in df.columns]
     if missing:
         sys.exit(f"source file is missing columns: {missing}\nfound: {df.columns.tolist()}")
-    df = df[df["Season"] == season].copy()
-    if df.empty:
-        sys.exit(f"no rows for season {season}")
+    if season is not None:
+        df = df[df["Season"] == season].copy()
+        if df.empty:
+            sys.exit(f"no rows for season {season}")
+    else:
+        df = df.copy()
+    no_finish = df["Finish"].isna()
+    if no_finish.any():
+        print(f"skipping {int(no_finish.sum())} rows with no finishing position")
+        df = df[~no_finish].copy()
     for c in ["S1", "S2", "S3"]:                  # stage finishing position -> stage points (1st = 10 ... 10th = 1)
         pos = pd.to_numeric(df[c], errors="coerce")
         df[c] = (11 - pos).where(pos.between(1, 10), 0).astype(int)
@@ -121,7 +138,13 @@ def to_db(df, db_path, series_name="Cup"):
     cur.execute("INSERT OR IGNORE INTO series(name) VALUES (?)", (series_name,))
     series_id = cur.execute("SELECT series_id FROM series WHERE name=?", (series_name,)).fetchone()[0]
 
-    season = int(df["Season"].iloc[0])
+    for season, sdf in df.groupby("Season"):
+        _load_season(cur, series_id, int(season), sdf)
+    con.commit()
+    con.close()
+
+
+def _load_season(cur, series_id, season, df):
     # re-running replaces this season's results (simplest way to pick up Monday updates)
     cur.execute("""DELETE FROM results WHERE race_id IN
                    (SELECT race_id FROM races WHERE series_id=? AND season=?)""", (series_id, season))
@@ -157,8 +180,6 @@ def to_db(df, db_path, series_name="Cup"):
                          int(r["Led"]), int(max_led > 0 and r["Led"] == max_led),
                          None,                      # poles: not in the source
                          int(r["S1"]), int(r["S2"]), int(r["S3"]), int(r["Pts"]), rating))
-    con.commit()
-    con.close()
 
 
 def write_export_csv(df, path):
@@ -186,9 +207,10 @@ def write_export_csv(df, path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("data", nargs="?", default="cup_series.parquet",
-                    help="local file (.parquet or .csv); downloaded if missing")
-    ap.add_argument("--season", type=int, required=True)
+    ap.add_argument("data", nargs="?", default=None,
+                    help="local file (.parquet or .csv); downloaded if missing (default: the series' file)")
+    ap.add_argument("--series", choices=sorted(SERIES), default="cup")
+    ap.add_argument("--season", type=int, help="load only this season (default: every season in the file)")
     ap.add_argument("--db", default="nascar.db")
     ap.add_argument("--url", help="override the download address")
     ap.add_argument("--force", action="store_true", help="re-download even if unchanged")
@@ -196,14 +218,21 @@ def main():
     ap.add_argument("--export-csv", help="also write a results CSV for nascar_weekly_export.py")
     a = ap.parse_args()
 
-    url = a.url or BASE_URL + os.path.basename(a.data)
-    ensure_fresh(a.data, url, force=a.force, skip_check=a.no_update)
-    df = load_data(a.data, a.season)
-    to_db(df, a.db)
-    print(f"loaded {len(df)} result rows, {df['Race'].nunique()} races, season {a.season} -> {a.db}")
-    out_csv = a.export_csv or f"results_{a.season}.csv"
-    write_export_csv(df, out_csv)
-    print("wrote", out_csv)
+    series_name, default_file = SERIES[a.series]
+    data = a.data or default_file
+    if a.season is None and a.export_csv:
+        sys.exit("--export-csv needs --season (the weekly export reads one season)")
+    url = a.url or BASE_URL + os.path.basename(data)
+    ensure_fresh(data, url, force=a.force, skip_check=a.no_update)
+    df = load_data(data, a.season)
+    to_db(df, a.db, series_name)
+    seasons = sorted(df["Season"].unique())
+    print(f"loaded {len(df)} result rows, {df.groupby('Season')['Race'].nunique().sum()} races, "
+          f"{series_name} seasons {int(seasons[0])}-{int(seasons[-1])} ({len(seasons)}) -> {a.db}")
+    if a.season is not None:
+        out_csv = a.export_csv or f"results_{a.season}.csv"
+        write_export_csv(df, out_csv)
+        print("wrote", out_csv)
 
 
 if __name__ == "__main__":
