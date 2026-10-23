@@ -12,7 +12,8 @@ dashboard.html when copying it to a phone. --single-file embeds everything in on
   python build_dashboard.py --lap-input lap_times_2026.parquet --lap-dir .
 
 Only dependency: pyarrow (Termux: pkg install python-pyarrow). No pandas.
-Open dashboard.html directly, or serve the folder (python -m http.server). With --single-file the
+Open dashboard.html directly in a desktop browser, or (phone) run python serve.py and open
+http://localhost:8765/dashboard.html -- file managers can't give a page its data folder. With --single-file the
 output is one offline HTML file with the data embedded.
 
 If a lap-data file is available, build_dashboard also writes one lap JSON file per season

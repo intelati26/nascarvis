@@ -5,9 +5,20 @@
 works when opened straight from the folder (no server needed). Keep the folder next to the HTML when
 copying to another device. A rebuild only rewrites season files whose content changed.
 
-`--single-file` embeds everything in one HTML instead. `--data-dir` puts the data folder elsewhere.
-Lap-by-lap JSON (`lap_times_<season>.json`) is still loaded with `fetch()`, which needs
-`python -m http.server` (the Termux script already does this).
+### Viewing it on a phone (Termux)
+
+```bash
+pkg install python python-pyarrow          # once
+python build_dashboard.py --update         # download data, rebuild dashboard.html + dashboard_data/
+python serve.py                            # serves this folder on http://localhost:8765 (Ctrl+C to stop)
+```
+
+Then open `http://localhost:8765/dashboard.html` in the phone's browser. `serve.py` uses only the standard
+library and listens on localhost only. Skip the middle command to view the data you already built.
+
+A file manager's "open with HTML viewer" cannot read the data folder next to the page. If you must open a
+lone file, build with `--single-file` (everything embedded, about 8 MB for Cup). `--data-dir` puts the data
+folder elsewhere. Lap-by-lap JSON (`lap_times_<season>.json`) is loaded with `fetch()`, which needs the server.
 
 Tests: `node tests/test_formats.js` and `python tests/test_shards.py` (needs pyarrow and node).
 
