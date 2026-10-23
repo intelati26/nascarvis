@@ -72,6 +72,9 @@ _NOTE_1981 = ("INVESTIGATED, cause unknown: the data total is exactly 3 above Wi
               "so that race is not the source. The page also shows formula points for Anderson, Wallace, Bodine and Bailey, who have 0 in the standings (Wallace and Bodine's official totals equal the data without race 30). "
               "Jayski carries no driver points, so it cannot settle whether Wikipedia's 1981 table is 3 low for these drivers or a real adjustment applies. Data left as is")
 KNOWN.update({(1981, n): _NOTE_1981 for n in ['Benny Parsons', 'Buddy Arrington', 'D.K. Ulrich', 'Dale Earnhardt', 'Dave Marcis', 'Delma Cowart', 'Dick Brooks', 'Gary Balough', 'Harry Gant', 'James Hylton', 'Jimmy Means', 'Joe Ruttman', 'Johnny Rutherford', 'Lake Speed', 'Morgan Shepherd', 'Richard Petty', 'Ricky Rudd', 'Ron Bouchard', 'Tim Richmond', 'Tommy Ellis', 'Tommy Gale', 'Travis Tiller']})
+KNOWN[(1981, "Dick Brooks")] = (_NOTE_1981 + ". Brooks in detail: Driver Averages shows 297 (reported by the project owner; the same source as the data, so not independent) against Wikipedia's 294. "
+    "His Daytona 500 (16th, formula 120) and Rockingham American 500 (21st, formula 100) are 0 in both and are not in the official total either, so they stay zero. "
+    "294 = 118 + 55 + 121, 121 being the formula score for 14th at Atlanta, but the results page and Jayski score him 124 there as 13th")
 
 # ---- full field: every driver in the official standings whose data total differs (seasons where nascaR.data is mostly present)
 import importlib.util, difflib
