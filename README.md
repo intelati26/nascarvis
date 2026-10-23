@@ -47,3 +47,10 @@ python fetch_lap_times.py --season 2026 --out lap_times_2026.parquet
 This stores one row per driver-lap in a compressed Parquet file, which keeps the data offline-friendly and much smaller than CSV or JSON while remaining easy to filter by season, race, driver or lap number.
 
 The output is designed for later dashboard or analysis work without requiring an internet connection at runtime. For the current dashboard, the summary race files remain the fast default; lap-by-lap data is loaded only when you specifically want it.
+
+## Early-season points (curation)
+
+`curation/` holds hand-curated and derived points for seasons where nascaR.data has none (1949, 1950), plus Wikipedia
+final-standings references for 1950-1955, 1957, 1960 and 1974. `build_dashboard.py` applies `curation/points_*.csv`
+to blank `Pts`. See `curation/WIKIPEDIA_SUMMARY.md` for what exists per season and what is still missing, and
+`curation/SOURCES.md` for sources and licences.

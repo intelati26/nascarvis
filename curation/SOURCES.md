@@ -47,3 +47,10 @@ finishing position (not name); `driver_in_source` is the spelling used by the so
 - **Not checked:** the points awarded below 14th place in individual races.
 - Two result rows in the data file hold a `0` where the rule gives points (Red Harvey's 2nd at Dayton, Jack Smith's 2nd
   at North Wilkesboro); those rows carry `override=1` in `points_1950.csv`.
+
+## final_standings_<season>.csv and WIKIPEDIA_SUMMARY.md
+
+Final drivers' standings parsed from the Wikipedia season articles for 1950-1955, 1957, 1960 and 1974 by
+`fetch_wikipedia_standings.py` (CC BY-SA 4.0; each row names the article section and fetch date). They are
+reference totals for checking, not used to fill `Pts`, except for 1950 where they feed the reconcile adjustments.
+See `WIKIPEDIA_SUMMARY.md` for what each season's article provides and what is still missing.
