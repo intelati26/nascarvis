@@ -139,3 +139,10 @@ official 2002 total being exactly 25 below his race results. The page was not re
 link's text fragment ("DAYTONA BEACH ... inspection. The No") are known, which point to a post-race inspection at Daytona. The amount, the race and any appeal result
 are not recorded beyond the headline. Four other 2002 drivers (Jeff Green, Jimmie Johnson, Rusty Wallace, Ward Burton) have the same 25-point gap and are recorded as
 inferred penalties at the last race until a source is found. Gainesville Sun's reuse terms have not been checked.
+
+## Jimmie Johnson's 2002 penalty (same Gainesville Sun article as Jarrett's)
+
+Text quoted by the project owner, who confirmed it comes from the same article as Dale Jarrett's penalty (Gainesville Sun, 23 July 2002, "Quarter-inch costs Jarrett 25 points"):
+"Jimmie Johnson's team was penalized 25 championship points and 25 owner points, and Chad Knaus, his crew chief, was fined $25,000 because NASCAR didn't approve the location
+of some bolts on the No. 48 Chevrolet at Daytona." It explains why Johnson's official 2002 total is exactly 25 below his race rows. The page itself was not read. Because the story
+is dated 23 July, the Daytona race is presumably the Pepsi 400 (race 17, 6 July); that is an inference. The penalty is in `adjustments.json` from race 20, the first race after the story.
