@@ -551,3 +551,39 @@ The viewer displays saved results and builds the spec and SQL text. It does not 
 - Era or season-range slices so a phone can carry a subset.
 - NASCAR is the pipeline test (output size per tier, full vs incremental build time, phone load time).
   It cannot test pitch-level scale, so one Statcast season is loaded into the baseball core early as a stress test.
+
+## Appendix E: NASCAR as the rehearsal for baseball (decided)
+
+The Cup Parquet file is flat and could serve as a database on its own. It will not, on purpose. NASCAR is
+built with the same structure baseball needs, so every part of the baseball design is exercised on
+smaller data first.
+
+### Concept mapping
+
+| Baseball | NASCAR | Notes |
+|---|---|---|
+| person (player) | driver | Stable id, source-id table, unmatched queue, overrides file |
+| team franchise / team-season | team / owner, car number | Car and driver are separate; relief drivers and shared rides |
+| park | track and track configuration | Layouts and surfaces change over time |
+| game | race | Key: series, season, race number |
+| plate appearance, lineup slot | driver-race result | One row per driver per race |
+| pitch (largest fact) | lap (largest fact) | Append-only, Parquet, sharded by season |
+| Lahman / official totals | official standings, champions, race counts | Audit reference tables |
+| Retrosheet, Statcast, MLB API | nascaR.data, lap/event feeds, reference sources | One adapter per source |
+
+### What must be built the baseball way
+
+1. Own ids for drivers, tracks and races, a source-id crosswalk, and an unmatched queue with manual overrides.
+2. Raw downloads kept dated and immutable; core rebuilt from raw plus curation.
+3. SQLite for dimensions and results, Parquet for lap-level facts, DuckDB optional.
+4. Era/field tags and the audit report (internal checks, then reference checks).
+5. The export stage to sharded script-tag files, a manifest, and per-file size budgets.
+6. Saved queries, a pluggable runner, and result files with run metadata (the A2 query first).
+7. A source adapter per data source, with `SOURCES.md` terms.
+
+### Scale
+
+Results are small, but lap-by-lap data is the useful stress test: every driver on every lap, for many
+seasons, is on the order of millions of rows, which is the NASCAR counterpart to pitch data. The lap
+files and the size measurements from the export stage decide whether the tier boundaries and the
+per-file budget in Appendix D are right before baseball depends on them.
