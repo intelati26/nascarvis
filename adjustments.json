@@ -1699,5 +1699,12 @@
   "driver": "Bill Norton",
   "pts": -465.0,
   "note": "1951 reconcile: not in the official standings table (lowest listed total 120); the rule gives 465; exact total unknown, zeroed as a placeholder"
+ },
+ {
+  "season": 2000,
+  "race": 26,
+  "driver": "Jeff Gordon",
+  "pts": -100,
+  "note": "Penalty: 100 driver points (and 100 owner points against Rick Hendrick) plus a fine, announced 13 Sep 2000; Jayski article text quoted by the project owner. Applied from race 26 (New Hampshire, 17 Sep), the first race after the announcement"
  }
 ]

@@ -126,7 +126,8 @@ date). A table is only written if its first row equals the champion and total in
 
 ## Jayski article on Jeff Gordon's 2000 penalty
 
-`https://www.jayski.com/2000/09/13/gordons-engine-problem-update-6-the-penalty-the-appeal-the-reactions/` (13 September 2000): linked from
-the discrepancy row for Jeff Gordon, 2000, as the likely explanation for his official total being exactly 100 points below his race results.
-The link was supplied by the project owner. The page was not read here (Jayski returned 403 to an automated request), so what it says about the
-amount, the race and the appeal result is not recorded; check it by hand. Jayski's terms for reuse have not been checked.
+`https://www.jayski.com/2000/09/13/gordons-engine-problem-update-6-the-penalty-the-appeal-the-reactions/` (13 September 2000). The project owner
+quoted its text: "In addition to the fine, Jeff Gordon, driver of the #24 car, will suffer a loss of 100 driver points. A reduction of 100 owner points also
+has been levied against team owner, Rick Hendrick." That explains why Gordon's official 2000 total (4,361) is exactly 100 below his race results (4,461).
+The page itself was not fetched (Jayski returned 403 to an automated request); the race the penalty concerns and the appeal result are not recorded.
+The deduction is in `adjustments.json` (season 2000, from race 26, the first race after the announcement). Jayski's terms for reuse have not been checked.
