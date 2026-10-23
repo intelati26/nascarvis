@@ -1748,5 +1748,12 @@
   "driver": "Jimmie Johnson",
   "pts": -25,
   "note": "Penalty: 25 points for offset mounting bolts at Daytona on 07-06 (race 17); crew chief Chad Knaus fined $25,000. Source: Jayski 2002 penalties table (pasted by the project owner). Same Gainesville Sun article as Jarrett's headline (23 Jul 2002) announced Johnson's and Jarrett's penalties. Applied from race 20, the first race after the announcement"
+ },
+ {
+  "season": 1989,
+  "race": 12,
+  "driver": "Terry Fisher",
+  "pts": -4,
+  "note": "standings total 84 is 4 below the scoring-formula 88 for 25th at Sonoma (cause unknown; Wikipedia total kept; race not known)"
  }
 ]
