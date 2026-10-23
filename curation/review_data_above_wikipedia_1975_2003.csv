@@ -1,4 +1,4 @@
-season,driver,official_total,data_total,excess_data_minus_official,race,race_name,finish,led,calc_pts,final_pts,rows_in_set
+season,driver,wikipedia_total,data_total,excess_data_minus_wikipedia,race,race_name,finish,led,calc_pts,final_pts,rows_in_set
 1982,Donnie Allison,406.0,536.0,130.0,4,Coca-Cola 500,11,0,130,130.0,1
 1985,Slick Johnson,343.0,446.0,103.0,1,Daytona 500,20,0,103,103.0,1
 1986,Jim Sauter,361.0,666.0,305.0,16,Summer 500,14,0,121,121.0,3

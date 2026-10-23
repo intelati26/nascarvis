@@ -1,4 +1,4 @@
-season,driver,official_total,data_total,gap_official_minus_data,race,race_name,finish,led,calc_pts,final_pts,row,calc_equals_gap
+season,driver,wikipedia_total,data_total,gap_wikipedia_minus_data,race,race_name,finish,led,calc_pts,final_pts,row,calc_equals_gap
 1975,Skip Manning,297.0,415.0,-118.0,6,Atlanta 500,14,0,121,0.0,zero,0
 1978,Dale Earnhardt,558.0,548.0,10.0,12,World 600,17,0,112,0.0,zero,0
 1980,Frank Warren,559.0,549.0,10.0,25,CRC Chemicals 500,25,0,88,0.0,zero,0

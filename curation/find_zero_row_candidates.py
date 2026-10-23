@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Zero-point rows that may be missing points (the Mike Alexander, Richmond 1984 pattern).  python curation/find_zero_row_candidates.py
-For every 1975-2003 driver in discrepancies.csv whose official total is HIGHER than the data total and whose gap is not already explained, look for the
+For every 1975-2003 driver in discrepancies.csv whose Wikipedia's total is HIGHER than the data total and whose gap is not already explained, look for the
 smallest set of his zero-point rows whose 1975-2003 formula scores add up to exactly the gap (base points by finish: 175, 170, ... 127, then 3 fewer per place;
 +5 for leading a lap, +5 more for the most laps led). Writes curation/zero_row_candidates.csv. Nothing is changed in the data: a candidate is only a proposal.
-Convention (SOURCES.md): a zero is restored only for a driver in the official table whose official total confirms the missing points."""
+Convention (SOURCES.md): a zero is restored only for a driver in Wikipedia's table whose Wikipedia's total confirms the missing points."""
 import collections, csv, importlib.util, itertools, os, re
 import pyarrow.parquet as pq
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
@@ -26,7 +26,7 @@ for r in csv.DictReader(open(os.path.join(HERE, "discrepancies.csv"), encoding="
     s = int(r["season"])
     if not 1975 <= s <= 2003: continue
     gap = float(r["expected"]) - float(r["found"])
-    if gap <= 0: stats["official below data"] += 1; continue
+    if gap <= 0: stats["Wikipedia below data"] += 1; continue
     zeros = [x for x in rows[s][norm(r["subject"])] if x[2] == 0]
     sols = []
     for k in range(1, min(4, len(zeros)) + 1):
@@ -37,5 +37,5 @@ for r in csv.DictReader(open(os.path.join(HERE, "discrepancies.csv"), encoding="
         for x in sols[0]: out.append([s, r["subject"], gap, x[0], x[4], x[1], x[3], len(sols[0])])
     else: stats["no exact set" if not sols else "several sets"] += 1
 with open(os.path.join(HERE, "zero_row_candidates.csv"), "w", newline="", encoding="utf-8") as f:
-    w = csv.writer(f); w.writerow(["season", "driver", "official_minus_data", "race", "race_name", "finish", "formula_points", "rows_in_set"]); w.writerows(out)
+    w = csv.writer(f); w.writerow(["season", "driver", "wikipedia_minus_data", "race", "race_name", "finish", "formula_points", "rows_in_set"]); w.writerows(out)
 print(dict(stats), "->", len(out), "candidate rows for", len({(o[0], o[1]) for o in out}), "drivers")

@@ -1,4 +1,4 @@
-season,race,race_name,driver,finish,led,calc_pts,source_pts,final_pts,diff,in_official_table
+season,race,race_name,driver,finish,led,calc_pts,source_pts,final_pts,diff,in_wikipedia_table
 1975,1,Winston Western 500,Bobby Allison,1,173,185,185,185.0,0.0,1
 1975,1,Winston Western 500,David Pearson,2,11,175,175,175.0,0.0,1
 1975,1,Winston Western 500,Cecil Gordon,3,0,165,165,165.0,0.0,1
