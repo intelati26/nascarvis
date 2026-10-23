@@ -5,6 +5,13 @@
 works when opened straight from the folder (no server needed). Keep the folder next to the HTML when
 copying to another device. A rebuild only rewrites season files whose content changed.
 
+### Tabs
+
+Season, Race, Driver history (now with a race-by-race table for each season: where the driver started and
+finished in every race), Track history, and Leaders (career or single-season leaders for any stat, with a
+season range, a minimum-starts filter for rates, and an "exactly N wins" filter). Every table sorts by
+clicking a header and exports to CSV.
+
 ### Viewing it on a phone (Termux)
 
 ```bash

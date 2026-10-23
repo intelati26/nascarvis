@@ -71,6 +71,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <button data-tab="race">Race</button>
     <button data-tab="driver">Driver history</button>
     <button data-tab="track">Track history</button>
+    <button data-tab="leaders">Leaders</button>
   </nav>
   <button class="btn" id="theme" title="Toggle theme">Theme</button>
 </header>
@@ -173,6 +174,12 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     </div>
   </div>
   <div class="card">
+    <div class="tools"><button class="btn" data-csv="driver-races">CSV</button></div>
+    <h2>Races <span id="d-racesyr"></span></h2>
+    <div class="sub" id="d-racesum"></div>
+    <div class="tablewrap" style="max-height:520px"><table id="t-draces"></table></div>
+  </div>
+  <div class="card">
     <div class="tools"><button class="btn" data-csv="driver">CSV</button></div>
     <h2>Seasons</h2>
     <div class="tablewrap"><table id="t-driver"></table></div>
@@ -214,6 +221,30 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
       <h2>Driver record here</h2><div class="sub">Minimum 3 starts.</div>
       <div class="tablewrap"><table id="t-kdrv"></table></div>
     </div>
+  </div>
+</section>
+
+<!-- ============================ LEADERS ============================ -->
+<section class="panel" id="p-leaders">
+  <div class="controls">
+    <label>Stat<select id="l-stat">
+      <option value="wins">Wins</option><option value="top5">Top 5s</option><option value="top10">Top 10s</option>
+      <option value="starts">Starts</option><option value="poles">Poles (start P1)</option><option value="led">Laps led</option>
+      <option value="dnf">DNFs</option><option value="winpct">Win %</option><option value="t5pct">Top-5 %</option>
+      <option value="t10pct">Top-10 %</option><option value="avgfin">Average finish</option>
+    </select></label>
+    <label>Scope<select id="l-scope"><option value="career">Career</option><option value="season">Single season</option></select></label>
+    <label>From<select id="l-from"></select></label>
+    <label>To<select id="l-to"></select></label>
+    <label>Min starts (rates)<input type="number" id="l-min" value="20" min="0" style="width:80px"></label>
+    <label>Exactly N wins<input type="number" id="l-wins" placeholder="any" min="0" style="width:80px"></label>
+    <label>Show<select id="l-top"><option>25</option><option selected>50</option><option>100</option><option>250</option></select></label>
+  </div>
+  <div class="sub" id="l-note"></div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="leaders">CSV</button></div>
+    <h2 id="l-title">Leaders</h2>
+    <div class="tablewrap" style="max-height:680px"><table id="t-leaders"></table></div>
   </div>
 </section>
 
@@ -351,7 +382,7 @@ function currentTitle(){ return titleFn(); }
 function show(tab) {
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + tab));
-  ({season:renderSeason, race:renderRace, driver:renderDriver, track:renderTrack})[tab]();
+  ({season:renderSeason, race:renderRace, driver:renderDriver, track:renderTrack, leaders:renderLeaders})[tab]();
   window.scrollTo(0,0);
 }
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) show(b.dataset.tab); };
@@ -633,6 +664,22 @@ function renderDriverForm(name, bySeason) {
       {label:'5-race avg', data:roll, borderColor:'#f28e2b', pointRadius:0, borderWidth:2, tension:.2}]},
     options:{scales:{y:{reverse:true, min:1, title:{display:true,text:'Finish position'}}, x:{title:{display:true,text:'Race #'}}},
       plugins:{tooltip:{callbacks:{title: it => { const i=rr[it[0].dataIndex]; return `Race ${D.race[i]}: ${D.tracks[D.track[i]]}`; }}}}}});
+  // the same races as a table: where he started and finished in each
+  $('d-racesyr').textContent = '— ' + s;
+  const fin = f, st = rr.map(i=>D.start[i]);
+  $('d-racesum').textContent = rr.length
+    ? `In ${s}, ${name} made ${rr.length} start${rr.length===1?'':'s'}: average start ${f1(avg(st)) || '–'}, average finish ${f1(avg(fin)) || '–'}; ` +
+      `${fin.filter(x=>x===1).length} win${fin.filter(x=>x===1).length===1?'':'s'}, ${fin.filter(x=>x<=5).length} top 5s, ${fin.filter(x=>x<=10).length} top 10s, ` +
+      `${rr.reduce((a,i)=>a+nz(D.led[i]),0)} laps led, ${rr.filter(dnf).length} DNFs.`
+    : `${name} did not start a race in ${s}.`;
+  renderTable($('t-draces'), 'driver-races', [
+    {h:'Race', k:i=>D.race[i]}, {h:'Name', k:i=>D.names[D.name[i]], l:1, html:i=>`<a data-race="${D.season[i]}-${D.race[i]}">${esc(D.names[D.name[i]])}</a>`},
+    {h:'Track', k:i=>D.tracks[D.track[i]], l:1, html:i=>`<a data-track="${D.track[i]}">${esc(D.tracks[D.track[i]])}</a>`},
+    {h:'Start', k:i=>D.start[i]}, {h:'Finish', k:i=>D.finish[i], html:i=>`<b style="${finishColor(D.finish[i])};padding:1px 6px;border-radius:4px">${D.finish[i]}</b>`},
+    {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
+    {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]}, {h:'Stage pts', k:i=>nz(D.s1[i])+nz(D.s2[i])+nz(D.s3[i])},
+    {h:'Pts', k:i=>D.pts[i]}, {h:'Rating', k:i=>D.rating[i]}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
+  ], rr, {file:`driver-${name.replace(/\W+/g,'_')}-${s}-races`});
 }
 $('d-driver').onchange = renderDriver;
 $('d-metric').onchange = renderDriver;
@@ -679,6 +726,61 @@ function renderTrack() {
 }
 $('k-track').onchange = renderTrack;
 
+// ============================================================ LEADERS
+// Career or single-season leaders for any stat, computed from the loaded results.
+const pct = (n, d) => d ? 100 * n / d : null;
+const LSTATS = {
+  wins:   {label:'Wins',   v:a=>a.w},   top5:  {label:'Top 5s',  v:a=>a.t5},  top10: {label:'Top 10s', v:a=>a.t10},
+  starts: {label:'Starts', v:a=>a.n},   poles: {label:'Poles (start P1)', v:a=>a.poles}, led: {label:'Laps led', v:a=>a.led},
+  dnf:    {label:'DNFs',   v:a=>a.dnf},
+  winpct: {label:'Win %',  v:a=>pct(a.w, a.n),   rate:1, nd:1}, t5pct:  {label:'Top-5 %',  v:a=>pct(a.t5, a.n),  rate:1, nd:1},
+  t10pct: {label:'Top-10 %', v:a=>pct(a.t10, a.n), rate:1, nd:1},
+  avgfin: {label:'Average finish', v:a=>a.fsum / a.n, rate:1, nd:2, low:1},
+};
+function leaderRows() {
+  const S = LSTATS[$('l-stat').value], bySeason = $('l-scope').value === 'season';
+  const from = +$('l-from').value, to = +$('l-to').value, minStarts = +$('l-min').value || 0;
+  const exactW = $('l-wins').value === '' ? null : +$('l-wins').value;
+  const agg = new Map();
+  for (let i = 0; i < N; i++) {
+    const se = D.season[i]; if (se < from || se > to) continue;
+    const k = bySeason ? D.driver[i] * 10000 + se : D.driver[i];
+    let a = agg.get(k);
+    if (!a) agg.set(k, a = {d:D.driver[i], season:bySeason ? se : null, n:0, w:0, t5:0, t10:0, poles:0, led:0, dnf:0, fsum:0, first:se, last:se});
+    const f = D.finish[i];
+    a.n++; a.fsum += f; if (f === 1) a.w++; if (f <= 5) a.t5++; if (f <= 10) a.t10++;
+    if (D.start[i] === 1) a.poles++; a.led += nz(D.led[i]); if (dnf(i)) a.dnf++;
+    if (se < a.first) a.first = se; if (se > a.last) a.last = se;
+  }
+  let out = [...agg.values()].filter(a => (!S.rate || a.n >= minStarts) && (exactW == null || a.w === exactW));
+  out.forEach(a => a.val = S.v(a));
+  out.sort((x, y) => (S.low ? x.val - y.val : y.val - x.val) || y.n - x.n);
+  let rank = 0, prev = null;                       // ties share a rank: 1, 2, 2, 4
+  out.forEach((a, k) => { if (a.val !== prev) { rank = k + 1; prev = a.val; } a.rank = rank; });
+  return {S, bySeason, from, to, minStarts, exactW, rows: out};
+}
+function renderLeaders() {
+  const r = leaderRows(), top = +$('l-top').value, latest = seasons[0];
+  const lead = r.rows.slice(0, top), S = r.S;
+  titleFn = () => `${S.label} leaders, ${r.bySeason ? 'single season' : 'career'} ${r.from}–${r.to}`;
+  $('l-title').textContent = `${S.label} — ${r.bySeason ? 'single season' : 'career'}, ${r.from}–${r.to}` + (r.exactW != null ? `, exactly ${r.exactW} win${r.exactW===1?'':'s'}` : '');
+  $('l-note').textContent = `${r.rows.length.toLocaleString()} ${r.bySeason ? 'driver-seasons' : 'drivers'} match; showing ${lead.length}. ` +
+    (S.rate ? `Rate stats need at least ${r.minStarts} starts. ` : '') +
+    `Poles count starts from P1 (penalties and rain-outs can differ).` +
+    (r.bySeason && r.to >= latest ? ` * ${latest} is the latest season in the data and may be in progress.` : '');
+  const fmt = v => v == null ? '' : S.nd != null ? v.toFixed(S.nd) : v.toLocaleString();
+  renderTable($('t-leaders'), 'leaders', [
+    {h:'#', k:a=>a.rank}, {h:'Driver', k:a=>D.drivers[a.d], l:1, html:a=>driverLink(D.drivers[a.d])},
+    r.bySeason ? {h:'Season', k:a=>a.season, html:a=>a.season + (a.season === latest ? '*' : '')}
+               : {h:'Years', k:a=>a.first, html:a=>a.first === a.last ? a.first : a.first + '–' + a.last},
+    {h:S.label, k:a=>a.val, html:a=>`<b>${fmt(a.val)}</b>`},
+    {h:'Starts', k:a=>a.n}, {h:'W', k:a=>a.w}, {h:'T5', k:a=>a.t5}, {h:'T10', k:a=>a.t10}, {h:'Poles', k:a=>a.poles},
+    {h:'Laps Led', k:a=>a.led}, {h:'Avg Fin', k:a=>Math.round(10 * a.fsum / a.n) / 10, html:a=>f1(a.fsum / a.n)},
+  ], lead, {file:`leaders-${$('l-stat').value}-${r.bySeason ? 'season' : 'career'}-${r.from}-${r.to}`});
+}
+['l-stat','l-scope','l-from','l-to','l-min','l-wins','l-top'].forEach(id => $(id).onchange = renderLeaders);
+['l-min','l-wins'].forEach(id => $(id).oninput = renderLeaders);
+
 // ============================================================ init
 $('ttl').textContent = D.title; document.title = D.title + ' Dashboard';
 NASCARFormats.setAdjustments(D.adjustments);
@@ -695,6 +797,8 @@ $('d-list').innerHTML = D.drivers.map(d=>`<option value="${esc(d)}">`).join('');
 const cur = standings(seasons[0]); $('d-driver').value = [...cur.drivers].sort((a,b)=>(cur.rank.get(a).at(-1)??999)-(cur.rank.get(b).at(-1)??999))[0];
 const trackCount = new Array(D.tracks.length).fill(0), seen = new Set(); for (let i=0;i<N;i++){ const k=D.season[i]*100+D.race[i]; if(!seen.has(k)){seen.add(k); trackCount[D.track[i]]++;} }
 fillSelect($('k-track'), D.tracks.map((t,i)=>[i,t]).filter(([i])=>trackCount[i]).sort((a,b)=>trackCount[b[0]]-trackCount[a[0]]).map(([i,t])=>[i,`${t} (${trackCount[i]} races)`]));
+const asc = seasons.slice().sort((a,b)=>a-b);
+fillSelect($('l-from'), asc.map(s=>[s,s]), asc[0]); fillSelect($('l-to'), asc.map(s=>[s,s]), asc[asc.length-1]);
 renderSeason();
 </script>
 </body>
