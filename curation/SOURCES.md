@@ -131,3 +131,11 @@ quoted its text: "In addition to the fine, Jeff Gordon, driver of the #24 car, w
 has been levied against team owner, Rick Hendrick." That explains why Gordon's official 2000 total (4,361) is exactly 100 below his race results (4,461).
 The page itself was not fetched (Jayski returned 403 to an automated request); the race the penalty concerns and the appeal result are not recorded.
 The deduction is in `adjustments.json` (season 2000, from race 26, the first race after the announcement). Jayski's terms for reuse have not been checked.
+
+## Gainesville Sun: "Quarter-inch costs Jarrett 25 points" (23 July 2002)
+
+`https://www.gainesville.com/story/news/2002/07/23/quarter-inch-costs-jarrett-25-points/31611379007/`, supplied by the project owner as the explanation for Dale Jarrett's
+official 2002 total being exactly 25 below his race results. The page was not read (the fetch tool could not reach the site); only the headline and the start of the
+link's text fragment ("DAYTONA BEACH ... inspection. The No") are known, which point to a post-race inspection at Daytona. The amount, the race and any appeal result
+are not recorded beyond the headline. Four other 2002 drivers (Jeff Green, Jimmie Johnson, Rusty Wallace, Ward Burton) have the same 25-point gap and are recorded as
+inferred penalties at the last race until a source is found. Gainesville Sun's reuse terms have not been checked.

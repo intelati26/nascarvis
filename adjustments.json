@@ -1713,5 +1713,40 @@
   "driver": "Jeff Burton",
   "pts": 5,
   "note": "Official total is 5 higher than his race rows; reported by the project owner as a scoring error corrected later (source and race not yet recorded). Applied at the last race because the race is unknown"
+ },
+ {
+  "season": 2002,
+  "race": 20,
+  "driver": "Dale Jarrett",
+  "pts": -25,
+  "note": "Penalty: 25 points for a quarter-inch violation found at inspection (headline: Gainesville Sun, 23 Jul 2002, 'Quarter-inch costs Jarrett 25 points'; article not read). Applied from race 20, the first race after the story"
+ },
+ {
+  "season": 2002,
+  "race": 36,
+  "driver": "Jeff Green",
+  "pts": -25,
+  "note": "Official total is exactly 25 below the race rows, the same size as Dale Jarrett's penalty; probably a penalty, source and race not recorded (inferred). Applied at the last race"
+ },
+ {
+  "season": 2002,
+  "race": 36,
+  "driver": "Jimmie Johnson",
+  "pts": -25,
+  "note": "Official total is exactly 25 below the race rows, the same size as Dale Jarrett's penalty; probably a penalty, source and race not recorded (inferred). Applied at the last race"
+ },
+ {
+  "season": 2002,
+  "race": 36,
+  "driver": "Rusty Wallace",
+  "pts": -25,
+  "note": "Official total is exactly 25 below the race rows, the same size as Dale Jarrett's penalty; probably a penalty, source and race not recorded (inferred). Applied at the last race"
+ },
+ {
+  "season": 2002,
+  "race": 36,
+  "driver": "Ward Burton",
+  "pts": -25,
+  "note": "Official total is exactly 25 below the race rows, the same size as Dale Jarrett's penalty; probably a penalty, source and race not recorded (inferred). Applied at the last race"
  }
 ]
