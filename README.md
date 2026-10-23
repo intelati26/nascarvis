@@ -54,6 +54,10 @@ has the season-by-season table and sources, and
 [`curation/discrepancies.csv`](https://github.com/intelati26/nascarvis/blob/curation/early-season-points/curation/discrepancies.csv)
 lists every disagreement found so far.
 
+[`nascaR_completeness.csv`](nascaR_completeness.csv) (and a [text grid](nascaR_completeness_grid.txt)) shows, season by season, how much of each
+field nascaR.data has, where the points came from, and how the season compares with Wikipedia's final standings. It is generated on the
+curated branch by `curation/completeness.py`; this copy is a snapshot.
+
 ## Lap-by-lap data and offline storage
 
 The project already supports total race results and best-lap summaries. For full lap-by-lap detail, use the compact offline exporter:
