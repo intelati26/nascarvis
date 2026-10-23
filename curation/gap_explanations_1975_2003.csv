@@ -77,7 +77,7 @@ season,driver,wikipedia_total,data_total,gap_wikipedia_minus_data,fits,rows,note
 1985,Neil Bonnett,3902.0,3897.0,5.0,bonus_sized,,0
 1985,Kyle Petty,3528.0,3523.0,5.0,bonus_sized,,0
 1985,Bobby Wawak,1226.0,1223.0,3.0,place_shift,,0
-1985,Slick Johnson,343.0,446.0,-103.0,exclude_row,"race 1 Daytona 500 (finish 20, 103)",0
+1985,Slick Johnson,343.0,446.0,-103.0,exclude_row,"race 1 Daytona 500 (finish 20, 103)",1
 1985,Eldon Dotson,95.0,98.0,-3.0,place_shift,,0
 1985,Delma Cowart,98.0,95.0,3.0,place_shift,,0
 1986,Bobby Hillin Jr.,3546.0,3541.0,5.0,bonus_sized,,0
