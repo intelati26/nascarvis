@@ -481,5 +481,628 @@
   "driver": "Otis Martin",
   "pts": -90.0,
   "note": "1950 reconcile: not in the official top-65 table (total below 57.5, exact value unknown); zeroed as a placeholder"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Bob Flock",
+  "pts": 5.0,
+  "note": "1949 reconcile: Wikipedia final total 704 vs chart sum 699 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Bill Blair",
+  "pts": -1.0,
+  "note": "1949 reconcile: Wikipedia final total 567.5 vs chart sum 568.5 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Glenn Dunaway",
+  "pts": 84.0,
+  "note": "1949 reconcile: Wikipedia final total 384 vs chart sum 300 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Sara Christian",
+  "pts": -8.0,
+  "note": "1949 reconcile: Wikipedia final total 282 vs chart sum 290 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Sam Rice",
+  "pts": -84.0,
+  "note": "1949 reconcile: Wikipedia final total 231 vs chart sum 315 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Al Bonnell",
+  "pts": 20.0,
+  "note": "1949 reconcile: Wikipedia final total 80 vs chart sum 60 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Buddy Helms",
+  "pts": 5.0,
+  "note": "1949 reconcile: Wikipedia final total 27.5 vs chart sum 22.5 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Bob Apperson",
+  "pts": -3.0,
+  "note": "1949 reconcile: the data labels race 5's 15th place 'Bob Apperson' but the chart and Wikipedia both say 'Bob Appleton' (3 points); the -3 removes Appleton's points from Apperson (Wikipedia: Apperson 25, Appleton 3)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Erwin Blatt",
+  "pts": -0.5,
+  "note": "1949 reconcile: Wikipedia final total 4 vs chart sum 4.5 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1949,
+  "race": 8,
+  "driver": "Don Rogala",
+  "pts": -20.0,
+  "note": "1949 reconcile: Wikipedia final total 0 vs chart sum 20 (chart's own notes flag Langhorne errors, a Rice/Dunaway 84-point transfer and penalties)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Benny Parsons",
+  "pts": 2.0,
+  "note": "official total 6844.15 (Wikipedia) minus rank + distance points 6842.15 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Walter Ballard",
+  "pts": -2.0,
+  "note": "official total 6781.45 (Wikipedia) minus rank + distance points 6783.45 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Elmo Langley",
+  "pts": 2.0,
+  "note": "official total 6656.25 (Wikipedia) minus rank + distance points 6654.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "John Sears",
+  "pts": 2.0,
+  "note": "official total 6298.5 (Wikipedia) minus rank + distance points 6296.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Dean Dalton",
+  "pts": 2.0,
+  "note": "official total 6295.05 (Wikipedia) minus rank + distance points 6293.05 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Bill Champion",
+  "pts": -270.0,
+  "note": "official total 5470.7 (Wikipedia) minus rank + distance points 5740.7 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Dave Marcis",
+  "pts": -1.25,
+  "note": "official total 5459.65 (Wikipedia) minus rank + distance points 5460.9 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Henley Gray",
+  "pts": 9.99,
+  "note": "official total 5093.64 (Wikipedia) minus rank + distance points 5083.65 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "J.D. McDuffie",
+  "pts": 2.5,
+  "note": "official total 5075.85 (Wikipedia) minus rank + distance points 5073.35 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Bobby Isaac",
+  "pts": 2.0,
+  "note": "official total 5050.85 (Wikipedia) minus rank + distance points 5048.85 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Ed Negre",
+  "pts": -0.01,
+  "note": "official total 4696.89 (Wikipedia) minus rank + distance points 4696.9 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Buddy Arrington",
+  "pts": -215.51,
+  "note": "official total 4555.89 (Wikipedia) minus rank + distance points 4771.4 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Larry Smith",
+  "pts": 2.0,
+  "note": "official total 4173.7 (Wikipedia) minus rank + distance points 4171.7 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Buddy Baker",
+  "pts": -223.5,
+  "note": "official total 3936.7 (Wikipedia) minus rank + distance points 4160.2 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "David Ray Boggs",
+  "pts": 2.0,
+  "note": "official total 3739 (Wikipedia) minus rank + distance points 3737 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Ron Keselowski",
+  "pts": -69.5,
+  "note": "official total 3475.6 (Wikipedia) minus rank + distance points 3545.1 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Joe Frasson",
+  "pts": 2.0,
+  "note": "official total 3152.8 (Wikipedia) minus rank + distance points 3150.8 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Neil Castles",
+  "pts": -108.0,
+  "note": "official total 2789.6 (Wikipedia) minus rank + distance points 2897.6 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Jim Vandiver",
+  "pts": 50.0,
+  "note": "official total 2514.35 (Wikipedia) minus rank + distance points 2464.35 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Clarence Lovell",
+  "pts": 239.0,
+  "note": "official total 2630.3 (Wikipedia) minus rank + distance points 2391.3 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "David Sisco",
+  "pts": 2.0,
+  "note": "official total 2310.75 (Wikipedia) minus rank + distance points 2308.75 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "LeeRoy Yarbrough",
+  "pts": -1010.9,
+  "note": "official total 2157.5 (Wikipedia) minus rank + distance points 3168.4 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Bill Shirey",
+  "pts": 2.0,
+  "note": "official total 1468.5 (Wikipedia) minus rank + distance points 1466.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Fred Lorenzen",
+  "pts": -420.7,
+  "note": "official total 1333.55 (Wikipedia) minus rank + distance points 1754.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Bill Dennis",
+  "pts": -260.2,
+  "note": "official total 1279.25 (Wikipedia) minus rank + distance points 1539.45 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "G.C. Spencer",
+  "pts": -3.0,
+  "note": "official total 1238.25 (Wikipedia) minus rank + distance points 1241.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Hershel McGriff",
+  "pts": 1.0,
+  "note": "official total 1199.75 (Wikipedia) minus rank + distance points 1198.75 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Johnny Halford",
+  "pts": 4.0,
+  "note": "official total 1103.75 (Wikipedia) minus rank + distance points 1099.75 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Pete Hamilton",
+  "pts": 2.0,
+  "note": "official total 1083.25 (Wikipedia) minus rank + distance points 1081.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Dick Brooks",
+  "pts": -388.05,
+  "note": "official total 1023.5 (Wikipedia) minus rank + distance points 1411.55 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Cale Yarborough",
+  "pts": -296.5,
+  "note": "official total 949.5 (Wikipedia) minus rank + distance points 1246 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Marty Robbins",
+  "pts": -279.75,
+  "note": "official total 860.8 (Wikipedia) minus rank + distance points 1140.55 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Darrell Waltrip",
+  "pts": -187.25,
+  "note": "official total 827 (Wikipedia) minus rank + distance points 1014.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "H.B. Bailey",
+  "pts": -245.7,
+  "note": "official total 792.2 (Wikipedia) minus rank + distance points 1037.9 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Charlie Glotzbach",
+  "pts": -28.75,
+  "note": "official total 739 (Wikipedia) minus rank + distance points 767.75 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Ramo Stott",
+  "pts": -478.0,
+  "note": "official total 675.25 (Wikipedia) minus rank + distance points 1153.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Bill Seifert",
+  "pts": -3.0,
+  "note": "official total 551.25 (Wikipedia) minus rank + distance points 554.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Roy Mayne",
+  "pts": 2.0,
+  "note": "official total 338.25 (Wikipedia) minus rank + distance points 336.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Mel Larson",
+  "pts": -453.25,
+  "note": "official total 251 (Wikipedia) minus rank + distance points 704.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Jimmy Hensley",
+  "pts": -13.75,
+  "note": "official total 215.25 (Wikipedia) minus rank + distance points 229 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Tiny Lund",
+  "pts": -251.5,
+  "note": "official total 191 (Wikipedia) minus rank + distance points 442.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "James Cox",
+  "pts": -48.5,
+  "note": "official total 165.5 (Wikipedia) minus rank + distance points 214 (1972-73 reconcile)"
+ },
+ {
+  "season": 1972,
+  "race": 31,
+  "driver": "Ed Hessert",
+  "pts": -133.75,
+  "note": "official total 83.5 (Wikipedia) minus rank + distance points 217.25 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Benny Parsons",
+  "pts": 5.5,
+  "note": "official total 7173.8 (Wikipedia) minus rank + distance points 7168.3 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Cale Yarborough",
+  "pts": -39.25,
+  "note": "official total 7106.65 (Wikipedia) minus rank + distance points 7145.9 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Cecil Gordon",
+  "pts": -40.25,
+  "note": "official total 7046.8 (Wikipedia) minus rank + distance points 7087.05 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "James Hylton",
+  "pts": -38.75,
+  "note": "official total 6972.75 (Wikipedia) minus rank + distance points 7011.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Richard Petty",
+  "pts": 50.25,
+  "note": "official total 6877.95 (Wikipedia) minus rank + distance points 6827.7 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Buddy Baker",
+  "pts": -122.75,
+  "note": "official total 6327.6 (Wikipedia) minus rank + distance points 6450.35 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Bobby Allison",
+  "pts": -39.25,
+  "note": "official total 6272.3 (Wikipedia) minus rank + distance points 6311.55 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Walter Ballard",
+  "pts": -55.25,
+  "note": "official total 5955.7 (Wikipedia) minus rank + distance points 6010.95 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Elmo Langley",
+  "pts": -38.25,
+  "note": "official total 5826.85 (Wikipedia) minus rank + distance points 5865.1 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "J.D. McDuffie",
+  "pts": -85.5,
+  "note": "official total 5743.9 (Wikipedia) minus rank + distance points 5829.4 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Jabe Thomas",
+  "pts": 108.5,
+  "note": "official total 5637 (Wikipedia) minus rank + distance points 5528.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Buddy Arrington",
+  "pts": -27.25,
+  "note": "official total 5483.9 (Wikipedia) minus rank + distance points 5511.15 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "David Pearson",
+  "pts": -111.5,
+  "note": "official total 5382.8 (Wikipedia) minus rank + distance points 5494.3 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Henley Gray",
+  "pts": -38.0,
+  "note": "official total 5215.5 (Wikipedia) minus rank + distance points 5253.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Richard Childress",
+  "pts": -45.5,
+  "note": "official total 5169.5 (Wikipedia) minus rank + distance points 5215 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Frank Warren",
+  "pts": 8.99,
+  "note": "official total 4992.14 (Wikipedia) minus rank + distance points 4983.15 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "David Sisco",
+  "pts": -49.25,
+  "note": "official total 4986.45 (Wikipedia) minus rank + distance points 5035.7 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Ed Negre",
+  "pts": -67.25,
+  "note": "official total 4942.55 (Wikipedia) minus rank + distance points 5009.8 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Dean Dalton",
+  "pts": -103.25,
+  "note": "official total 4712.3 (Wikipedia) minus rank + distance points 4815.55 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Charlie Roberts",
+  "pts": 29.49,
+  "note": "official total 4695.39 (Wikipedia) minus rank + distance points 4665.9 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Bill Champion",
+  "pts": -26.0,
+  "note": "official total 4447.85 (Wikipedia) minus rank + distance points 4473.85 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Coo Coo Marlin",
+  "pts": -49.26,
+  "note": "official total 4233.89 (Wikipedia) minus rank + distance points 4283.15 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Dave Marcis",
+  "pts": -65.25,
+  "note": "official total 3973.9 (Wikipedia) minus rank + distance points 4039.15 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Raymond Williams",
+  "pts": -59.5,
+  "note": "official total 3708.25 (Wikipedia) minus rank + distance points 3767.75 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Dick Brooks",
+  "pts": -338.1,
+  "note": "official total 3200.7 (Wikipedia) minus rank + distance points 3538.8 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Joe Frasson",
+  "pts": 53.0,
+  "note": "official total 2952.2 (Wikipedia) minus rank + distance points 2899.2 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Jim Vandiver",
+  "pts": 17.5,
+  "note": "official total 2508.85 (Wikipedia) minus rank + distance points 2491.35 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "John Sears",
+  "pts": -51.75,
+  "note": "official total 2465.25 (Wikipedia) minus rank + distance points 2517 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Donnie Allison",
+  "pts": -699.0,
+  "note": "official total 1755.75 (Wikipedia) minus rank + distance points 2454.75 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "G.C. Spencer",
+  "pts": 0.25,
+  "note": "official total 1503.15 (Wikipedia) minus rank + distance points 1502.9 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Mel Larson",
+  "pts": -160.0,
+  "note": "official total 1182.05 (Wikipedia) minus rank + distance points 1342.05 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Eddie Bond",
+  "pts": -216.0,
+  "note": "official total 1163.5 (Wikipedia) minus rank + distance points 1379.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Charlie Glotzbach",
+  "pts": -109.25,
+  "note": "official total 903.35 (Wikipedia) minus rank + distance points 1012.6 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Randy Tissot",
+  "pts": 0.5,
+  "note": "official total 887.85 (Wikipedia) minus rank + distance points 887.35 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Jimmy Crawford",
+  "pts": 73.5,
+  "note": "official total 846 (Wikipedia) minus rank + distance points 772.5 (1972-73 reconcile)"
+ },
+ {
+  "season": 1973,
+  "race": 28,
+  "driver": "Richard D. Brown",
+  "pts": -19.5,
+  "note": "official total 827.75 (Wikipedia) minus rank + distance points 847.25 (1972-73 reconcile)"
  }
 ]

@@ -14,7 +14,7 @@ UA = "nascarvis/1.0 (https://github.com/intelati26/nascarvis; personal research)
 
 
 def article(season):
-    for name in (f"{season}_NASCAR_Grand_National_Series", f"{season}_NASCAR_Winston_Cup_Series", f"{season}_NASCAR_Grand_National_season"):
+    for name in (f"{season}_NASCAR_Strictly_Stock_Series", f"{season}_NASCAR_Grand_National_Series", f"{season}_NASCAR_Winston_Cup_Series", f"{season}_NASCAR_Grand_National_season"):
         url = "https://en.wikipedia.org/w/index.php?title=" + urllib.parse.quote(name) + "&action=raw"
         try:
             txt = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=60).read().decode("utf-8", "replace")
@@ -96,8 +96,37 @@ def standings(txt):
     return None, []
 
 
+def champions(today):
+    """Champion, starts, wins, points and winning margin for 1949-2003 from Wikipedia's list of Cup champions.
+    The article cites a Racing-Reference page for each season; the URL is recorded, nothing is fetched from it."""
+    name = "List_of_NASCAR_Cup_Series_champions"
+    url = "https://en.wikipedia.org/w/index.php?title=" + name + "&action=raw"
+    txt = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=60).read().decode("utf-8", "replace")
+    a = txt.find('{| class="wikitable sortable"'); seg = txt[a:txt.find("\n|}", a)]
+    out = []
+    for bl in seg.split("\n|-"):
+        m = re.match(r"\s*!.*?\[\[(\d{4}) NASCAR", bl)
+        if not m or int(m.group(1)) > 2003: continue
+        cells = []
+        for l in bl.split("\n")[1:]:
+            if l.startswith(("|", "!")) and not l.startswith("|-"):
+                cells.append(re.sub(r"^\s*[|!]\s*(?:(?:rowspan|colspan|style|scope|class)=(?:\"[^\"]*\"|\S+)\s*)*\|?\s*", "", l.rstrip()))
+        num = lambda c: val(re.sub(r"\{\{tooltip\|(\d+)\|[^}]*\}\}", r"\1", c, flags=re.I))
+        ref = re.search(r"url\s*=\s*(\S+?)[\s|]", cells[-1] + " ")
+        champ = re.sub(r"\s*\(\d+\)", "", name_of("|" + cells[1]))
+        out.append([int(m.group(1)), champ, num(cells[-7]), num(cells[-6]), num(cells[-5]), num(cells[-4]), num(cells[-3]), num(cells[-2]), ref.group(1) if ref else ""])
+    path = os.path.join(HERE, "champions_points.csv")
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f); w.writerow(["season", "champion", "starts", "poles", "wins", "top10", "pts", "gap", "reference_url_cited_by_wikipedia", "source"])
+        for r in out:
+            w.writerow([r[0], r[1]] + [("%g" % v) if v is not None else "" for v in r[2:8]] + [r[8], f"Wikipedia: {name.replace('_', ' ')} (CC BY-SA 4.0), fetched {today}"])
+    print(f"champions_points.csv: {len(out)} seasons ({out[0][0]}-{out[-1][0]})")
+
+
 def main():
     today = datetime.date.today().isoformat()
+    if sys.argv[1:] == ["champions"]:
+        champions(today); return
     for season in sys.argv[1:]:
         name, txt = article(season)
         if not txt: print(season, "no article"); continue

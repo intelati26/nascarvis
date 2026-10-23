@@ -575,18 +575,22 @@ def apply_curation(t, folder):
     where the scoring rule gives points); other disagreements are only reported."""
     import csv, glob
     idx = {(s, r, f): i for i, (s, r, f) in enumerate(zip(t["Season"], t["Race"], t["Finish"]))}
-    filled = conflicts = unmatched = 0
+    filled = replaced = conflicts = unmatched = 0
     for path in sorted(glob.glob(os.path.join(folder, "points_*.csv"))):
         for row in csv.DictReader(open(path, encoding="utf-8")):
             i = idx.get((int(row["season"]), int(row["race"]), int(row["finish"])))
             if i is None:
                 unmatched += 1
-            elif clean(t["Pts"][i]) is None or row.get("override") == "1":
+            elif clean(t["Pts"][i]) is None:
                 t["Pts"][i] = float(row["pts"]); filled += 1
+            elif row.get("override") == "1":
+                if abs(t["Pts"][i] - float(row["pts"])) > 1e-9: replaced += 1
+                t["Pts"][i] = float(row["pts"])
             elif abs(t["Pts"][i] - float(row["pts"])) > 1e-9:
                 conflicts += 1
-    if filled or conflicts or unmatched:
-        print(f"curation: filled {filled} blank Pts values; {conflicts} disagree with the source (kept source); {unmatched} rows matched no result")
+    if filled or replaced or conflicts or unmatched:
+        print(f"curation: filled {filled} blank Pts values, replaced {replaced} with override=1 rows; "
+              f"{conflicts} disagree with the source (kept source); {unmatched} rows matched no result")
 
 
 def main():

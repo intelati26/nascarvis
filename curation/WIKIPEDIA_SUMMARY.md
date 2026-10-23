@@ -18,42 +18,79 @@ date. Rebuild or extend the references with `python curation/fetch_wikipedia_sta
 The 1949-1967 systems depend on each race's purse, and 1974 on each driver's earnings. Neither is in the results data,
 which is why the blanks cannot be recomputed from finishing positions alone.
 
-## Season by season
+## Complete season table, 1949-1974
 
-Blank = result rows with no `Pts` in the data file. "Standings" is the article's final drivers' table.
+"Official" is the champion's total from Wikipedia's *List of NASCAR Cup Series champions*; "data" is that driver's summed
+`Pts` after the curation in this folder (so 1949, 1950, 1972 and 1973 include the repo's derived values and reconcile
+entries; the rest is the unmodified data file). Re-run `python curation/check_champions.py` to regenerate
+`champion_check.csv`. The two sources in each row are the Wikipedia article and the Racing-Reference page that
+Wikipedia cites for the totals; nothing is fetched from Racing-Reference. "Standings" says how much of the final
+standings table the article has (CSV `final_standings_<season>.csv`).
 
-| Season | Races | Blank rows | Article | Standings in article | Purses in article | Status in this repo |
-|---|---|---|---|---|---|---|
-| 1949 | 8 | 210 of 210 | not parsed | not used | no | **Filled** per race from the Reddit chart (`points_1949.csv`, see SOURCES.md); champion total checks out (Byron 842.5) |
-| 1950 | 19 | 572 of 576 | yes | 62 drivers (`final_standings_1950.csv`) | yes, all 19 | **Derived** per race from purses and reconciled to the standings (`points_1950.csv`, adjustments) |
-| 1951 | 41 | 1,283 of 1,286 | yes | top 10 (`final_standings_1951.csv`) | yes, all 41 | Reference only. The 1950 rule leaves residuals of hundreds of points under every rounding rule tried, so no per-race points were derived |
-| 1952 | 34 | 927 of 938 | yes | top 20 (`final_standings_1952.csv`) | a few, in race summaries | Reference only |
-| 1953 | 37 | 942 of 958 | yes | top 20 (`final_standings_1953.csv`) | no | Reference only. The article lists Turner (3373) at 10th behind Lewallen (3208) at 9th, probably an article typo, kept as published |
-| 1954 | 37 | 1,125 of 1,134 | yes | 212 drivers (`final_standings_1954.csv`) | no | Reference only |
-| 1955 | 45 | 83 of 1,179 | yes | 52 drivers (`final_standings_1955.csv`) | no | Reference only; data mostly present |
-| 1956 | 56 | 1,503 of 1,519 | yes | **none found** | none per race | Nothing available from the article |
-| 1957 | 53 | 1,305 of 1,313 | yes | top 10 with earnings (`final_standings_1957.csv`) | no | Reference only |
-| 1958 | 51 | 499 of 1,401 | **no article** (the title redirects) | none | no | Nothing available |
-| 1959 | 44 | 545 of 1,187 | yes | **none found** | no | Nothing available |
-| 1960 | 44 | 113 of 1,195 | yes | 151 drivers (`final_standings_1960.csv`) | no | Reference only; data mostly present |
-| 1961 | 52 | 16 of 1,414 | yes | **none found** | no | Nothing available |
-| 1974 | 30 | 1,073 of 1,073 | yes | 138 drivers (`final_standings_1974.csv`) | no | Reference only; scoring needs earnings, which are not in the data |
+| Season | Champion | Official | Data | Check | Blank rows after curation | Standings | Sources | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 1949 | Red Byron | 842.5 | 842.5 | **match** | 0 of 210 | 79 drivers | [article](https://en.wikipedia.org/wiki/1949_NASCAR_Strictly_Stock_Series), [racing-reference](http://racing-reference.info/yeardet/1949/W) | Per-race points from the Reddit chart (`points_1949.csv`), checked against the article: 67 of 74 drivers identical, 7 differences explained by the chart's own notes; reconciled to the article (10 entries). |
+| 1950 | Bill Rexford | 1,959 | 1,959 | **match** | 0 of 576 | 62 | [article](https://en.wikipedia.org/wiki/1950_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1950/W) | Derived from purses and the prize-money scale, reconciled to the article (49 entries; Petty -809 for an unsanctioned race, Byron and Dunaway all points deducted). |
+| 1951 | Herb Thomas | 4,208.45 | 0 | no data | 1283 of 1286 | top 10 | [article](https://en.wikipedia.org/wiki/1951_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1951/W) | Not derived: the 1950 rule leaves residuals of hundreds of points. Purses are in the article. |
+| 1952 | Tim Flock | 6,858.5 | 0 | no data | 927 of 938 | top 20 | [article](https://en.wikipedia.org/wiki/1952_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1952/W) | Standings and champion only. |
+| 1953 | Herb Thomas | 8,460 | 0 | no data | 942 of 958 | top 20 | [article](https://en.wikipedia.org/wiki/1953_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1953/W) | Standings only. The article lists Turner (3373) at 10th behind Lewallen (3208), probably an article typo. |
+| 1954 | Lee Petty | 8,649 | 0 | no data | 1125 of 1134 | 212 | [article](https://en.wikipedia.org/wiki/1954_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1954/W) | Full standings only. |
+| 1955 | Tim Flock | 9,596 | 9,246 | differs | 83 of 1179 | 52 | [article](https://en.wikipedia.org/wiki/1955_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1955/W) | One blank row for Flock: the missing 350 is the gap (recoverable). |
+| 1956 | Buck Baker | 9,272 | 0 | no data | 1503 of 1519 | none found | [article](https://en.wikipedia.org/wiki/1956_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1956/W) | No standings table in the article. Champion total from the champions list only. |
+| 1957 | Buck Baker | 10,716 | 0 | no data | 1305 of 1313 | top 10 | [article](https://en.wikipedia.org/wiki/1957_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1957/W) | Top 10 with earnings only. |
+| 1958 | Lee Petty | 12,232 | 9,552 | differs | 499 of 1401 | none found | [article](https://en.wikipedia.org/wiki/1958_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1958/W) | No article for the season. Champion total from the champions list only. Data has blanks. |
+| 1959 | Lee Petty | 11,792 | 9,032 | differs | 545 of 1187 | none found | [article](https://en.wikipedia.org/wiki/1959_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1959/W) | No standings table. Champion total from the champions list only. Data has blanks. |
+| 1960 | Rex White | 21,164 | 21,164 | **match** | 113 of 1195 | 151 | [article](https://en.wikipedia.org/wiki/1960_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1960/W) | Match even with 113 blank rows (the champion's rows are complete). |
+| 1961 | Ned Jarrett | 27,272 | 27,282 | differs | 16 of 1414 | none found | [article](https://en.wikipedia.org/wiki/1961_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1961/W) | Data is 10 above the official total (cause unknown). |
+| 1962 | Joe Weatherly | 30,836 | 30,836 | **match** | 0 of 1359 | – | [article](https://en.wikipedia.org/wiki/1962_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1962/W) |  |
+| 1963 | Joe Weatherly | 33,398 | 31,330 | differs | 0 of 1414 | – | [article](https://en.wikipedia.org/wiki/1963_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1963/W) | Data is 2,068 below the official total with no blanks (cause unknown). |
+| 1964 | Richard Petty | 40,252 | 40,252 | **match** | 0 of 1641 | – | [article](https://en.wikipedia.org/wiki/1964_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1964/W) |  |
+| 1965 | Ned Jarrett | 38,824 | 38,824 | **match** | 0 of 1495 | – | [article](https://en.wikipedia.org/wiki/1965_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1965/W) |  |
+| 1966 | David Pearson | 35,638 | 35,638 | **match** | 0 of 1524 | – | [article](https://en.wikipedia.org/wiki/1966_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1966/W) |  |
+| 1967 | Richard Petty | 42,472 | 42,362 | differs | 0 of 1479 | – | [article](https://en.wikipedia.org/wiki/1967_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1967/W) | Data is 110 below the official total with no blanks (cause unknown). |
+| 1968 | David Pearson | 3,499 | 3,345 | differs | 0 of 1470 | – | [article](https://en.wikipedia.org/wiki/1968_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1968/W) | Data is 154 below the official total with no blanks (cause unknown). |
+| 1969 | David Pearson | 4,170 | 4,170 | **match** | 0 of 1665 | – | [article](https://en.wikipedia.org/wiki/1969_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1969/W) |  |
+| 1970 | Bobby Isaac | 3,911 | 3,911 | **match** | 0 of 1551 | – | [article](https://en.wikipedia.org/wiki/1970_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1970/W) |  |
+| 1971 | Richard Petty | 4,435 | 4,435 | **match** | 0 of 1646 | – | [article](https://en.wikipedia.org/wiki/1971_NASCAR_Winston_Cup_Series), [racing-reference](https://www.espn.com/racing/standings/_/year/1971) |  |
+| 1972 | Richard Petty | 8,701.4 | 8,701.4 | **match** | 0 of 1192 | 120 | [article](https://en.wikipedia.org/wiki/1972_NASCAR_Winston_Cup_Series), [racing-reference](http://racing-reference.info/yeardet/1972/W) | Data `Pts` hold rank points only; the official total adds distance points per lap. Rebuilt (`points_1972.csv`) and reconciled (43 entries). |
+| 1973 | Benny Parsons | 7,173.8 | 7,173.8 | **match** | 0 of 1068 | 50 | [article](https://en.wikipedia.org/wiki/1973_NASCAR_Winston_Cup_Series), [racing-reference](http://racing-reference.info/yeardet/1973/W) | Same distance-points issue; rule fits less well (36 larger reconcile entries). |
+| 1974 | Richard Petty | 5,037.75 | 0 | no data | 1073 of 1073 | 138 | [article](https://en.wikipedia.org/wiki/1974_NASCAR_Winston_Cup_Series), [racing-reference](http://racing-reference.info/yeardet/1974/W) | Scored by earnings, which the data does not have. |
 
-## Checks
+**1975-2003:** all 29 seasons match exactly (champions list vs data sum). Sources: each season's Wikipedia article
+and the Racing-Reference page it cites, both listed in `champions_points.csv`.
 
-- **Parse check:** champions and top totals match what I know: Flock 6858.5 (1952), Thomas 8460 (1953), Petty 8649
-  (1954), Flock 9596 (1955), Baker 10,716 (1957), White 21,164 (1960), Petty 5,037.75 (1974).
-- **Data check:** for 1955 and 1960, every driver whose results rows all have points sums to exactly the official total.
-  So the reference tables and the data agree wherever both exist; the differences come only from blank rows.
-- **1951:** the article's totals include fractions (Thomas 4,208.45), so the scale was not a clean rounded table. Not reproduced.
+Totals for the table: 55 seasons (1949-2003): **41 match**, **7 have no usable data** (1951-54, 1956-57, 1974) and **7 differ**
+(1955, 1958, 1959, 1961, 1963, 1967, 1968).
 
-## What could still be done
+## What each curation file contains
 
-1. **Single-gap recovery.** Where a driver has exactly one blank row, it equals the official total minus the rest. About
-   56 rows in 1955 and 1960 could be filled this way (roughly 40 pass a plausibility check against the same race's
-   other finishers). Not done yet.
-2. **Purses for 1951-1957 and 1960s.** Per-race purses would allow the 1950 method for 1951-1957 if the 1951 scale
-   problem is understood. They need a source that permits reuse (Racing-Reference and Driver Averages restrict automated
-   access; hand lookups are fine).
-3. **1956, 1958, 1959, 1961.** Final standings are not on the Wikipedia pages checked; they would need another source.
-4. **1974.** Needs per-driver race earnings.
+| File | Content | Source |
+|---|---|---|
+| `points_1949.csv` | Per-race points, all 8 races | Reddit chart by Diecast Charv (SOURCES.md) |
+| `points_1950.csv`, `race_purses_1950.csv` | Per-race points derived from purses | Wikipedia article and points-systems page |
+| `points_1972.csv`, `points_1973.csv` | Rank points plus distance points, rebuilt from laps and track length | Wikipedia points-systems page |
+| `final_standings_<season>.csv` | Official final standings: 1949-1955, 1957, 1960, 1972-1974 | Wikipedia season articles |
+| `champions_points.csv` | Champion, starts, wins, points, margin, 1949-2003 | Wikipedia champions list |
+| `champion_check.csv` | The check above | generated |
+| `fetch_wikipedia_standings.py`, `derive_points_1950.py`, `derive_points_1972_73.py`, `reconcile_1949.py`, `check_champions.py` | Reproducible scripts | |
+| `adjustments.json` (repo root) | Reconcile entries: 1949 (10), 1950 (49), 1972 (43), 1973 (36) | each entry's note says why |
+
+## Findings worth knowing
+
+- **Data and reference agree wherever both are complete.** For 1955 and 1960 every driver whose rows all have points sums to
+  exactly the official total, and the 1949 chart agrees with the article for 67 of 74 drivers.
+- **1972-73:** the data's `Pts` are rank points only (maximum 100, then 125 per race). The official totals add distance
+  points (0.25 to 1.25 per lap by track length). With that rule Petty's 1972 total reproduces to the decimal.
+- **Identity:** the data labels race 5 of 1949's 15th place "Bob Apperson"; the chart and Wikipedia both say "Bob Appleton".
+- **Unexplained:** 1961 (+10), 1963 (-2,068), 1967 (-110) and 1968 (-154) differ from the official champion total without
+  blank rows. The data or the official totals are off; the cause has not been found.
+
+## Still missing
+
+1. **1951-1957 and 1974** have no per-race points. 1951 has purses but the rule does not reproduce; the others have
+   neither purses nor earnings in a reusable source.
+2. **1958 and 1959** have large blank areas and no standings table, only the champion's total.
+3. **1955 and 1960** have 83 and 113 blank rows. About 56 of them (one blank per driver) could be filled from the final
+   standings; not done.
+4. **Official standings below the champion** exist for 1949-1955, 1957, 1960, 1972-1974 only; 1956 and 1958-1959 and 1961-1971
+   would need another source.

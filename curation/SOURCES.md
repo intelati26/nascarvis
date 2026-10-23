@@ -54,3 +54,14 @@ Final drivers' standings parsed from the Wikipedia season articles for 1950-1955
 `fetch_wikipedia_standings.py` (CC BY-SA 4.0; each row names the article section and fetch date). They are
 reference totals for checking, not used to fill `Pts`, except for 1950 where they feed the reconcile adjustments.
 See `WIKIPEDIA_SUMMARY.md` for what each season's article provides and what is still missing.
+
+## 1949 cross-check, 1972-73 and champions
+
+- `reconcile_1949.py`: the Reddit chart totals were compared with the 1949 Wikipedia article (a second, independent
+  source): 67 of 74 drivers identical. The seven differences match the chart's own notes (an 84-point Rice/Dunaway transfer,
+  Langhorne recording errors, penalties). Ten "1949 reconcile" entries in `adjustments.json` bring totals to the article.
+- `points_1972.csv`, `points_1973.csv`: nascaR.data `Pts` holds only rank points in those years; rank plus distance points
+  (rates from Wikipedia's *List of NASCAR points scoring systems*) reproduces Petty's 1972 total exactly. Rows carry override=1.
+  Reconcile entries (1972: 43, 1973: 36) use `final_standings_1972.csv` and `final_standings_1973.csv`.
+- `champions_points.csv` is from Wikipedia's *List of NASCAR Cup Series champions* (CC BY-SA 4.0); the Racing-Reference URL
+  in each row is the page Wikipedia cites. It was not fetched; it is recorded for hand checking.
