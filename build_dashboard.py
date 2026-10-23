@@ -594,10 +594,11 @@ def apply_curation(t, folder):
               f"{conflicts} disagree with the source (kept source); {unmatched} rows matched no result")
 
 
-def curated_exact(curation_dir, adjustments, season_drivers):
-    """For every season with curation/points_<season>.csv: the drivers whose derived points are verified exact, i.e. listed in
-    the official final standings (final_standings_<season>.csv) with no reconcile adjustment. Any other driver in a curated season
-    gets a marker in the dashboard (derived, reconciled or unverified). Returns {season: [driver names]}."""
+def curated_exact(curation_dir, season_drivers, totals):
+    """For every season with curation/points_<season>.csv: the drivers whose points in the data (after curation, before any reconcile
+    adjustment) add up to exactly their total in the official final standings (final_standings_<season>.csv). Any other driver in a
+    curated season gets a marker in the dashboard (derived, reconciled or unverified), but only on the races the curation file covers.
+    Returns {season: {"exact": [driver names], "races": [race numbers the file covers]}}."""
     import csv, difflib, glob
     norm = lambda x: re.sub(r"[^a-z]", "", x.lower())
     out = {}
@@ -606,15 +607,15 @@ def curated_exact(curation_dir, adjustments, season_drivers):
         if not m: continue
         season = int(m.group(1))
         official_path = os.path.join(curation_dir, f"final_standings_{season}.csv")
-        if not os.path.exists(official_path): out[season] = []; continue
+        races = sorted({int(r["race"]) for r in csv.DictReader(open(path, encoding="utf-8"))})
+        if not os.path.exists(official_path): out[season] = {"exact": [], "races": races}; continue
         names = {norm(d): d for d in season_drivers.get(season, [])}
-        official = [norm(r["driver"]) for r in csv.DictReader(open(official_path, encoding="utf-8"))]
-        recon = {norm(a["driver"]) for a in adjustments if a["season"] == season and "reconcile" in a["note"] and abs(a["pts"]) > 0.005}
         exact = []
-        for o in official:
+        for r in csv.DictReader(open(official_path, encoding="utf-8")):
+            o = norm(r["driver"])
             k = o if o in names else next(iter(difflib.get_close_matches(o, list(names), n=1, cutoff=0.9)), None)
-            if k and k not in recon: exact.append(names[k])
-        out[season] = sorted(set(exact))
+            if k and abs(totals.get((season, names[k]), 0.0) - float(r["pts"])) < 1e-6: exact.append(names[k])
+        out[season] = {"exact": sorted(set(exact)), "races": races}
     return out
 
 
@@ -782,9 +783,11 @@ def main():
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()
     fmts = open(os.path.join(HERE, "formats.js"), encoding="utf-8").read()
     data["adjustments"] = json.load(open(os.path.join(HERE, "adjustments.json"), encoding="utf-8"))
-    sd = collections.defaultdict(set)
-    for i, sn in enumerate(data["season"]): sd[sn].add(data["drivers"][data["driver"][i]])
-    data["curated"] = {str(k): v for k, v in curated_exact(os.path.join(HERE, "curation"), data["adjustments"], sd).items() if k in sd}
+    sd, totals = collections.defaultdict(set), collections.defaultdict(float)
+    for i, sn in enumerate(data["season"]):
+        d = data["drivers"][data["driver"][i]]
+        sd[sn].add(d); totals[(sn, d)] += data["pts"][i] or 0
+    data["curated"] = {str(k): v for k, v in curated_exact(os.path.join(HERE, "curation"), sd, totals).items() if k in sd}
     if a.single_file:
         shards_js, data_tags = "", ""
         data_js = "const D = " + json.dumps(data, separators=(",", ":")) + ";"

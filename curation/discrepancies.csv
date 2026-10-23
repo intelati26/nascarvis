@@ -48,7 +48,6 @@ season,kind,subject,expected,found,difference,detail,sources
 1953,champion_total,Herb Thomas,8460.0,0.0,-8460.0,no data; blank Pts rows after curation: 942 of 958,champions_points.csv (Wikipedia); data + curation
 1953,source_error,Curtis Turner / Jimmie Lewallen (Wikipedia 1953 table),,,,"10th place Turner (3,373) has more points than 9th place Lewallen (3,208); probably a typo in the article. Kept as published.",final_standings_1953.csv
 1954,champion_total,Lee Petty,8649.0,0.0,-8649.0,no data; blank Pts rows after curation: 1125 of 1134,champions_points.csv (Wikipedia); data + curation
-1955,champion_total,Tim Flock,9596.0,9246.0,-350.0,differs; blank Pts rows after curation: 83 of 1179,champions_points.csv (Wikipedia); data + curation
 1956,champion_total,Buck Baker,9272.0,0.0,-9272.0,no data; blank Pts rows after curation: 1503 of 1519,champions_points.csv (Wikipedia); data + curation
 1957,champion_total,Buck Baker,10716.0,0.0,-10716.0,no data; blank Pts rows after curation: 1305 of 1313,champions_points.csv (Wikipedia); data + curation
 1957,identity,Bill Jarick,2,0,-2.0,listed in the Racing-Reference standings but not found in the data by name (probably a spelling variant),final_standings_1957.csv; cup_series.parquet

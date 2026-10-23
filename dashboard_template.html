@@ -483,8 +483,8 @@ function playoffStatus(st, d, k) {
 const exactSets = {};
 function ptsCell(i) {
   const v = D.pts[i], cur = D.curated && D.curated[D.season[i]];
-  if (!cur) return v == null ? '' : esc(v);
-  const set = exactSets[D.season[i]] || (exactSets[D.season[i]] = new Set(cur));
+  if (!cur || !cur.races.includes(D.race[i])) return v == null ? '' : esc(v);      // only races rebuilt in curation/ can be marked
+  const set = exactSets[D.season[i]] || (exactSets[D.season[i]] = new Set(cur.exact));
   if (set.has(drv(i))) return v == null ? '' : esc(v);
   return `<span title="Derived from race purses and the scoring scale (or rebuilt from other sources); this driver's season total is reconciled to the official one, or could not be checked. See curation/WIKIPEDIA_SUMMARY.md.">≈${v == null ? '' : esc(v)}</span>`;
 }

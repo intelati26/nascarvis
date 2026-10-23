@@ -110,3 +110,10 @@ Every disagreement found while curating, in one file (`python curation/save_disc
 totals versus the fitted purse model (37 drivers off by 150+ points, plus name and start-count differences), champion totals that do not
 match (13 seasons), the 1949 chart versus Wikipedia (10 drivers), large reconcile entries and zeroed drivers for 1950/51/72/73, and
 identity or source errors. `difference` is found minus expected; for 1957 expected is the model and found is the official total.
+
+## points_1955.csv (derived, one race)
+
+Race 4 of 1955 (Daytona Beach & Road Course) only: the 48 rows that had no points. Winner's points W = 350 from Tim Flock's official total
+(`final_standings_1955.csv`, Wikipedia) minus the rest of his 1955 season in nascaR.data; places 1-25 score W x (26 - place) / 25 and 26th
+and below score W / 25 (found from the 1955 races that have points). Checked against the other drivers' official totals: 12 of 16 match
+exactly. See `derive_points_1955.py` and the 1955 findings in WIKIPEDIA_SUMMARY.md. Fills blank points only; nothing is overridden.

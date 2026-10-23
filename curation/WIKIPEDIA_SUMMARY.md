@@ -35,7 +35,7 @@ standings table the article has (CSV `final_standings_<season>.csv`).
 | 1952 | Tim Flock | 6,858.5 | 0 | no data | 927 of 938 | top 20 | [article](https://en.wikipedia.org/wiki/1952_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1952/W) | Purses for all 34 races are in the article (`race_purses_1952.csv`). Not derived: the top-25 scale with winner's points proportional to purse leaves errors of about 150 points (Tim Flock short by 650) against the 19 listed drivers, too few to fit a better rule. |
 | 1953 | Herb Thomas | 8,460 | 0 | no data | 942 of 958 | top 20 | [article](https://en.wikipedia.org/wiki/1953_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1953/W) | Standings only. The article lists Turner (3373) at 10th behind Lewallen (3208), probably an article typo. |
 | 1954 | Lee Petty | 8,649 | 0 | no data | 1125 of 1134 | 212 | [article](https://en.wikipedia.org/wiki/1954_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1954/W) | Full standings only. |
-| 1955 | Tim Flock | 9,596 | 9,246 | differs | 83 of 1179 | 52 | [article](https://en.wikipedia.org/wiki/1955_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1955/W) | One blank row for Flock: the missing 350 is the gap (recoverable). |
+| 1955 | Tim Flock | 9,596 | 9,596 | **match** | 35 of 1179 | 52 | [article](https://en.wikipedia.org/wiki/1955_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1955/W) | Race 4 (Daytona Beach road course) had no points for any of its 48 drivers. Flock's win is his only blank row, so the winner's points are 9,596 - 9,246 = **350**; 12 of the 16 checkable drivers' totals then match exactly (`derive_points_1955.py`, `points_1955.csv`). Scale found in 1955: W x (26 - place) / 25, and every starter below 25th scores W / 25. |
 | 1956 | Buck Baker | 9,272 | 0 | no data | 1503 of 1519 | none found | [article](https://en.wikipedia.org/wiki/1956_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1956/W) | No standings table in the article. Champion total from the champions list only. |
 | 1957 | Buck Baker | 10,716 | 0 | no data | 1305 of 1313 | top 10 | [article](https://en.wikipedia.org/wiki/1957_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1957/W) | Purses of all 53 races (`race_purses_1957.csv`) and a 101-driver standings table (`final_standings_1957.csv`, Racing-Reference screenshot; top 10 equal Wikipedia's). Not derived: see "1957 findings" below. |
 | 1958 | Lee Petty | 12,232 | 9,552 | differs | 499 of 1401 | none found | [article](https://en.wikipedia.org/wiki/1958_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1958/W) | No article for the season. Champion total from the champions list only. Data has blanks. |
@@ -59,8 +59,8 @@ standings table the article has (CSV `final_standings_<season>.csv`).
 **1975-2003:** all 29 seasons match exactly (champions list vs data sum). Sources: each season's Wikipedia article
 and the Racing-Reference page it cites, both listed in `champions_points.csv`.
 
-Totals for the table: 55 seasons (1949-2003): **42 match**, **6 have no usable data** (1952-54, 1956-57, 1974) and **7 differ**
-(1955, 1958, 1959, 1961, 1963, 1967, 1968).
+Totals for the table: 55 seasons (1949-2003): **43 match**, **6 have no usable data** (1952-54, 1956-57, 1974) and **6 differ**
+(1958, 1959, 1961, 1963, 1967, 1968).
 
 ## Per-race Wikipedia articles
 
@@ -112,6 +112,18 @@ The disagreements behind these rows are collected in `discrepancies.csv` (regene
   their official totals, while Joe Weatherly, Possum Jones, Mel Larson and Gwyn Staley are 1,000-3,000 *above* (their official totals look
   like points were removed). A tail below 25th place does not explain it. Reconciling these with adjustments would hide a scheme I do not
   understand, so `points_1957.csv` was not created.
+
+## 1955 findings
+
+- Race 4, the Daytona Beach and road course race, has no points for any driver in nascaR.data, and Racing-Reference shows none either. It is
+  the only 1955 race like that. Tim Flock won it and has no other blank row, so the winner's points follow from his official total:
+  9,596 - 9,246 = 350. A $5,000 purse would give 250 at 5% of the purse; 350 corresponds to about $7,000, and the 1955 purse-to-points bands
+  (about $4,000 = 200, $9,000-$10,600 = 600, $28,300 = 1,500) are not a flat 5%, so the actual purse should be read from Racing-Reference.
+- 350 was checked against the other drivers' official totals: five drivers' gaps equal 350 x (26 - place) / 25 exactly (Flock 350, Petty 336,
+  Turner 308, Eubanks 280, Simpson 28) and none equal the 250 value. Eight finishers from 26th to 44th each gap by exactly 14 = 350 / 25.
+- That is the 1955 floor: in the 1955 races that do have points, 136 of 139 finishers 26th or lower scored exactly W / 25 (the other 3 scored zero).
+- After deriving race 4 (`derive_points_1955.py`), 45 of the 52 drivers in the official standings match exactly, up from 31. Four of those
+  who ran the race still do not (Buck Baker -762, Fonty Flock -8, Mack Hanbury and Jack Choquette); their other rows are nascaR.data as is.
 
 ## Findings worth knowing
 
