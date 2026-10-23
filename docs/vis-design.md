@@ -504,6 +504,13 @@ Consequences:
   dictionary-coded strings (as `build_dashboard.py` does), and keep a size budget per file.
 - No range requests, so the page cannot query large Parquet files directly.
 
+Limit found in use: opening the HTML folder directly in a desktop browser works, but a phone file
+manager's "open with HTML viewer" passes only the single HTML file (often as a `content://` address)
+and the page cannot read the data folder beside it. The viewer shows a message naming the missing
+file. Phone options, in order of reliability: serve the folder locally (Termux `python -m http.server`),
+or open a single-file export. The single-file export only works while the data fits in one file, so for
+baseball it is a slice (an era or season range), never the full history.
+
 ### Layout
 
 ```
