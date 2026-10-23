@@ -88,3 +88,11 @@ See `WIKIPEDIA_SUMMARY.md` for what each season's article provides and what is s
   Race 33's purse ($3,820) sits on a wrapped line in the article source.
 - `per_race_points_wikipedia.csv`: the results table of Wikipedia's *1957 Virginia 500* (finish, driver, points, winnings), the only
   per-race article from 1949-1961 with a filled points column. See WIKIPEDIA_SUMMARY.md.
+
+## race_purses_1957.csv
+
+Transcribed by hand from a screenshot of Racing-Reference's 1957 season race list (all 53 races: date, site, winner, purse),
+supplied by the project owner; the site blocks automated access and nothing was fetched from it. Race 17 (Martinsville,
+$12,240) equals the sum of winnings in Wikipedia's *1957 Virginia 500* table, whose winner scored 500 points, so the purse
+column is the figure the points were based on. Races 19/20 and 30/31 were run on the same day and are numbered in the opposite
+order in nascaR.data; this file uses the data's numbering and keeps the original in `rr_race`. Winners match the data in all 53.

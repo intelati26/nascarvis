@@ -37,7 +37,7 @@ standings table the article has (CSV `final_standings_<season>.csv`).
 | 1954 | Lee Petty | 8,649 | 0 | no data | 1125 of 1134 | 212 | [article](https://en.wikipedia.org/wiki/1954_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1954/W) | Full standings only. |
 | 1955 | Tim Flock | 9,596 | 9,246 | differs | 83 of 1179 | 52 | [article](https://en.wikipedia.org/wiki/1955_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1955/W) | One blank row for Flock: the missing 350 is the gap (recoverable). |
 | 1956 | Buck Baker | 9,272 | 0 | no data | 1503 of 1519 | none found | [article](https://en.wikipedia.org/wiki/1956_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1956/W) | No standings table in the article. Champion total from the champions list only. |
-| 1957 | Buck Baker | 10,716 | 0 | no data | 1305 of 1313 | top 10 | [article](https://en.wikipedia.org/wiki/1957_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1957/W) | Top 10 with earnings only. |
+| 1957 | Buck Baker | 10,716 | 0 | no data | 1305 of 1313 | top 10 | [article](https://en.wikipedia.org/wiki/1957_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1957/W) | Purses of all 53 races are now in `race_purses_1957.csv` (Racing-Reference season list, supplied as a screenshot). Not derived: with those purses the best purse-to-points mapping still leaves errors of 400-1,100 points for several of the 10 listed drivers. |
 | 1958 | Lee Petty | 12,232 | 9,552 | differs | 499 of 1401 | none found | [article](https://en.wikipedia.org/wiki/1958_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1958/W) | No article for the season. Champion total from the champions list only. Data has blanks. |
 | 1959 | Lee Petty | 11,792 | 9,032 | differs | 545 of 1187 | none found | [article](https://en.wikipedia.org/wiki/1959_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1959/W) | No standings table. Champion total from the champions list only. Data has blanks. |
 | 1960 | Rex White | 21,164 | 21,164 | **match** | 113 of 1195 | 151 | [article](https://en.wikipedia.org/wiki/1960_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1960/W) | Match even with 113 blank rows (the champion's rows are complete). |
@@ -77,7 +77,8 @@ Findings from reading all of them:
   articles do not exist for 1974's races.
 
 So the per-race articles do not fill any season. They confirm the shape of the 1952-67 scale in one race. The data needed for the
-purse-based seasons is the purse of every race, which only the 1950, 1951 and 1952 season articles provide.
+purse-based seasons is the purse of every race: the 1950, 1951 and 1952 season articles provide it, and 1957's came from
+Racing-Reference. Having purses is necessary but not sufficient: see the 1952 and 1957 rows.
 
 ## What each curation file contains
 
@@ -86,6 +87,7 @@ purse-based seasons is the purse of every race, which only the 1950, 1951 and 19
 | `points_1949.csv` | Per-race points, all 8 races | Reddit chart by Diecast Charv (SOURCES.md) |
 | `points_1950.csv`, `points_1951.csv`, `race_purses_1950.csv`, `race_purses_1951.csv` | Per-race points derived from purses (rules fitted per season; see `derive_points_prize.py`) | Wikipedia articles and points-systems page |
 | `race_purses_1952.csv` | Purses of all 34 races | Wikipedia 1952 article |
+| `race_purses_1957.csv` | Purses of all 53 races (4 renumbered to match the data's order for same-day races; `rr_race` keeps the original number) | Racing-Reference season list, screenshot supplied by the project owner |
 | `per_race_points_wikipedia.csv` | Real per-driver points for the 1957 Virginia 500 | Wikipedia race article |
 | `points_1972.csv`, `points_1973.csv` | Rank points plus distance points, rebuilt from laps and track length | Wikipedia points-systems page |
 | `final_standings_<season>.csv` | Official final standings: 1949-1955, 1957, 1960, 1972-1974 (1951 has 75 drivers, the article's collapsed continuation table) | Wikipedia season articles |
