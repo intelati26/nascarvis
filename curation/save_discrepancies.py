@@ -72,6 +72,9 @@ _NOTE_1981 = ("PROBABLE SOURCE ERROR in Wikipedia's total, consistent with a rac
               "A results page supplied by the project owner scores the race as the data does (Brooks 13th = 124, Speed 14th = 121, and so on), so Wikipedia's table is the outlier, and the pattern is what it would look like if it scored 13th and lower one place down. Race 31 is ruled out (7 of the 22 never ran it). The single-race reading is an inference from this pattern; a season-wide cause is not excluded. "
               "Finishing positions are trusted over the site's season totals (the running totals do not add up on the site's own driver pages, per the project owner). The page also shows formula points for Anderson, Wallace, Bodine and Bailey, who have 0 in the standings (Wallace and Bodine's Wikipedia's totals equal the data without race 30). Data left as is")
 KNOWN.update({(1981, n): _NOTE_1981 for n in ['Benny Parsons', 'Buddy Arrington', 'D.K. Ulrich', 'Dale Earnhardt', 'Dave Marcis', 'Delma Cowart', 'Dick Brooks', 'Gary Balough', 'Harry Gant', 'James Hylton', 'Jimmy Means', 'Joe Ruttman', 'Johnny Rutherford', 'Lake Speed', 'Morgan Shepherd', 'Richard Petty', 'Ricky Rudd', 'Ron Bouchard', 'Tim Richmond', 'Tommy Ellis', 'Tommy Gale', 'Travis Tiller']})
+KNOWN[(1993, "Ken Bouchard")] = ("EXPLAINED: the data's race 22 row (Mountain Dew Southern 500, 40th, status did not start, 0 laps) scores 43 points, but Racing-Reference's 1993 season page for Bouchard lists only races 9, 16 and 17 "
+    "(43 + 76 + 88 = 207, Wikipedia's total) and does not list race 22 at all, not even as a DNQ (its DNQ/withdrawn list is races 11, 12, 15 and 20): https://www.racing-reference.info/driver-season-stats/bouchke01/1993/W (screenshot supplied by the project owner; page not fetched). "
+    "The row is a phantom and is set to 0 in points_1993.csv")
 KNOWN[(1993, "Mike Skinner")] = ("EXPLAINED (Wikipedia error, probably a typo): one start, Mountain Dew Southern 50 (Darlington), 35th, which the scoring formula scores 58, the data's value. "
     "Wikipedia's table has 55. The project owner reports 58 in several other places and that 55 is explainable as a fat-finger slip of 58 (5 sits below 8 on a keypad). The data is kept")
 KNOWN[(1981, "J.D. McDuffie")] = _NOTE_1981 + ". McDuffie is 4 over, not 3: the extra 1 is not explained"
@@ -154,3 +157,8 @@ with open(os.path.join(HERE, "discrepancies.csv"), "w", newline="", encoding="ut
     w = csv.writer(f); w.writerow(["season", "kind", "subject", "expected", "found", "difference", "detail", "sources"]); w.writerows(rows)
 print(len(rows), "rows;", dict(collections.Counter((r[1]) for r in rows)))
 print("by season:", dict(sorted(collections.Counter(r[0] for r in rows).items())))
+
+# The hand-written notes, one row per driver, for write_points_edits.py (a closed gap no longer has a row in discrepancies.csv).
+with open(os.path.join(HERE, "known_notes.csv"), "w", newline="", encoding="utf-8") as f:
+    w = csv.writer(f); w.writerow(["season", "driver", "note"])
+    for (s, d), why in sorted(KNOWN.items()): w.writerow([s, d, why])

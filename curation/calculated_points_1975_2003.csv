@@ -20452,7 +20452,7 @@ season,race,race_name,driver,finish,led,calc_pts,source_pts,final_pts,diff,in_wi
 1993,22,Mountain Dew Southern 500,H.B. Bailey,37,0,52,52,52.0,0.0,1
 1993,22,Mountain Dew Southern 500,Brad Teague,38,0,49,49,49.0,0.0,1
 1993,22,Mountain Dew Southern 500,Jimmy Means,39,0,46,46,46.0,0.0,1
-1993,22,Mountain Dew Southern 500,Ken Bouchard,40,0,43,43,43.0,0.0,1
+1993,22,Mountain Dew Southern 500,Ken Bouchard,40,0,43,43,0.0,-43.0,1
 1993,23,Miller 400,Rusty Wallace,1,206,185,185,185.0,0.0,1
 1993,23,Miller 400,Bill Elliott,2,3,175,175,175.0,0.0,1
 1993,23,Miller 400,Dale Earnhardt,3,0,165,165,165.0,0.0,1
