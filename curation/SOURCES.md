@@ -146,3 +146,11 @@ Text quoted by the project owner, who confirmed it comes from the same article a
 "Jimmie Johnson's team was penalized 25 championship points and 25 owner points, and Chad Knaus, his crew chief, was fined $25,000 because NASCAR didn't approve the location
 of some bolts on the No. 48 Chevrolet at Daytona." It explains why Johnson's official 2002 total is exactly 25 below his race rows. The page itself was not read. Because the story
 is dated 23 July, the Daytona race is presumably the Pepsi 400 (race 17, 6 July); that is an inference. The penalty is in `adjustments.json` from race 20, the first race after the story.
+
+## penalties_2002.csv and the Jayski 2002 penalties table
+
+`https://www.jayski.com/nascar-cup-series/2002-nascar-penalties/`: six 25-point driver penalties in 2002 (driver, crew chief, track and date, fine, reason), pasted by the project owner;
+the page itself was not fetched (Jayski refuses automated requests) and its reuse terms have not been checked. `penalties_2002.csv` holds the six rows with the race number in
+nascaR.data and the race each adjustment is applied from. This table replaces the earlier "inferred" notes for Green, Wallace and Ward Burton and gives the infraction race for
+Jarrett (New Hampshire, race 19: the table says 1/8th of an inch, the Gainesville Sun headline says a quarter-inch) and Johnson (Daytona 6 July, race 17). Mark Martin's penalty
+(Rockingham, race 34) is already inside nascaR.data's race row (155 instead of 180), so it needs no adjustment.

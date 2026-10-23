@@ -1716,37 +1716,37 @@
  },
  {
   "season": 2002,
-  "race": 20,
-  "driver": "Dale Jarrett",
+  "race": 33,
+  "driver": "Ward Burton",
   "pts": -25,
-  "note": "Penalty: 25 points for a quarter-inch violation found at inspection (headline: Gainesville Sun, 23 Jul 2002, 'Quarter-inch costs Jarrett 25 points'; article not read). Applied from race 20, the first race after the story"
+  "note": "Penalty: 25 points for unapproved front springs at Martinsville on 10-20 (race 32); crew chief Frank Stoddard fined $10,000. Source: Jayski 2002 penalties table (pasted by the project owner). Applied from race 33, the first race after the announcement"
  },
  {
   "season": 2002,
-  "race": 36,
+  "race": 31,
+  "driver": "Rusty Wallace",
+  "pts": -25,
+  "note": "Penalty: 25 points for unapproved spoiler at Talladega on 10-06 (race 30); crew chief Billy Wilburn fined $25,000. Source: Jayski 2002 penalties table (pasted by the project owner). Applied from race 31, the first race after the announcement"
+ },
+ {
+  "season": 2002,
+  "race": 27,
   "driver": "Jeff Green",
   "pts": -25,
-  "note": "Official total is exactly 25 below the race rows, the same size as Dale Jarrett's penalty; probably a penalty, source and race not recorded (inferred). Applied at the last race"
+  "note": "Penalty: 25 points for unapproved left front spring at Richmond on 09-07 (race 26); crew chief Todd Berrier fined $5,000. Source: Jayski 2002 penalties table (pasted by the project owner). Applied from race 27, the first race after the announcement"
+ },
+ {
+  "season": 2002,
+  "race": 20,
+  "driver": "Dale Jarrett",
+  "pts": -25,
+  "note": "Penalty: 25 points for 1/8th of an inch too low at New Hampshire on 07-21 (race 19); crew chief Todd Parrott fined $25,000. Source: Jayski 2002 penalties table (pasted by the project owner). Same Gainesville Sun article as Jarrett's headline (23 Jul 2002) announced Johnson's and Jarrett's penalties. Applied from race 20, the first race after the announcement"
  },
  {
   "season": 2002,
   "race": 20,
   "driver": "Jimmie Johnson",
   "pts": -25,
-  "note": "Penalty: 25 championship points (and 25 owner points); crew chief Chad Knaus fined $25,000 because NASCAR did not approve the location of some bolts on the No. 48 Chevrolet at Daytona. Same Gainesville Sun article as Jarrett's penalty (23 Jul 2002; text quoted by the project owner, page not read). Applied from race 20, the first race after the story"
- },
- {
-  "season": 2002,
-  "race": 36,
-  "driver": "Rusty Wallace",
-  "pts": -25,
-  "note": "Official total is exactly 25 below the race rows, the same size as Dale Jarrett's penalty; probably a penalty, source and race not recorded (inferred). Applied at the last race"
- },
- {
-  "season": 2002,
-  "race": 36,
-  "driver": "Ward Burton",
-  "pts": -25,
-  "note": "Official total is exactly 25 below the race rows, the same size as Dale Jarrett's penalty; probably a penalty, source and race not recorded (inferred). Applied at the last race"
+  "note": "Penalty: 25 points for offset mounting bolts at Daytona on 07-06 (race 17); crew chief Chad Knaus fined $25,000. Source: Jayski 2002 penalties table (pasted by the project owner). Same Gainesville Sun article as Jarrett's headline (23 Jul 2002) announced Johnson's and Jarrett's penalties. Applied from race 20, the first race after the announcement"
  }
 ]
