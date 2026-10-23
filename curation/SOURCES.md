@@ -178,6 +178,6 @@ when the driver is in the official table and the official total confirms the mis
 
 ## Driver Averages results pages
 
-The per-driver and per-race results pages the project owner has been supplying as screenshots (Jeff Gordon and Jeff Burton 2000, Ron Fellows 1999, Trevor Boys 1993 and similar) are from Driver Averages,
-the site nascaR.data was built from (confirmed by the project owner for Trevor Boys 1993). They are therefore independent of Wikipedia but not of nascaR.data: where they agree with the data it is the same
+The per-driver and per-race results pages the project owner has been supplying as screenshots (Jeff Gordon and Jeff Burton 2000, Ron Fellows 1999, Trevor Boys 1993 and the Richmond 26 Feb 1984 race page) are from Driver Averages,
+the site nascaR.data was built from (confirmed by the project owner). They are therefore independent of Wikipedia but not of nascaR.data: where they agree with the data it is the same
 source twice. Nothing is fetched from Driver Averages (its robots.txt disallows scrapers; the package author's permission covers the package only).
