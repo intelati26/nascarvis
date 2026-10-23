@@ -47,7 +47,7 @@ for r in csv.DictReader(open(os.path.join(HERE, "champion_check.csv"))):
 
 # Causes established by hand for single drivers: (season, driver) -> text that replaces the generic "cause unknown"
 KNOWN = {
-    (2000, "Jeff Gordon"): "all 34 points races match a results page supplied by the project owner (finish and points); they sum to 4,461 and the official total is exactly 100 lower: consistent with a 100-point deduction, not identified",
+    (2000, "Jeff Gordon"): "all 34 points races match a results page supplied by the project owner (finish and points); they sum to 4,461 and the official total is exactly 100 lower: consistent with a 100-point deduction. Likely source, supplied by the project owner: Jayski, 13 Sep 2000, \"Gordon's engine problem update 6: the penalty, the appeal, the reactions\" https://www.jayski.com/2000/09/13/gordons-engine-problem-update-6-the-penalty-the-appeal-the-reactions/ (not read: the site refused an automated request, so the amount, the race and the appeal outcome are unconfirmed)",
     (2000, "Jeff Burton"): "all 34 points races match a results page supplied by the project owner (finish and points); they sum to 4,836 and the official total is exactly 5 higher: a bonus or adjustment that is in the official standings but not in the race rows, not identified",
 }
 

@@ -123,3 +123,10 @@ exactly. See `derive_points_1955.py` and the 1955 findings in WIKIPEDIA_SUMMARY.
 Parsed from the Wikipedia season articles by `fetch_wikipedia_standings.py` (CC BY-SA 4.0; each row names the article section and fetch
 date). A table is only written if its first row equals the champion and total in `champions_points.csv`. `check_standings.py` and
 `standings_check.csv` hold the whole-field comparison with the data.
+
+## Jayski article on Jeff Gordon's 2000 penalty
+
+`https://www.jayski.com/2000/09/13/gordons-engine-problem-update-6-the-penalty-the-appeal-the-reactions/` (13 September 2000): linked from
+the discrepancy row for Jeff Gordon, 2000, as the likely explanation for his official total being exactly 100 points below his race results.
+The link was supplied by the project owner. The page was not read here (Jayski returned 403 to an automated request), so what it says about the
+amount, the race and the appeal result is not recorded; check it by hand. Jayski's terms for reuse have not been checked.
