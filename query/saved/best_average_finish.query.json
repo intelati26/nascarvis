@@ -1,0 +1,49 @@
+{
+  "title": "Best average finish with at least N starts (qualifier)",
+  "database": "data/query.db",
+  "parameters": {
+    "min_starts": 100,
+    "limit": 20
+  },
+  "output": {
+    "columns": [
+      "driver",
+      "starts",
+      "wins",
+      "avg_finish",
+      "top10_rate",
+      "first_season",
+      "last_season"
+    ]
+  },
+  "spec": {
+    "subject": "driver_race",
+    "params": {
+      "min_starts": 100,
+      "limit": 20
+    },
+    "group_by": [
+      "driver"
+    ],
+    "measures": [
+      "starts",
+      "wins",
+      "avg_finish",
+      "top10_rate",
+      "first_season",
+      "last_season"
+    ],
+    "qualifier": {
+      "name": "min_starts"
+    },
+    "sort": [
+      {
+        "by": "avg_finish",
+        "dir": "asc"
+      }
+    ],
+    "limit": {
+      "param": "limit"
+    }
+  }
+}

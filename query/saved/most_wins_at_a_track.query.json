@@ -1,0 +1,65 @@
+{
+  "title": "Most wins at a track (change the track in Parameters)",
+  "database": "data/query.db",
+  "parameters": {
+    "track": "%Martinsville%",
+    "v1": 1,
+    "limit": 15
+  },
+  "output": {
+    "columns": [
+      "driver",
+      "starts",
+      "wins",
+      "top5",
+      "avg_finish",
+      "first_season",
+      "last_season"
+    ]
+  },
+  "spec": {
+    "subject": "driver_race",
+    "params": {
+      "track": "Martinsville",
+      "limit": 15
+    },
+    "row_filters": [
+      {
+        "field": "track",
+        "op": "like",
+        "param": "track"
+      }
+    ],
+    "group_by": [
+      "driver"
+    ],
+    "measures": [
+      "starts",
+      "wins",
+      "top5",
+      "avg_finish",
+      "first_season",
+      "last_season"
+    ],
+    "aggregate_filters": [
+      {
+        "measure": "wins",
+        "op": ">=",
+        "value": 1
+      }
+    ],
+    "sort": [
+      {
+        "by": "wins",
+        "dir": "desc"
+      },
+      {
+        "by": "avg_finish",
+        "dir": "asc"
+      }
+    ],
+    "limit": {
+      "param": "limit"
+    }
+  }
+}

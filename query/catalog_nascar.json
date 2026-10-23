@@ -1,0 +1,75 @@
+{
+  "pack": "nascar",
+  "title": "NASCAR Cup results",
+  "note": "The catalog is the only place that knows what a driver, a race or a win is. The engine reads it and nothing else.",
+  "subjects": {
+    "driver_race": {
+      "label": "Driver results (one row per driver per race)",
+      "from": "results r LEFT JOIN season_info si ON si.season = r.season",
+      "params": {
+        "series":     {"type": "text", "default": "Cup", "label": "Series"},
+        "min_season": {"type": "int",  "default": null,  "label": "First season (blank = all)"},
+        "max_season": {"type": "int",  "default": null,  "label": "Last season (blank = all)"},
+        "wins":       {"type": "int",  "default": 1,     "label": "Wins"},
+        "track":      {"type": "text", "default": null,  "label": "Track contains"},
+        "min_starts": {"type": "int",  "default": 10,    "label": "Minimum starts"},
+        "limit":      {"type": "int",  "default": 25,    "label": "Row limit"}
+      },
+      "columns": {
+        "series":       {"label": "Series",          "type": "text",   "role": "dimension", "sql": "r.series"},
+        "season":       {"label": "Season",          "type": "int",    "role": "dimension", "sql": "r.season"},
+        "race":         {"label": "Race number",     "type": "int",    "role": "dimension", "sql": "r.race"},
+        "driver":       {"label": "Driver",          "type": "text",   "role": "dimension", "sql": "r.driver"},
+        "track":        {"label": "Track",           "type": "text",   "role": "dimension", "sql": "r.track"},
+        "race_name":    {"label": "Race",            "type": "text",   "role": "dimension", "sql": "r.race_name"},
+        "surface":      {"label": "Surface",         "type": "text",   "role": "dimension", "sql": "r.surface"},
+        "make":         {"label": "Manufacturer",    "type": "text",   "role": "dimension", "sql": "r.make"},
+        "team":         {"label": "Team",            "type": "text",   "role": "dimension", "sql": "r.team"},
+        "car":          {"label": "Car number",      "type": "text",   "role": "dimension", "sql": "r.car"},
+        "status":       {"label": "Status",          "type": "text",   "role": "dimension", "sql": "r.status"},
+        "start":        {"label": "Start position",  "type": "int",    "role": "value",     "sql": "r.start"},
+        "finish":       {"label": "Finish position", "type": "int",    "role": "value",     "sql": "r.finish"},
+        "laps":         {"label": "Laps completed",  "type": "int",    "role": "value",     "sql": "r.laps"},
+        "led":          {"label": "Laps led",        "type": "int",    "role": "value",     "sql": "r.led"},
+        "pts":          {"label": "Race points",     "type": "real",   "role": "value",     "sql": "r.pts"},
+        "rating":       {"label": "Driver rating",   "type": "real",   "role": "value",     "sql": "r.rating"},
+        "track_length": {"label": "Track length",    "type": "real",   "role": "value",     "sql": "r.track_length"},
+        "is_win":       {"label": "Won",             "type": "flag",   "role": "flag",      "sql": "(r.finish = 1)"},
+        "is_top5":      {"label": "Top 5",           "type": "flag",   "role": "flag",      "sql": "(r.finish <= 5)"},
+        "is_top10":     {"label": "Top 10",          "type": "flag",   "role": "flag",      "sql": "(r.finish <= 10)"},
+        "is_pole":      {"label": "Started on pole", "type": "flag",   "role": "flag",      "sql": "(r.start = 1)"},
+        "is_dnf":       {"label": "Did not finish",  "type": "flag",   "role": "flag",      "sql": "(r.status <> 'running')"},
+        "led_laps":     {"label": "Led a lap",       "type": "flag",   "role": "flag",      "sql": "(r.led > 0)"}
+      },
+      "measures": {
+        "starts":      {"label": "Starts",         "sql": "COUNT(*)"},
+        "wins":        {"label": "Wins",           "sql": "SUM(r.finish = 1)"},
+        "top5":        {"label": "Top 5s",         "sql": "SUM(r.finish <= 5)"},
+        "top10":       {"label": "Top 10s",        "sql": "SUM(r.finish <= 10)"},
+        "poles":       {"label": "Poles",          "sql": "SUM(r.start = 1)"},
+        "dnfs":        {"label": "DNFs",           "sql": "SUM(r.status <> 'running')"},
+        "laps_led":    {"label": "Laps led",       "sql": "SUM(r.led)"},
+        "points":      {"label": "Race points",    "sql": "SUM(r.pts)"},
+        "best_finish": {"label": "Best finish",    "sql": "MIN(r.finish)"},
+        "avg_finish":  {"label": "Average finish", "sql": "ROUND(AVG(r.finish), 2)"},
+        "avg_start":   {"label": "Average start",  "sql": "ROUND(AVG(r.start), 2)"},
+        "avg_rating":  {"label": "Average rating", "sql": "ROUND(AVG(r.rating), 1)"},
+        "win_rate":    {"label": "Win rate",       "sql": "ROUND(1.0 * SUM(r.finish = 1) / COUNT(*), 3)"},
+        "top5_rate":   {"label": "Top-5 rate",     "sql": "ROUND(1.0 * SUM(r.finish <= 5) / COUNT(*), 3)"},
+        "top10_rate":  {"label": "Top-10 rate",    "sql": "ROUND(1.0 * SUM(r.finish <= 10) / COUNT(*), 3)"},
+        "first_season":{"label": "First season",   "sql": "MIN(r.season)"},
+        "last_season": {"label": "Last season",    "sql": "MAX(r.season)"},
+        "is_partial":  {"label": "Season in progress", "sql": "MAX(si.is_partial)"}
+      },
+      "qualifiers": {
+        "min_starts": {"label": "At least N starts", "having": "COUNT(*) >= :min_starts", "params": ["min_starts"]}
+      },
+      "windows": {
+        "note": "Named time scopes (last N days, season to date, ...) are in the design but not implemented in this sketch. Use min_season / max_season."
+      },
+      "companions": {
+        "note": "Follow-up queries keyed by a result row are recorded in a spec but not run in this sketch."
+      }
+    }
+  }
+}

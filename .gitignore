@@ -12,3 +12,6 @@ dashboard.html
 dashboard_data/
 out/
 tests/results_2004_2013.json
+
+# Query engine database (built by query/build_db.py)
+data/

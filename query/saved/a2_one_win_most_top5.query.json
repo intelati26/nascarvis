@@ -1,0 +1,101 @@
+{
+  "title": "Driver-seasons with exactly one win, most top-5s (design doc A2)",
+  "database": "data/query.db",
+  "parameters": {
+    "series": "Cup",
+    "wins": 1,
+    "limit": 25
+  },
+  "output": {
+    "columns": [
+      "driver",
+      "season",
+      "starts",
+      "wins",
+      "top5",
+      "top5_rate",
+      "top10",
+      "is_partial"
+    ]
+  },
+  "spec": {
+    "subject": "driver_race",
+    "params": {
+      "series": "Cup",
+      "wins": 1,
+      "limit": 25
+    },
+    "row_filters": [
+      {
+        "field": "series",
+        "op": "=",
+        "param": "series"
+      },
+      {
+        "field": "season",
+        "op": ">=",
+        "param": "min_season"
+      },
+      {
+        "field": "season",
+        "op": "<=",
+        "param": "max_season"
+      }
+    ],
+    "group_by": [
+      "driver",
+      "season"
+    ],
+    "measures": [
+      "starts",
+      "wins",
+      "top5",
+      "top5_rate",
+      "top10",
+      "is_partial"
+    ],
+    "aggregate_filters": [
+      {
+        "measure": "wins",
+        "op": "=",
+        "param": "wins"
+      }
+    ],
+    "sort": [
+      {
+        "by": "top5",
+        "dir": "desc"
+      },
+      {
+        "by": "top5_rate",
+        "dir": "desc"
+      },
+      {
+        "by": "top10",
+        "dir": "desc"
+      }
+    ],
+    "limit": {
+      "param": "limit"
+    },
+    "output": {
+      "columns": [
+        "driver",
+        "season",
+        "starts",
+        "wins",
+        "top5",
+        "top5_rate",
+        "top10",
+        "is_partial"
+      ]
+    },
+    "companions": [
+      "starts",
+      "top10",
+      "avg_finish",
+      "points rank that season",
+      "the winning race (track, date)"
+    ]
+  }
+}
