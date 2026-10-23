@@ -44,17 +44,22 @@ adj_path = os.path.join(ROOT, "adjustments.json")
 adj = [a for a in json.load(open(adj_path)) if not (a["season"] == 1950 and a["note"].startswith("1950 reconcile"))]
 byn = {norm(d): d for d in total}
 for name, pts in official:
+    if norm(name) not in byn:
+        print("not in results data, skipped:", name); continue
     d = byn[norm(name)]; diff = round(pts - total[d], 2)
     if diff:
         adj.append({"season": 1950, "race": 19, "driver": d, "pts": diff,
-                    "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions and points below 14th place, not itemised)"})
-# Drivers the rule scores above 57.5 but who are missing from the official top-65 table: their official total is below
-# 57.5 and otherwise unknown (consistent with the article's note that points were deducted for unsanctioned races).
-# Placeholder: zero them so they do not outrank drivers who are in the table. Replace with real totals when known.
-ABSENT = ["Red Byron", "Glenn Dunaway", "Hershel McGriff", "Otis Martin"]
-for name in ABSENT:
+                    "note": "1950 reconcile: official total minus rule-based sum (unsanctioned-race deductions such as Petty's 809 points, and points below 14th place, not itemised)"})
+# Drivers the rule scores but who are not in the official table. The article's "did not score points" list says Byron
+# and Dunaway had ALL points deducted (McGriff is listed as scoring none). Otis Martin is simply absent from the top-65
+# table (so under 57.5) and his exact total is unknown: zeroed as a placeholder.
+ABSENT = {"Red Byron": "all points deducted (article's list of drivers who did not score points)",
+          "Glenn Dunaway": "all points deducted (article's list of drivers who did not score points)",
+          "Hershel McGriff": "listed by the article as scoring no points",
+          "Otis Martin": "not in the official top-65 table (total below 57.5, exact value unknown); zeroed as a placeholder"}
+for name, why in ABSENT.items():
+    if norm(name) not in byn or any(norm(o[0]) == norm(name) for o in official): continue
     d = byn[norm(name)]
-    adj.append({"season": 1950, "race": 19, "driver": d, "pts": round(-total[d], 2),
-                "note": "1950 reconcile: not in the official top-65 table (total below 57.5, exact value unknown); zeroed as a placeholder"})
+    adj.append({"season": 1950, "race": 19, "driver": d, "pts": round(-total[d], 2), "note": "1950 reconcile: " + why})
 json.dump(adj, open(adj_path, "w"), indent=1)
 print(f"wrote points_1950.csv ({len(out)} rows) and {sum(1 for a in adj if a['season']==1950 and a['note'].startswith('1950 reconcile'))} reconcile adjustments")

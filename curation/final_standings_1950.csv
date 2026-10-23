@@ -1,27 +1,63 @@
 season,pos,driver,pts,source
-1950,1,Bill Rexford,1959,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,2,Fireball Roberts,1848.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,3,Lee Petty,1550,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,4,Lloyd Moore,1398,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,5,Curtis Turner,1375.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,6,Johnny Mantz,1282,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,7,Chuck Mahoney,1217.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,8,Dick Linder,1121,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,9,Jimmy Florian,801,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,10,Bill Blair,766,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,11,Herb Thomas,590.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,12,Buck Baker,531.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,13,Cotton Owens,500,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,14,Fonty Flock,458.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,15,Weldon Adams,440,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,16,Tim Flock,437.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,17,Clyde Minter,427,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,18,Dick Burns,341.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,19,Art Lamey,320,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,20,Bob Flock,314,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,21,George Hartley,298,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,22,Gayle Warren,287,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,23,Frank Mundy,275.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,24,Jim Paschal,220.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,25,Jack White,211.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
-1950,26,Pappy Hough,207.5,Wikipedia 1950 final standings table (image supplied by project owner); top 26 only
+1950,1,Bill Rexford,1959,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,2,Fireball Roberts,1848.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,3,Lee Petty,1590,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,4,Lloyd Moore,1398,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,5,Curtis Turner,1375.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,6,Johnny Mantz,1282,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,7,Chuck Mahoney,1217.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,8,Dick Linder,1121,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,9,Jimmy Florian,801,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,10,Bill Blair,766,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,11,Herb Thomas,590.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,12,Buck Baker,531.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,13,Cotton Owens,500,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,14,Fonty Flock,458.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,15,Weldon Adams,440,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,16,Tim Flock,437.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,17,Clyde Minter,427,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,18,Dick Burns,341.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,19,Art Lamey,320,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,20,Bob Flock,314,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,21,George Hartley,298,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,22,Gayle Warren,287,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,23,Frank Mundy,275.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,24,Jim Paschal,220.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,25,Jack White,211.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,26,Pappy Hough,207.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,27,Ray Duhigg,202.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,28,Leon Sales,200,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,29,Jimmy Thompson,200,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,30,Harold Kite,187,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,31,Neil Cole,183.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,32,Jack Smith,180,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,33,Bucky Sager,180,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,34,Red Harvey,180,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,35,Ted Swaim,180,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,36,Buck Barr,180,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,37,Pepper Cunningham,177.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,38,Ewell Weddle,173.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,39,Donald Thomas,164,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,40,Bill Snowden,163,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,41,Jimmie Lewallen,140,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,42,Chuck James,140,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,43,Dick Clothier,133.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,44,Paul Parks,124.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,45,Al Gross,124,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,46,Jack Reynolds,120,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,47,Jim Delaney,114,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,48,Carl Renner,108,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,49,Jack Holloway,107.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,50,J. C. Van Landingham,105,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,51,Bob Dickson,105,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,52,Gene Austin,102,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,53,Herschel Buchanan,100,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,54,Bill Long,100,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,55,Johnny Grubb,98,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,56,Duane Carter,80,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,58,Herbert Burns,75,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,59,Lyle Scott,68,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,60,Fred Johnson,67.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,61,Ted Chamberlain,66,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,62,Bobby Courtwright,60,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
+1950,65,Pap White,57.5,"Wikipedia: 1950 NASCAR Grand National Series, Drivers' championship table (CC BY-SA)"
