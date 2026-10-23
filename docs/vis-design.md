@@ -344,3 +344,82 @@ years. Historical, so re-run only when new race data arrives.
 | Partial-period flag | no | yes |
 | Companion queries | yes | yes |
 | Diff between runs | yes | yes |
+
+## Appendix C: historical stats (nascarvis scope and plan)
+
+### Why this comes first
+
+Today `nascar.db` holds one season (the importer filters to `--season`) and the dashboard embeds data
+from 2001 only. Nothing can be asked about history, so the query system (section 7) has little to
+query. Historical depth is therefore the first deliverable for nascarvis, ahead of the query engine.
+
+### Scope
+
+| Series | Start | Notes |
+|---|---|---|
+| Cup | 1948 requested; see below | Names over time: Strictly Stock, Grand National, Winston Cup, Nextel, Sprint, Monster, Cup |
+| Second national series (Xfinity lineage) | Its debut season | Late Model Sportsman, Busch Grand National, Busch, Nationwide, Xfinity, O'Reilly Auto Parts |
+| Truck | Its debut season | Craftsman, Camping World, Gander, and later names |
+
+Points to settle (from general knowledge, to be verified and recorded in `SOURCES.md`):
+
+- **1948 vs 1949 for Cup.** NASCAR was founded in 1948, but its official Cup-level record is generally
+  counted from 1949 (the first Strictly Stock season); 1948 was the Modified division. Decide whether
+  1948 is included as a separate, tagged division or excluded. The schema should allow either.
+- **Debut seasons** for the other two series (roughly 1982 for the Xfinity lineage and 1995 for
+  Trucks) must be confirmed from the data source and NASCAR records, not assumed.
+- **Source coverage is unverified.** It was not possible to check how far back each dataset goes from
+  the development sandbox. The first step of the import work is to read each file's minimum season,
+  per series, and record it.
+
+### Series lineage
+
+Treat a series like a franchise: one stable `series` row per lineage, plus a `series_season_name`
+table (series, season, display name, sponsor). Queries and leaderboards group by lineage; the viewer
+shows the name used that year. This avoids breaking all-time lists at every sponsor change.
+
+### Import changes
+
+1. Remove the single-season restriction. Import all seasons for all three series, keyed by series
+   and season, idempotent per season.
+2. Keep the raw downloads dated and immutable (section 4).
+3. Carry the source's field availability into an era/field tag table so queries can exclude eras where
+   a field does not exist (for example stage points, driver rating, loop data, lap data).
+4. Drivers need the same crosswalk treatment as baseball players: one stable id, a source-id table,
+   an unmatched queue, and manual overrides. Name changes and duplicates are common in early eras.
+
+### Marts to add
+
+- Season line per driver per series (exists for Cup as `v_season_stats`; extend to all series).
+- Career line per driver per series, and combined across series where a "national series" total is wanted.
+- All-time leaderboards: wins, poles, top-5s, top-10s, laps led, starts, with rank and percentile.
+- Per-track records and per-track-per-series history.
+- Team and manufacturer histories.
+- Streaks, firsts and lasts (first win, youngest/oldest winner where birth data exists).
+- Rate versions (per start, per scheduled race) so seasons of different schedule length compare fairly.
+- Season context: schedule length, field size, and points system in force, for each season.
+
+### Points history
+
+`formats.js` models 2004 onward. Earlier systems are not recomputed. Instead:
+
+- Store official final standings per series and season as reference data (the existing
+  `official_standings` table, extended back).
+- Audit computed totals against them where a system is modelled, and show the official numbers where
+  it is not.
+- Add earlier points rules to `rules/` only when a specific historical view needs them.
+
+### Audit and fixtures
+
+- Official champions and final standings per series and season.
+- Known-count checks: total races per season, total wins, and career win totals for a handful of
+  well-documented drivers.
+- Differences are written to a report file, not silently fixed.
+
+### Order of work
+
+1. Record each source's coverage per series and the debut/start decisions above.
+2. Multi-season, multi-series import into the core database (no new features).
+3. Era/field tags and the audit reference data.
+4. Career and all-time marts; first saved query on them (the one-win, most top-5s query in A2).
+5. Read-only SQL access to the full database (existing tool), then the query ramp in section 8.
