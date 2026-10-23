@@ -366,11 +366,72 @@ Points to settle (from general knowledge, to be verified and recorded in `SOURCE
 - **1948 vs 1949 for Cup.** NASCAR was founded in 1948, but its official Cup-level record is generally
   counted from 1949 (the first Strictly Stock season); 1948 was the Modified division. Decide whether
   1948 is included as a separate, tagged division or excluded. The schema should allow either.
-- **Debut seasons** for the other two series (roughly 1982 for the Xfinity lineage and 1995 for
-  Trucks) must be confirmed from the data source and NASCAR records, not assumed.
-- **Source coverage is unverified.** It was not possible to check how far back each dataset goes from
-  the development sandbox. The first step of the import work is to read each file's minimum season,
-  per series, and record it.
+- **Debut seasons.** The nascaR.data package documents Cup from 1949, the second series from 1982 and
+  Trucks from 1995 (package description, as reported by search results; not yet confirmed against the
+  files). 1948 therefore has no rows in that source.
+- **Verify, don't assume.** The first import step reads each file's minimum season per series and
+  records it in `SOURCES.md`. The data host could not be reached from the development sandbox.
+
+### Existing data: nascaR.data
+
+An open dataset already covers the three national series: nascaR.data (R package, GPL-3), described
+as race, driver, owner and manufacturer data for Cup (1949 on), the second series (1982 on) and Trucks
+(1995 on), with results sourced from DriverAverages.com with permission. nascarvis already uses its Cup file.
+
+Things to check before building on it (from the package notes, not yet verified here):
+
+- **Version 3 changes.** The second series identifier was renamed from `xfinity` to `nxs`, and data is
+  now loaded through a `load_series()` helper from cloud storage. The download address hard-coded in
+  `import_nascar_data.py` and `build_dashboard.py` may be out of date. Confirm the current file
+  locations and names for all three series.
+- **Permission is the author's.** The package's permission from its source covers the package, not
+  automatically this project's separate scraping. Record the package's license and the attribution it asks for.
+- **Known gaps** (from the fields nascarvis already reports as missing): playoff points, poles, stage
+  wins, best-lap points, lap-by-lap data, cautions and pit stops. Early eras will also be thin.
+
+This means the work is not "build a NASCAR database from scratch". It is: adopt this dataset as the
+base, verify it, fill gaps, and prove it correct against independent ground truth (next section).
+
+### Ground truth and scraping
+
+Ground truth is small, independent reference data used to check the database. It is not a second copy
+of the database.
+
+| Level | Reference data | Used to check |
+|---|---|---|
+| Season | Number of points races, champion, final standings and points | Missing races, wrong points |
+| Race | Winner, track, date, scheduled distance | Missing or duplicated races, wrong winners |
+| Driver | Career starts, wins, poles from established lists | Aggregates after import |
+| All-time | Wins list, champions list | Leaderboard marts |
+
+Internal consistency checks need no external data and run first: exactly one finisher in each race has
+position 1, finish positions are unique and contiguous, laps led per race do not exceed race laps, and
+season race counts are plausible.
+
+Candidate reference sources, in order of preference (terms must be checked and recorded for each):
+
+1. **Open-licensed encyclopedic tables** (such as season and champion pages) are the safest to read
+   because their licenses allow reuse with attribution.
+2. **NASCAR's own published standings and results** for recent seasons.
+3. **Racing-Reference and Driver Averages** are the established references, but their terms for
+   automated access were not found in a search and must be read on the sites (terms page, robots.txt),
+   or written permission requested. Without that, use them only by hand for spot checks.
+
+Scraping rules for this project:
+
+- Fetch and parse are separate stages. Save each page as dated raw HTML, then parse from the saved
+  file, so a parser fix never needs a re-download.
+- Rate-limit, identify the client honestly, respect robots.txt, and fetch each page once.
+- Parsers write **reference tables** (`ref_*`), never core fact tables.
+- A reference value counts as ground truth only when two independent sources agree, or when it is
+  confirmed by hand. Disagreements go to a review file.
+- Every reference row records its source URL, fetch date and parser version.
+
+### Audit report
+
+A single report lists, per series and season: races expected vs present, rows per race, internal
+consistency failures, mismatches against each reference level, and the fields available. The report is
+the definition of "done" for the historical import.
 
 ### Series lineage
 
