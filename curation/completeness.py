@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Data coverage by season.  python curation/coverage.py
+"""nascaR completeness: data coverage by season.  python curation/completeness.py
 One row per season in cup_series.parquet: how much of each field nascaR.data has, where the points came from, and how the season compares with Wikipedia's tables.
-Writes coverage_by_season.csv and prints a Y / part / N grid (Baseball-Reference style). Reads files the other scripts already write, so run calculated_points.py,
+Writes nascaR_completeness.csv and nascaR_completeness_grid.txt in the repository root (summary counts only, no third-party tables) and prints a Y / part / N grid (Baseball-Reference style). Reads files the other scripts already write, so run calculated_points.py,
 explain_gaps.py, check_standings.py, check_champions.py and check_driver_pages.py first.
   field columns      share of the season's result rows with a value (finish, start, laps, led, status, car, team, make, rating; Pts as in the source; stage points from 2017)
   points_source      derived (before 1975, race points in points_<season>.csv), source (under 1% blank), partial, or blank (99% or more blank, so missing)
@@ -49,7 +49,7 @@ for s in sorted(n):
                  "gaps": gap[s][0] if s in gap else 0 if 1975 <= s <= 2003 and s in table else "", "gaps_noted": gap[s][1] if s in gap else 0 if 1975 <= s <= 2003 and s in table else "",
                  "driver_pages_checked": pages[s]["checked"] or "", "driver_pages_agree_data": pages[s]["agrees with data"] or "", "driver_pages_agree_table": pages[s]["agrees with season table"] or "",
                  "notes": notes.get(s, 0)})
-with open(os.path.join(HERE, "coverage_by_season.csv"), "w", newline="", encoding="utf-8") as f:
+with open(os.path.join(ROOT, "nascaR_completeness.csv"), "w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 
 # ---- the grid
@@ -68,5 +68,5 @@ for r in rows:
     ex = "·" if r["standings_rows"] == "" else "Y" if r["standings_exact"] == r["standings_rows"] else "p" if float(r["standings_exact"] or 0) / max(1, float(r["standings_rows"])) >= .9 else "N"
     gp = "·" if r["gaps"] == "" else "Y" if r["gaps"] == 0 else "p" if r["gaps_noted"] == r["gaps"] else "N"
     emit(f"{s:<6d} " + " ".join(f"{c:>3s}" for c in fl + [ps, wiki, ch, ex, gp]))
-open(os.path.join(HERE, "coverage_grid.txt"), "w", encoding="utf-8").write("\n".join(grid) + "\n")
-print(f"\nwrote coverage_by_season.csv and coverage_grid.txt: {len(rows)} seasons")
+open(os.path.join(ROOT, "nascaR_completeness_grid.txt"), "w", encoding="utf-8").write("\n".join(grid) + "\n")
+print(f"\nwrote nascaR_completeness.csv and nascaR_completeness_grid.txt: {len(rows)} seasons")

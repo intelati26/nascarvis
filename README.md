@@ -35,6 +35,10 @@ values, whether the points follow one table by finishing position or scale by ra
 and the champion by summed points). `--official FILE` also compares final totals with official standings.
 Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
 
+Data completeness: [`nascaR_completeness.csv`](nascaR_completeness.csv) (and a [text grid](nascaR_completeness_grid.txt)) shows, season by season, how much of
+each field nascaR.data has, where the points came from, and how the season compares with Wikipedia's final standings. Regenerate it with
+`python curation/completeness.py`.
+
 Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `python tests/test_shards.py` (needs pyarrow and node) and
 `python tests/test_audit_points.py` (needs pyarrow).
 
