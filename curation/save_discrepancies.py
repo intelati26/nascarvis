@@ -3,7 +3,7 @@
 Run from the repo root:  python curation/save_discrepancies.py
 
 Rows (kind): standings_vs_model (1957: official total minus the fitted purse model), standings_vs_data (1955 and 1960: every driver
-whose data total differs from the official standings), champion_total (champion_check.csv),
+whose data total differs from the official standings; 1955, 1960, 1966, 1970, 1971 and 1975-2003), champion_total (champion_check.csv),
 chart_vs_wikipedia (1949), reconcile_adjustment (1950/51/72/73 entries over a size threshold, plus zeroed drivers),
 identity (names/counts that differ between sources), source_error (a source disagreeing with the others).
 difference = found - expected, so a positive number means the second source/model is higher."""
@@ -58,7 +58,7 @@ for i, sn in enumerate(tt["Season"]):
     if sn == 1955 and tt["Race"][i] in w55 and not nan(tt["Pts"][i]):
         f, W = tt["Finish"][i], w55[tt["Race"][i]]
         scale55[norm(tt["Driver"][i])].append((tt["Race"][i], f, tt["Pts"][i], W * (26 - f) / 25 if f <= 25 else W / 25))
-for season in (1955, 1960):
+for season in (1955, 1960, 1966, 1970, 1971, *range(1975, 2004)):
     totals, blanks, names = collections.defaultdict(float), collections.Counter(), {}
     for i, sn in enumerate(tt["Season"]):
         if sn != season: continue

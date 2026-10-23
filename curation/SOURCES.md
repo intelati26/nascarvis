@@ -117,3 +117,9 @@ Race 4 of 1955 (Daytona Beach & Road Course) only: the 48 rows that had no point
 (`final_standings_1955.csv`, Wikipedia) minus the rest of his 1955 season in nascaR.data; places 1-25 score W x (26 - place) / 25 and 26th
 and below score W / 25 (found from the 1955 races that have points). Checked against the other drivers' official totals: 12 of 16 match
 exactly. See `derive_points_1955.py` and the 1955 findings in WIKIPEDIA_SUMMARY.md. Fills blank points only; nothing is overridden.
+
+## final_standings_<season>.csv for 1966, 1970, 1971 and 1975-2003
+
+Parsed from the Wikipedia season articles by `fetch_wikipedia_standings.py` (CC BY-SA 4.0; each row names the article section and fetch
+date). A table is only written if its first row equals the champion and total in `champions_points.csv`. `check_standings.py` and
+`standings_check.csv` hold the whole-field comparison with the data.

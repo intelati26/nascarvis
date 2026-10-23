@@ -37,6 +37,8 @@ def val(c):
 
 
 def name_of(cell):
+    cell = re.sub(r"<br\s*/?>.*$", "", cell)                               # "<br /><small>(Rookie OTY)</small>" and similar
+    cell = re.sub(r"\{\{sortname\|([^|}]*)\|([^|}]*)[^}]*\}\}", r"\1 \2", cell)   # {{sortname|David|Pearson|...}} -> David Pearson
     n = re.sub(r"\{\{flagicon[^}]*\}\}|<[^>]*>", "", cell)
     n = re.sub(r"\{\{nowrap\|", "", n)
     n = re.sub(r"\{\{[^}]*\}\}", "", n)
@@ -71,7 +73,7 @@ def table_points(txt, start):
         cs = cells_of(r)
         if len(cs) < 3: continue
         p = re.sub(r"\D", "", re.sub(r"\{\{[^}]*\}\}", "", cs[0]))
-        ni = next((i for i, c in enumerate(cs[:4]) if i > 0 and ("[[" in c or re.search(r"[A-Za-z]{3}", re.sub(r"\{\{[^}]*\}\}", "", c)))), None)
+        ni = next((i for i, c in enumerate(cs[:4]) if i > 0 and ("[[" in c or "sortname" in c or re.search(r"[A-Za-z]{3}", re.sub(r"\{\{[^}]*\}\}", "", c)))), None)
         if not p or ni is None: continue
         pts = val(cs[-1]) if last else (val(cs[idx]) if idx < len(cs) else None)
         nm = name_of("|" + cs[ni])
@@ -107,7 +109,12 @@ def standings(txt):
         if a >= 0 and a - m.end() < 2500:
             o = table_points(txt, m.end())
             if len(o) >= 5: return m.group(1).strip(), continuation(txt, m.end(), o)
-    return None, []
+    # fallback: any table on the page with a Pts/Points column (headings vary: "Season statistics", unnamed sections, ...)
+    best = None
+    for m in re.finditer(r"\{\|", txt):
+        o = table_points(txt, m.start() - 1)
+        if len(o) >= 5 and (best is None or len(o) > len(best[1])): best = ("table on the page", continuation(txt, m.start() - 1, o))
+    return best if best else (None, [])
 
 
 def champions(today):
@@ -137,16 +144,33 @@ def champions(today):
     print(f"champions_points.csv: {len(out)} seasons ({out[0][0]}-{out[-1][0]})")
 
 
+norm_name = lambda x: re.sub(r"[^a-z]", "", x.lower())
+
+
+def champion_of(season):
+    """(name, points) from champions_points.csv, used to sanity-check a parsed table's first row."""
+    path = os.path.join(HERE, "champions_points.csv")
+    if os.path.exists(path):
+        for r in csv.DictReader(open(path, encoding="utf-8")):
+            if r["season"] == str(season): return r["champion"], float(r["pts"])
+    return None
+
+
 def main():
+    import time
     today = datetime.date.today().isoformat()
     if sys.argv[1:] == ["champions"]:
         champions(today); return
-    for season in sys.argv[1:]:
+    for n, season in enumerate(sys.argv[1:]):
+        if n: time.sleep(0.8)                                          # one request per article, spaced out
         name, txt = article(season)
         if not txt: print(season, "no article"); continue
         head, rows = standings(txt)
         if not rows: print(season, f"{name}: no standings table found (not on this page)"); continue
         rows.sort(key=lambda r: (r[0], -r[2]))
+        champ = champion_of(season)
+        if champ and (norm_name(rows[0][1]) != norm_name(champ[0]) or abs(rows[0][2] - champ[1]) > 1e-6):
+            print(season, f"SUSPECT, not written: first row {rows[0][1]} {rows[0][2]:g} but the champions list says {champ[0]} {champ[1]:g} ({head})"); continue
         path = os.path.join(HERE, f"final_standings_{season}.csv")
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f); w.writerow(["season", "pos", "driver", "pts", "source"])

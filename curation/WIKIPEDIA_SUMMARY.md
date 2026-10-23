@@ -113,6 +113,21 @@ The disagreements behind these rows are collected in `discrepancies.csv` (regene
   like points were removed). A tail below 25th place does not explain it. Reconciling these with adjustments would hide a scheme I do not
   understand, so `points_1957.csv` was not created.
 
+## Whole-field check (every driver in the official table)
+
+Wikipedia's season articles carry a standings table for most seasons, so the check is no longer champion-only. `python
+curation/check_standings.py` compares every listed driver's summed `Pts` in the data (after curation, before any adjustment) with
+the official total and writes `standings_check.csv`; `discrepancies.csv` lists each driver that differs.
+
+- **Every driver exact (nascaR.data as is): 1977, 1992, 1994, 1995, 1996, 1997, 1998, 2001, 2003.**
+- 1990 is exact for all 104 drivers found in the data (one table row has no match by name), and 1999 is off by 1 point for one driver.
+- 95-98% exact: 1976, 1978, 1979, 1980, 1991, 2000; the lowest in 1975-2003 are 1981 (77%), 1989 (87%), 1982 (88%) and 1983 (89%).
+- Tables with a full field now exist for 1949-55, 1957, 1960, 1966, 1970-74 and 1975-2003 (44 seasons).
+- **Champion total only** (no usable table): 1956, 1958, 1959, 1961, 1962, 1963, 1964, 1965, 1967, 1968, 1969. For 1958, 1962, 1964,
+  1967, 1968 and 1969 Wikipedia has no season article (the title redirects to the main Cup Series page); the 1956, 1959, 1961, 1963 and 1965
+  articles have no standings table (1963's table lists only two drivers). Their champion check: 1962, 1964, 1965 and 1969 match;
+  1958, 1959, 1961, 1963, 1967 and 1968 differ; 1956 has no data.
+
 ## 1955 findings
 
 - Race 4, the Daytona Beach and road course race, has no points for any driver in nascaR.data, and Racing-Reference shows none either. It is
