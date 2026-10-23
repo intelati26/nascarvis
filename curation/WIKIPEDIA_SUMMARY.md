@@ -32,7 +32,7 @@ standings table the article has (CSV `final_standings_<season>.csv`).
 | 1949 | Red Byron | 842.5 | 842.5 | **match** | 0 of 210 | 79 drivers | [article](https://en.wikipedia.org/wiki/1949_NASCAR_Strictly_Stock_Series), [racing-reference](http://racing-reference.info/yeardet/1949/W) | Per-race points from the Reddit chart (`points_1949.csv`), checked against the article: 67 of 74 drivers identical, 7 differences explained by the chart's own notes; reconciled to the article (10 entries). |
 | 1950 | Bill Rexford | 1,959 | 1,959 | **match** | 0 of 576 | 62 | [article](https://en.wikipedia.org/wiki/1950_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1950/W) | Derived from purses and the prize-money scale, reconciled to the article (49 entries; Petty -809 for an unsanctioned race, Byron and Dunaway all points deducted). |
 | 1951 | Herb Thomas | 4,208.45 | 4,208.45 | **match** | 0 of 1286 | 75 drivers | [article](https://en.wikipedia.org/wiki/1951_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1951/W) | Derived per race from the 41 purses (rounded up from $350, flat 0.8% tail to 26th), reconciled to the article's 75-driver table (85 entries, incl. 12 zeroed drivers absent from it). Top 12 order matches. Three source zeros for race winners overridden. |
-| 1952 | Tim Flock | 6,858.5 | 0 | no data | 927 of 938 | top 20 | [article](https://en.wikipedia.org/wiki/1952_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1952/W) | Standings and champion only. |
+| 1952 | Tim Flock | 6,858.5 | 0 | no data | 927 of 938 | top 20 | [article](https://en.wikipedia.org/wiki/1952_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1952/W) | Purses for all 34 races are in the article (`race_purses_1952.csv`). Not derived: the top-25 scale with winner's points proportional to purse leaves errors of about 150 points (Tim Flock short by 650) against the 19 listed drivers, too few to fit a better rule. |
 | 1953 | Herb Thomas | 8,460 | 0 | no data | 942 of 958 | top 20 | [article](https://en.wikipedia.org/wiki/1953_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1953/W) | Standings only. The article lists Turner (3373) at 10th behind Lewallen (3208), probably an article typo. |
 | 1954 | Lee Petty | 8,649 | 0 | no data | 1125 of 1134 | 212 | [article](https://en.wikipedia.org/wiki/1954_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1954/W) | Full standings only. |
 | 1955 | Tim Flock | 9,596 | 9,246 | differs | 83 of 1179 | 52 | [article](https://en.wikipedia.org/wiki/1955_NASCAR_Grand_National_Series), [racing-reference](http://racing-reference.info/yeardet/1955/W) | One blank row for Flock: the missing 350 is the gap (recoverable). |
@@ -62,12 +62,31 @@ and the Racing-Reference page it cites, both listed in `champions_points.csv`.
 Totals for the table: 55 seasons (1949-2003): **42 match**, **6 have no usable data** (1952-54, 1956-57, 1974) and **7 differ**
 (1955, 1958, 1959, 1961, 1963, 1967, 1968).
 
+## Per-race Wikipedia articles
+
+Wikipedia has individual articles for only a few races per season. Those linked from the 1949-1961 season articles number
+about 46 (none for 1952 and 1958; 1-9 for the others: the Southern 500, Wilkes County, Virginia 500, Daytona 500 and similar).
+Findings from reading all of them:
+
+- **Per-driver points:** only three have a `Pts` column, and only one has it filled in: the **1957 Virginia 500** (500 for the winner,
+  480, 460 ... 40 for 24th). That is exactly the 1952-67 top-25 scale, W x (26 - place) / 25, with W = 500. The 1956 Virginia 500
+  and 1960 Daytona 500 have the column but no values. The 24 rows are kept as `per_race_points_wikipedia.csv`.
+- **Purses:** a few state the race's total purse or winnings (for example the 1952 Southern 500, $23,855, which also appears in the
+  1952 season table). Nothing systematic.
+- **Winnings per driver:** some articles list each driver's winnings. That would matter for 1974 (earnings-based) but those
+  articles do not exist for 1974's races.
+
+So the per-race articles do not fill any season. They confirm the shape of the 1952-67 scale in one race. The data needed for the
+purse-based seasons is the purse of every race, which only the 1950, 1951 and 1952 season articles provide.
+
 ## What each curation file contains
 
 | File | Content | Source |
 |---|---|---|
 | `points_1949.csv` | Per-race points, all 8 races | Reddit chart by Diecast Charv (SOURCES.md) |
 | `points_1950.csv`, `points_1951.csv`, `race_purses_1950.csv`, `race_purses_1951.csv` | Per-race points derived from purses (rules fitted per season; see `derive_points_prize.py`) | Wikipedia articles and points-systems page |
+| `race_purses_1952.csv` | Purses of all 34 races | Wikipedia 1952 article |
+| `per_race_points_wikipedia.csv` | Real per-driver points for the 1957 Virginia 500 | Wikipedia race article |
 | `points_1972.csv`, `points_1973.csv` | Rank points plus distance points, rebuilt from laps and track length | Wikipedia points-systems page |
 | `final_standings_<season>.csv` | Official final standings: 1949-1955, 1957, 1960, 1972-1974 (1951 has 75 drivers, the article's collapsed continuation table) | Wikipedia season articles |
 | `champions_points.csv` | Champion, starts, wins, points, margin, 1949-2003 | Wikipedia champions list |
@@ -87,9 +106,9 @@ Totals for the table: 55 seasons (1949-2003): **42 match**, **6 have no usable d
 
 ## Still missing
 
-1. **1952-1954, 1956-1957 and 1974** have no per-race points. 1952 mentions a few purses in race summaries; the others have none
-   in a reusable source. 1952-57 followed the purse-based top-25 scale (see above), so they would follow from purses the
-   way 1950-51 do. 1974 needs earnings.
+1. **1952-1954, 1956-1957 and 1974** have no per-race points. 1952 has all 34 purses but the scale does not fit yet (see its row);
+   1953-57 have no purse table. 1952-67 followed the purse-based top-25 scale, so they would follow from purses the way 1950-51
+   do. 1974 needs earnings.
 2. **1958 and 1959** have large blank areas and no standings table, only the champion's total.
 3. **1955 and 1960** have 83 and 113 blank rows. About 56 of them (one blank per driver) could be filled from the final
    standings; not done.

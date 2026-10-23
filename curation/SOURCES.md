@@ -81,3 +81,10 @@ See `WIKIPEDIA_SUMMARY.md` for what each season's article provides and what is s
   them Marshall Teague, Hershel McGriff, Curtis Turner, Leon Sales and Red Byron. The article does not say why. They are
   zeroed (flagged in `adjustments.json`) until real totals are found.
 - Three race winners had `Pts` of 0 in the data file; those rows carry `override=1`.
+
+## race_purses_1952.csv and per_race_points_wikipedia.csv
+
+- `race_purses_1952.csv`: the Purse column of the race table in Wikipedia's *1952 NASCAR Grand National Series* (CC BY-SA 4.0).
+  Race 33's purse ($3,820) sits on a wrapped line in the article source.
+- `per_race_points_wikipedia.csv`: the results table of Wikipedia's *1957 Virginia 500* (finish, driver, points, winnings), the only
+  per-race article from 1949-1961 with a filled points column. See WIKIPEDIA_SUMMARY.md.
