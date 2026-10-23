@@ -484,3 +484,70 @@ shows the name used that year. This avoids breaking all-time lists at every spon
 3. Era/field tags and the audit reference data.
 4. Career and all-time marts; first saved query on them (the one-win, most top-5s query in A2).
 5. Read-only SQL access to the full database (existing tool), then the query ramp in section 8.
+
+## Appendix D: viewer architecture and size tiers (both projects)
+
+### Method
+
+Mirror the "build precomputes, browser displays" approach used by large stats sites: an export stage
+reads the core database and writes a tree of static data files; the viewer loads a manifest, then
+fetches only the pieces a page needs. No application server is required.
+
+### Script-tag loading (decided)
+
+Data files are small scripts that register themselves, for example `load("season-1998", {...})`, and
+are pulled in with `<script>` tags. Unlike `fetch()`, this works when `index.html` is opened directly
+from a folder (`file://`), including on a phone. A build flag can also write plain JSON for other readers.
+Consequences:
+
+- No transport compression, so raw file size is what counts. Use compact columnar encoding with
+  dictionary-coded strings (as `build_dashboard.py` does), and keep a size budget per file.
+- No range requests, so the page cannot query large Parquet files directly.
+
+### Layout
+
+```
+site/
+  index.html                       app shell and vendored libraries
+  data/manifest.js                 series, seasons, file list, content hashes, build date
+  data/search.js                   names to ids
+  data/<series>/season/<year>.js   races, standings after each race, season lines
+  data/<series>/race/<year>-<n>.js full results for one race
+  data/<series>/driver/<id>.js     career line, season lines, track splits
+  data/<series>/track/<id>.js      winners and history
+  data/<series>/leaders/<stat>.js  all-time lists
+  data/laps/<series>/<year>.js     lap data, loaded when a race is opened
+```
+
+Derived numbers (standings after each race, career lines, leaderboards) are computed at build time.
+Rebuilds are incremental, using the manifest's content hashes. A one-file bundle remains available for
+small slices.
+
+### Size tiers
+
+| Tier | Contents | Location |
+|---|---|---|
+| 1. Precomputed pages | Season, career, leaderboard, standings, game-log summaries | Sharded static files |
+| 2. Event-level data | Plate appearances, pitches, laps | Local SQLite and Parquet only |
+| 3. Query results | Output of saved queries over tier 2 | Files in `results/`, shown by the viewer |
+
+Rough scale (estimates to be measured): NASCAR is about 10^5 rows per series; baseball has about
+2x10^5 games, 1.5x10^7 plate appearances and 1x10^7 to 1.5x10^7 pitches since 2008.
+
+### Effect on the query system
+
+The spec and compiler are unchanged. The runner is pluggable:
+
+- **local-python** (required): runs the compiled SQL on SQLite or DuckDB and writes result files.
+- **in-browser** (optional, small data only): a browser SQL engine over a small database. Not to be
+  assumed for baseball.
+
+The viewer displays saved results and builds the spec and SQL text. It does not execute large queries itself.
+
+### Size controls
+
+- Per-file size budget, enforced by the build.
+- Fine sharding (player-season game logs, not per-player).
+- Era or season-range slices so a phone can carry a subset.
+- NASCAR is the pipeline test (output size per tier, full vs incremental build time, phone load time).
+  It cannot test pitch-level scale, so one Statcast season is loaded into the baseball core early as a stress test.
