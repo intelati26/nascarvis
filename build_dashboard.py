@@ -570,8 +570,9 @@ def write_data_files(data, data_dir):
 
 
 def apply_curation(t, folder):
-    """Fill blank `Pts` from curation/points_*.csv (hand-entered, keyed by season, race, finishing position).
-    Source values are never overwritten; disagreements are only reported."""
+    """Fill blank `Pts` from curation/points_*.csv (keyed by season, race, finishing position).
+    A source value is only replaced when the row has override=1 (the source holds a known-wrong value, such as a 0
+    where the scoring rule gives points); other disagreements are only reported."""
     import csv, glob
     idx = {(s, r, f): i for i, (s, r, f) in enumerate(zip(t["Season"], t["Race"], t["Finish"]))}
     filled = conflicts = unmatched = 0
@@ -580,7 +581,7 @@ def apply_curation(t, folder):
             i = idx.get((int(row["season"]), int(row["race"]), int(row["finish"])))
             if i is None:
                 unmatched += 1
-            elif clean(t["Pts"][i]) is None:
+            elif clean(t["Pts"][i]) is None or row.get("override") == "1":
                 t["Pts"][i] = float(row["pts"]); filled += 1
             elif abs(t["Pts"][i] - float(row["pts"])) > 1e-9:
                 conflicts += 1
