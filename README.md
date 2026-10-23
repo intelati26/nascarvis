@@ -10,7 +10,10 @@ copying to another device. A rebuild only rewrites season files whose content ch
 Season, Race, Driver history (now with a race-by-race table for each season: where the driver started and
 finished in every race), Track history, and Leaders (career or single-season leaders for any stat, with a
 season range, a minimum-starts filter for rates, and an "exactly N wins" filter). Every table sorts by
-clicking a header and exports to CSV.
+clicking a header and exports to CSV. The Driver history tab also exports a driver's Cup results as Wikipedia wikitext in
+[WikiProject NASCAR](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_NASCAR)'s layout: the race-by-race grid coloured by the
+project's [results key](https://en.wikipedia.org/wiki/Template:NASCAR_driver_results_legend), and the quickbio career-results
+table (`wikitext.js`). Track codes are mapped by hand; any it has to guess are flagged in a comment.
 
 ### Viewing it on a phone (Termux)
 
@@ -32,7 +35,7 @@ values, whether the points follow one table by finishing position or scale by ra
 and the champion by summed points). `--official FILE` also compares final totals with official standings.
 Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
 
-Tests: `node tests/test_formats.js`, `python tests/test_shards.py` (needs pyarrow and node) and
+Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `python tests/test_shards.py` (needs pyarrow and node) and
 `python tests/test_audit_points.py` (needs pyarrow).
 
 ## Lap-by-lap data and offline storage

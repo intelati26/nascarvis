@@ -782,6 +782,7 @@ def main():
     tpl = open(os.path.join(HERE, "dashboard_template.html"), encoding="utf-8").read()
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()
     fmts = open(os.path.join(HERE, "formats.js"), encoding="utf-8").read()
+    wikitext = open(os.path.join(HERE, "wikitext.js"), encoding="utf-8").read()
     data["adjustments"] = json.load(open(os.path.join(HERE, "adjustments.json"), encoding="utf-8"))
     sd, totals = collections.defaultdict(set), collections.defaultdict(float)
     for i, sn in enumerate(data["season"]):
@@ -805,6 +806,7 @@ def main():
                    "  throw e;\n}")
     html = (tpl.replace("/*__CHARTJS__*/", chart.replace("</script", "<\\/script"))
                .replace("/*__FORMATS__*/", fmts)
+               .replace("/*__WIKITEXT__*/", wikitext)
                .replace("/*__SHARDS__*/", shards_js.replace("</script", "<\\/script"))
                .replace("<!--__DATA_TAGS__-->", data_tags)
                .replace("/*__DATA__*/", data_js))
