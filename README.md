@@ -13,7 +13,7 @@ season range, a minimum-starts filter for rates, and an "exactly N wins" filter)
 clicking a header and exports to CSV. The Driver history tab also exports a driver's Cup results as Wikipedia wikitext in
 [WikiProject NASCAR](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_NASCAR)'s layout: the race-by-race grid coloured by the
 project's [results key](https://en.wikipedia.org/wiki/Template:NASCAR_driver_results_legend), and the quickbio career-results
-table (`wikitext.js`). Track codes are mapped by hand; any it has to guess are flagged in a comment.
+table (`wikitext.js`). You choose which seasons (table rows) to include. Track codes are mapped by hand; any it has to guess are flagged in a comment.
 
 ### Viewing it on a phone (Termux)
 
