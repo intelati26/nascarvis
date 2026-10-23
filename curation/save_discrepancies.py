@@ -67,6 +67,12 @@ KNOWN = {
     (1993, "Ken Schrader"): "NARROWED, cause open: the Driver Averages page supplied by the project owner (30 points races) matches the data race for race and sums to 3,715, and every one of his rows follows the 1993 scoring formula (so does every row of 1993). Wikipedia's table gives 3,714, one point lower, which no race row can produce; a table error is likely, but no adjustment",
 }
 
+_NOTE_1981 = ("INVESTIGATED, cause unknown: the data total is exactly 3 above Wikipedia's, one finishing place on the scale below 12th, for 22 drivers. "
+              "The only race all 22 ran is race 30 (Atlanta Journal 500); a results page supplied by the project owner scores that race exactly as the data does (Brooks 13th = 124, Speed 14th = 121, and so on), "
+              "so that race is not the source. The page also shows formula points for Anderson, Wallace, Bodine and Bailey, who have 0 in the standings (Wallace and Bodine's official totals equal the data without race 30). "
+              "Jayski carries no driver points, so it cannot settle whether Wikipedia's 1981 table is 3 low for these drivers or a real adjustment applies. Data left as is")
+KNOWN.update({(1981, n): _NOTE_1981 for n in ['Benny Parsons', 'Buddy Arrington', 'D.K. Ulrich', 'Dale Earnhardt', 'Dave Marcis', 'Delma Cowart', 'Dick Brooks', 'Gary Balough', 'Harry Gant', 'James Hylton', 'Jimmy Means', 'Joe Ruttman', 'Johnny Rutherford', 'Lake Speed', 'Morgan Shepherd', 'Richard Petty', 'Ricky Rudd', 'Ron Bouchard', 'Tim Richmond', 'Tommy Ellis', 'Tommy Gale', 'Travis Tiller']})
+
 # ---- full field: every driver in the official standings whose data total differs (seasons where nascaR.data is mostly present)
 import importlib.util, difflib
 spec = importlib.util.spec_from_file_location("bd", os.path.join(ROOT, "build_dashboard.py")); bd = importlib.util.module_from_spec(spec); spec.loader.exec_module(bd)
