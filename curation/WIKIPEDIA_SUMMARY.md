@@ -96,6 +96,9 @@ Racing-Reference. Having purses is necessary but not sufficient: see the 1952 an
 | `fetch_wikipedia_standings.py`, `derive_points_prize.py`, `derive_points_1972_73.py`, `reconcile_1949.py`, `check_champions.py` | Reproducible scripts | |
 | `adjustments.json` (repo root) | Reconcile entries: 1949 (10), 1950 (49), 1951 (85), 1972 (43), 1973 (36) | each entry's note says why |
 
+The disagreements behind these rows are collected in `discrepancies.csv` (regenerate with
+`python curation/save_discrepancies.py`).
+
 ## 1957 findings (what was learned, and why no per-race points were derived)
 
 - The results data is right: Lee Petty's 41 finishes match Racing-Reference race for race, and average start and finish match for the

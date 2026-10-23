@@ -103,3 +103,10 @@ order in nascaR.data; this file uses the data's numbering and keeps the original
 project owner; nothing fetched). Points are all multiples of 4 except Billy Myers (4,682); the top ten equal Wikipedia's table; order is
 strictly non-increasing. Six listed drivers were not found in the data by name (Chuck Hanson, Bud Erma, Lenny Page, Mike McGreevy,
 Lemoin Frey, Bill Jarick), probably spelling variants, and Lucky Long has 2 starts here against 1 in the data.
+
+## discrepancies.csv
+
+Every disagreement found while curating, in one file (`python curation/save_discrepancies.py` regenerates it): 1957 official
+totals versus the fitted purse model (37 drivers off by 150+ points, plus name and start-count differences), champion totals that do not
+match (13 seasons), the 1949 chart versus Wikipedia (10 drivers), large reconcile entries and zeroed drivers for 1950/51/72/73, and
+identity or source errors. `difference` is found minus expected; for 1957 expected is the model and found is the official total.
