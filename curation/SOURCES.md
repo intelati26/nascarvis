@@ -160,4 +160,4 @@ Jarrett (New Hampshire, race 19: the table says 1/8th of an inch, the Gainesvill
 Richmond, 26 Feb 1984 (race 2, Miller High Life 400 in nascaR.data): nascaR.data and a results page supplied by the project owner show 0 points for Mike Alexander (21st) and Jimmy Hensley
 (22nd). The project owner reports that Jayski's race page, <https://www.jayski.com/race-results/1984-nascar-winston-cup-series/miller-high-life-400-richmond/>, has the points as expected,
 100 and 97 (the finishing-position scores). The page was not fetched (Jayski refuses automated requests; its reuse terms are unchecked). `points_1984.csv` restores 100 and 97 with override=1.
-Alexander's official total (1,862) also confirms his 100. Hensley is not in the official 1984 table and his other three 1984 rows (races 8, 23, 25) are still 0 in this repo: Jayski's pages for those races may show his points.
+Alexander's official total (1,862) also confirms his 100. Hensley is not in the official 1984 table; the project owner then reported that Jayski's pages for his other three 1984 starts (races 8, 23, 25) show 103, 97 and 97, and those rows are restored too (4 rows in all).
