@@ -1,0 +1,9 @@
+season,driver,official_total,data_total,excess_data_minus_official,race,race_name,finish,led,calc_pts,final_pts,rows_in_set
+1982,Donnie Allison,406.0,536.0,130.0,4,Coca-Cola 500,11,0,130,130.0,1
+1985,Slick Johnson,343.0,446.0,103.0,1,Daytona 500,20,0,103,103.0,1
+1986,Jim Sauter,361.0,666.0,305.0,16,Summer 500,14,0,121,121.0,3
+1986,Jim Sauter,361.0,666.0,305.0,17,Talladega 500,12,2,132,132.0,3
+1986,Jim Sauter,361.0,666.0,305.0,19,Champion 400,37,0,52,52.0,3
+1987,Connie Saylor,486.0,617.0,131.0,4,Motorcraft 500,41,0,40,40.0,2
+1987,Connie Saylor,486.0,617.0,131.0,5,TranSouth 500,24,0,91,91.0,2
+1987,Slick Johnson,444.0,550.0,106.0,3,Miller High Life 400,19,0,106,106.0,1

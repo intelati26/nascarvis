@@ -66,3 +66,24 @@ with open(os.path.join(HERE, f"review_{FIRST}_{LAST}.csv"), "w", newline="", enc
     w.writerow(["season", "driver", "official_total", "data_total", "gap_official_minus_data", "race", "race_name", "finish", "led", "calc_pts", "final_pts", "row", "calc_equals_gap"])
     w.writerows(review)
 print("review rows:", len(review), "for", len({(r[0], r[1]) for r in review}), "drivers;", sum(r[12] for r in review), "rows whose calc_pts equals the driver's whole gap")
+
+# Drivers whose data total is ABOVE the official one: the non-zero rows (1 to 3) that add up to the excess exactly, when exactly one such set exists.
+import itertools
+by_driver = collections.defaultdict(list)
+for x in out: by_driver[(x[0], x[3])].append(x)
+above = []; seen = set()
+for r in review:
+    k = (r[0], r[1])
+    gap = r[3] - r[2]
+    if gap <= 0 or k in seen: continue
+    seen.add(k); nz = [x for x in by_driver[k] if x[8] > 0]
+    for n in (1, 2, 3):
+        sets = [c for c in itertools.combinations(nz, n) if sum(x[8] for x in c) == gap]
+        if sets: break
+    if len(sets) == 1:
+        for x in sets[0]: above.append([k[0], k[1], r[2], r[3], gap, x[1], x[2], x[4], x[5], x[6], x[8], len(sets[0])])
+with open(os.path.join(HERE, f"review_data_above_official_{FIRST}_{LAST}.csv"), "w", newline="", encoding="utf-8") as f:
+    w = csv.writer(f)
+    w.writerow(["season", "driver", "official_total", "data_total", "excess_data_minus_official", "race", "race_name", "finish", "led", "calc_pts", "final_pts", "rows_in_set"])
+    w.writerows(above)
+print("data above official: rows that add up to the excess exactly:", len(above), "rows for", len({(a[0], a[1]) for a in above}), "drivers")
