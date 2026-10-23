@@ -1706,5 +1706,12 @@
   "driver": "Jeff Gordon",
   "pts": -100,
   "note": "Penalty: 100 driver points (and 100 owner points against Rick Hendrick) plus a fine, announced 13 Sep 2000; Jayski article text quoted by the project owner. Applied from race 26 (New Hampshire, 17 Sep), the first race after the announcement"
+ },
+ {
+  "season": 2000,
+  "race": 34,
+  "driver": "Jeff Burton",
+  "pts": 5,
+  "note": "Official total is 5 higher than his race rows; reported by the project owner as a scoring error corrected later (source and race not yet recorded). Applied at the last race because the race is unknown"
  }
 ]
