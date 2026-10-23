@@ -2,7 +2,8 @@
 """Collect every discrepancy found while curating early-season points into curation/discrepancies.csv.
 Run from the repo root:  python curation/save_discrepancies.py
 
-Rows (kind): standings_vs_model (1957: official total minus the fitted purse model), champion_total (champion_check.csv),
+Rows (kind): standings_vs_model (1957: official total minus the fitted purse model), standings_vs_data (1955 and 1960: every driver
+whose data total differs from the official standings), champion_total (champion_check.csv),
 chart_vs_wikipedia (1949), reconcile_adjustment (1950/51/72/73 entries over a size threshold, plus zeroed drivers),
 identity (names/counts that differ between sources), source_error (a source disagreeing with the others).
 difference = found - expected, so a positive number means the second source/model is higher."""
@@ -43,6 +44,40 @@ for r in csv.DictReader(open(os.path.join(HERE, "champion_check.csv"))):
     if r["status"] != "match":
         add(int(r["season"]), "champion_total", r["champion"], float(r["official_pts"]), float(r["data_sum"]),
             f"{r['status']}; blank Pts rows after curation: {r['blank_rows']}", "champions_points.csv (Wikipedia); data + curation")
+
+# ---- full field: every driver in the official standings whose data total differs (seasons where nascaR.data is mostly present)
+import importlib.util, difflib
+spec = importlib.util.spec_from_file_location("bd", os.path.join(ROOT, "build_dashboard.py")); bd = importlib.util.module_from_spec(spec); spec.loader.exec_module(bd)
+tt = pq.read_table(os.path.join(ROOT, "cup_series.parquet")).to_pydict(); bd.apply_curation(tt, HERE)
+nan = lambda v: v is None or v != v
+# 1955 scale: places 1-25 score W x (26 - place) / 25, below 25th W / 25, with W the winner's points (350 for the Daytona race derived in curation/)
+scale55, w55 = collections.defaultdict(list), {}
+for i, sn in enumerate(tt["Season"]):
+    if sn == 1955 and tt["Finish"][i] == 1 and not nan(tt["Pts"][i]) and tt["Pts"][i]: w55[tt["Race"][i]] = tt["Pts"][i]
+for i, sn in enumerate(tt["Season"]):
+    if sn == 1955 and tt["Race"][i] in w55 and not nan(tt["Pts"][i]):
+        f, W = tt["Finish"][i], w55[tt["Race"][i]]
+        scale55[norm(tt["Driver"][i])].append((tt["Race"][i], f, tt["Pts"][i], W * (26 - f) / 25 if f <= 25 else W / 25))
+for season in (1955, 1960):
+    totals, blanks, names = collections.defaultdict(float), collections.Counter(), {}
+    for i, sn in enumerate(tt["Season"]):
+        if sn != season: continue
+        k = norm(tt["Driver"][i]); names[k] = tt["Driver"][i]
+        if nan(tt["Pts"][i]): blanks[k] += 1
+        else: totals[k] += tt["Pts"][i]
+    for r in csv.DictReader(open(os.path.join(HERE, f"final_standings_{season}.csv"))):
+        o = norm(r["driver"]); k = o if o in names else next(iter(difflib.get_close_matches(o, list(names), n=1, cutoff=0.9)), None)
+        if k is None: continue
+        d = totals[k] - float(r["pts"])
+        if abs(d) < 1e-6: continue
+        b = blanks[k]
+        why = (f"{b} blank Pts row{'s' if b != 1 else ''} in the data" + ("; the gap is recoverable if it is the only missing value" if b == 1 else "")) if b else "no blank rows: the data total differs from the official one (cause unknown)"
+        if season == 1955 and not b:                                    # 1955 has a verified scale, so rows can be tested against it
+            bad = [x for x in scale55.get(k, []) if abs(x[2] - x[3]) > 1e-6]
+            if float(r["pts"]) <= 1: why = "official total is 1: the driver's points appear to have been removed (same pattern as 1950 Byron and Dunaway)"
+            elif bad: why = "data row(s) off the 1955 scale: " + "; ".join(f"race {x[0]} finish {x[1]} data {x[2]:g}, scale {x[3]:g}" for x in bad)
+            elif abs(abs(d) - round(abs(d), -2)) < 1e-6: why = f"no data row breaks the 1955 scale; the official total is exactly {abs(d):g} {'lower' if d > 0 else 'higher'}: looks like a points deduction"
+        add(season, "standings_vs_data", names[k], float(r["pts"]), round(totals[k], 2), why + f" [official pos {r['pos']}]", "final_standings_%d.csv (Wikipedia); data + curation" % season)
 
 # ---- 1949 chart vs Wikipedia (reconcile entries)
 adj = json.load(open(os.path.join(ROOT, "adjustments.json")))

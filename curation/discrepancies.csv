@@ -48,6 +48,13 @@ season,kind,subject,expected,found,difference,detail,sources
 1953,champion_total,Herb Thomas,8460.0,0.0,-8460.0,no data; blank Pts rows after curation: 942 of 958,champions_points.csv (Wikipedia); data + curation
 1953,source_error,Curtis Turner / Jimmie Lewallen (Wikipedia 1953 table),,,,"10th place Turner (3,373) has more points than 9th place Lewallen (3,208); probably a typo in the article. Kept as published.",final_standings_1953.csv
 1954,champion_total,Lee Petty,8649.0,0.0,-8649.0,no data; blank Pts rows after curation: 1125 of 1134,champions_points.csv (Wikipedia); data + curation
+1955,standings_vs_data,Bill West,1.0,618.0,617.0,official total is 1: the driver's points appear to have been removed (same pattern as 1950 Byron and Dunaway) [official pos 51],final_standings_1955.csv (Wikipedia); data + curation
+1955,standings_vs_data,Buck Baker,8088.0,9088.0,1000.0,no data row breaks the 1955 scale; the official total is exactly 1000 lower: looks like a points deduction [official pos 2],final_standings_1955.csv (Wikipedia); data + curation
+1955,standings_vs_data,Dink Widenhouse,1752.0,1808.0,56.0,"data row(s) off the 1955 scale: race 6 finish 12 data 0, scale 112 [official pos 24]",final_standings_1955.csv (Wikipedia); data + curation
+1955,standings_vs_data,Fonty Flock,4266.0,4274.0,8.0,"data row(s) off the 1955 scale: race 24 finish 2 data 200, scale 192 [official pos 11]",final_standings_1955.csv (Wikipedia); data + curation
+1955,standings_vs_data,Jack Choquette,1.0,596.0,595.0,official total is 1: the driver's points appear to have been removed (same pattern as 1950 Byron and Dunaway) [official pos 50],final_standings_1955.csv (Wikipedia); data + curation
+1955,standings_vs_data,Mack Hanbury,900.0,756.0,-144.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 39],final_standings_1955.csv (Wikipedia); data + curation
+1955,standings_vs_data,Norm Nelson,1.0,442.0,441.0,official total is 1: the driver's points appear to have been removed (same pattern as 1950 Byron and Dunaway) [official pos 52],final_standings_1955.csv (Wikipedia); data + curation
 1956,champion_total,Buck Baker,9272.0,0.0,-9272.0,no data; blank Pts rows after curation: 1503 of 1519,champions_points.csv (Wikipedia); data + curation
 1957,champion_total,Buck Baker,10716.0,0.0,-10716.0,no data; blank Pts rows after curation: 1305 of 1313,champions_points.csv (Wikipedia); data + curation
 1957,identity,Bill Jarick,2,0,-2.0,listed in the Racing-Reference standings but not found in the data by name (probably a spelling variant),final_standings_1957.csv; cup_series.parquet
@@ -97,6 +104,41 @@ season,kind,subject,expected,found,difference,detail,sources
 1957,standings_vs_model,Whitey Norman,2472.0,1920.0,-552.0,"official total is LOWER than the results support (cause unknown) [pos 24, 13 starts]",final_standings_1957.csv; race_purses_1957.csv; fitted tier map in this script
 1958,champion_total,Lee Petty,12232.0,9552.0,-2680.0,differs; blank Pts rows after curation: 499 of 1401,champions_points.csv (Wikipedia); data + curation
 1959,champion_total,Lee Petty,11792.0,9032.0,-2760.0,differs; blank Pts rows after curation: 545 of 1187,champions_points.csv (Wikipedia); data + curation
+1960,standings_vs_data,Bob Burdick,1970.0,190.0,-1780.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 48],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Bob Burdick,310.0,190.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 93],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Bob Duell,846.0,686.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 64],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Bob Welborn,6732.0,6572.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 16],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Burrhead Nantz,180.0,60.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 117],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Charley Griffith,2684.0,2564.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 40],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Cotton Owens,3050.0,4390.0,1340.0,4 blank Pts rows in the data [official pos 39],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Danny Weinberg,330.0,354.0,24.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 90],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Danny Weinberg,24.0,354.0,330.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 150],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Dave Hirschfield,130.0,10.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 128],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Dick Foley,260.0,140.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 101],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Dick Freeman,150.0,30.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 124],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Doug Yates,6374.0,6286.0,-88.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 21],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Ed Markstellar,200.0,40.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 111],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Elmo Henderson,2072.0,1952.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 47],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Fred Harb,1144.0,1788.0,644.0,5 blank Pts rows in the data [official pos 60],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,G.C. Spencer,3986.0,3994.0,8.0,9 blank Pts rows in the data [official pos 33],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Gene Marmor,800.0,640.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 67],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Jack Smith,6944.0,7044.0,100.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 14],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Jim Austin,288.0,128.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 97],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Jimmy Pardue,6682.0,6692.0,10.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 17],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Joe Eubanks,1302.0,1142.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 57],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Joe Lee Johnson,7352.0,7232.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 13],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Johnny Allen,6506.0,6346.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 19],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Johnny Beauchamp,8306.0,8316.0,10.0,no blank rows: the data total differs from the official one (cause unknown) [official pos 11],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Junior Johnson,9932.0,9772.0,-160.0,3 blank Pts rows in the data [official pos 7],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,L.D. Austin,6180.0,5920.0,-260.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 22],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Lee Petty,14510.0,14350.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 6],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Lennie Page,1024.0,864.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 61],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Paul Lewis,5212.0,5060.0,-152.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 27],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Possum Jones,4270.0,4110.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 31],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Richard Petty,17228.0,17068.0,-160.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 2],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Sal Tovella,220.0,100.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 107],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Shep Langdon,840.0,720.0,-120.0,3 blank Pts rows in the data [official pos 65],final_standings_1960.csv (Wikipedia); data + curation
+1960,standings_vs_data,Speedy Thompson,5658.0,5538.0,-120.0,1 blank Pts row in the data; the gap is recoverable if it is the only missing value [official pos 25],final_standings_1960.csv (Wikipedia); data + curation
 1961,champion_total,Ned Jarrett,27272.0,27282.0,10.0,differs; blank Pts rows after curation: 16 of 1414,champions_points.csv (Wikipedia); data + curation
 1963,champion_total,Joe Weatherly,33398.0,31330.0,-2068.0,differs; blank Pts rows after curation: 0 of 1414,champions_points.csv (Wikipedia); data + curation
 1967,champion_total,Richard Petty,42472.0,42362.0,-110.0,differs; blank Pts rows after curation: 0 of 1479,champions_points.csv (Wikipedia); data + curation
