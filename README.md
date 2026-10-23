@@ -27,7 +27,13 @@ A file manager's "open with HTML viewer" cannot read the data folder next to the
 lone file, build with `--single-file` (everything embedded, about 8 MB for Cup). `--data-dir` puts the data
 folder elsewhere. Lap-by-lap JSON (`lap_times_<season>.json`) is loaded with `fetch()`, which needs the server.
 
-Tests: `node tests/test_formats.js` and `python tests/test_shards.py` (needs pyarrow and node).
+Points audit: `python audit_points.py --from 1949 --to 2003` checks each season's `Pts` column (empty or negative
+values, whether the points follow one table by finishing position or scale by race, rows that break the pattern,
+and the champion by summed points). `--official FILE` also compares final totals with official standings.
+Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
+
+Tests: `node tests/test_formats.js`, `python tests/test_shards.py` (needs pyarrow and node) and
+`python tests/test_audit_points.py` (needs pyarrow).
 
 ## Lap-by-lap data and offline storage
 
