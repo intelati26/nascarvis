@@ -48,6 +48,7 @@ for r in csv.DictReader(open(os.path.join(HERE, "champion_check.csv"))):
 # Causes established by hand for single drivers: (season, driver) -> text that replaces the generic "cause unknown"
 KNOWN = {
     (2000, "Jeff Gordon"): "all 34 points races match a results page supplied by the project owner (finish and points); they sum to 4,461 and the official total is exactly 100 lower: consistent with a 100-point deduction, not identified",
+    (2000, "Jeff Burton"): "all 34 points races match a results page supplied by the project owner (finish and points); they sum to 4,836 and the official total is exactly 5 higher: a bonus or adjustment that is in the official standings but not in the race rows, not identified",
 }
 
 # ---- full field: every driver in the official standings whose data total differs (seasons where nascaR.data is mostly present)
