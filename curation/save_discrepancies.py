@@ -45,6 +45,11 @@ for r in csv.DictReader(open(os.path.join(HERE, "champion_check.csv"))):
         add(int(r["season"]), "champion_total", r["champion"], float(r["official_pts"]), float(r["data_sum"]),
             f"{r['status']}; blank Pts rows after curation: {r['blank_rows']}", "champions_points.csv (Wikipedia); data + curation")
 
+# Causes established by hand for single drivers: (season, driver) -> text that replaces the generic "cause unknown"
+KNOWN = {
+    (2000, "Jeff Gordon"): "all 34 points races match a results page supplied by the project owner (finish and points); they sum to 4,461 and the official total is exactly 100 lower: consistent with a 100-point deduction, not identified",
+}
+
 # ---- full field: every driver in the official standings whose data total differs (seasons where nascaR.data is mostly present)
 import importlib.util, difflib
 spec = importlib.util.spec_from_file_location("bd", os.path.join(ROOT, "build_dashboard.py")); bd = importlib.util.module_from_spec(spec); spec.loader.exec_module(bd)
@@ -77,6 +82,7 @@ for season in (1955, 1960, 1966, 1970, 1971, *range(1975, 2004)):
             if float(r["pts"]) <= 1: why = "official total is 1: the driver's points appear to have been removed (same pattern as 1950 Byron and Dunaway)"
             elif bad: why = "data row(s) off the 1955 scale: " + "; ".join(f"race {x[0]} finish {x[1]} data {x[2]:g}, scale {x[3]:g}" for x in bad)
             elif abs(abs(d) - round(abs(d), -2)) < 1e-6: why = f"no data row breaks the 1955 scale; the official total is exactly {abs(d):g} {'lower' if d > 0 else 'higher'}: looks like a points deduction"
+        if (season, names[k]) in KNOWN: why = KNOWN[(season, names[k])]
         add(season, "standings_vs_data", names[k], float(r["pts"]), round(totals[k], 2), why + f" [official pos {r['pos']}]", "final_standings_%d.csv (Wikipedia); data + curation" % season)
 
 # ---- 1949 chart vs Wikipedia (reconcile entries)
