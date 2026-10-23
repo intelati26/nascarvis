@@ -45,3 +45,24 @@ print(len(out), "rows;", dict(stats))
 for s in sorted(by_season):
     c = by_season[s]; bad = c["non-zero, differs"] + c["zero, in official table"]
     if bad: print(" ", s, {k: v for k, v in c.items() if k not in ("exact",)})
+
+# Review file: only the rows that could account for a season total that still differs from the official one.
+tot = collections.defaultdict(float); rows_of = collections.defaultdict(list)
+for x in out:
+    k = (x[0], norm(x[3])); tot[k] += x[8]; rows_of[k].append(x)
+review = []
+for s in sorted(official):
+    p = os.path.join(HERE, f"final_standings_{s}.csv")
+    for o in csv.DictReader(open(p, encoding="utf-8")):
+        k = (s, norm(o["driver"]))
+        if k not in rows_of: continue
+        gap = float(o["pts"]) - tot[k]
+        if gap == 0: continue
+        for x in rows_of[k]:
+            if x[8] == 0 or x[9] != 0:
+                review.append([s, x[3], float(o["pts"]), tot[k], gap, x[1], x[2], x[4], x[5], x[6], x[8], "zero" if x[8] == 0 else "differs", int(x[6] == gap)])
+with open(os.path.join(HERE, f"review_{FIRST}_{LAST}.csv"), "w", newline="", encoding="utf-8") as f:
+    w = csv.writer(f)
+    w.writerow(["season", "driver", "official_total", "data_total", "gap_official_minus_data", "race", "race_name", "finish", "led", "calc_pts", "final_pts", "row", "calc_equals_gap"])
+    w.writerows(review)
+print("review rows:", len(review), "for", len({(r[0], r[1]) for r in review}), "drivers;", sum(r[12] for r in review), "rows whose calc_pts equals the driver's whole gap")

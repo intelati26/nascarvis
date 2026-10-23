@@ -1,0 +1,68 @@
+season,driver,official_total,data_total,gap_official_minus_data,race,race_name,finish,led,calc_pts,final_pts,row,calc_equals_gap
+1975,Skip Manning,297.0,415.0,-118.0,6,Atlanta 500,14,0,121,0.0,zero,0
+1978,Dale Earnhardt,558.0,548.0,10.0,12,World 600,17,0,112,0.0,zero,0
+1980,Frank Warren,559.0,549.0,10.0,25,CRC Chemicals 500,25,0,88,0.0,zero,0
+1981,Tim Richmond,3091.0,3094.0,-3.0,18,Busch Nashville 420,12,0,127,0.0,zero,0
+1981,Ron Bouchard,2594.0,2597.0,-3.0,6,Valleydale 500,24,6,96,0.0,zero,0
+1981,Joe Ruttman,1851.0,1854.0,-3.0,21,Champion Spark Plug 400,6,4,155,0.0,zero,0
+1981,D.K. Ulrich,1191.0,1194.0,-3.0,6,Valleydale 500,19,0,106,0.0,zero,0
+1981,D.K. Ulrich,1191.0,1194.0,-3.0,7,Northwestern Bank 400,13,0,124,0.0,zero,0
+1981,D.K. Ulrich,1191.0,1194.0,-3.0,8,CRC Chemical Rebel 500,22,0,97,0.0,zero,0
+1981,Johnny Rutherford,1140.0,1143.0,-3.0,23,Southern 500,33,0,64,0.0,zero,0
+1981,Gary Balough,656.0,659.0,-3.0,19,Mountain Dew 500,12,0,127,0.0,zero,0
+1981,Gary Balough,656.0,659.0,-3.0,20,Talladega 500,25,1,93,0.0,zero,0
+1981,Gary Balough,656.0,659.0,-3.0,21,Champion Spark Plug 400,18,0,109,0.0,zero,0
+1981,Dick Brooks,294.0,297.0,-3.0,2,Daytona 500,16,1,120,0.0,zero,0
+1981,Dick Brooks,294.0,297.0,-3.0,29,American 500,21,0,100,0.0,zero,0
+1981,Tommy Ellis,224.0,227.0,-3.0,28,National 500,4,1,165,0.0,zero,0
+1982,Bill Elliott,2558.0,2553.0,5.0,22,Southern 500,4,27,165,0.0,zero,0
+1982,Donnie Allison,406.0,536.0,-130.0,5,Warner W. Hodgdon Carolina 500,22,0,97,0.0,zero,0
+1982,Donnie Allison,406.0,536.0,-130.0,8,Virginia National Bank 500,30,0,73,0.0,zero,0
+1982,Donnie Allison,406.0,536.0,-130.0,11,Mason-Dixon 500,8,0,142,0.0,zero,0
+1982,Donnie Allison,406.0,536.0,-130.0,29,Atlanta Journal 500,38,0,49,0.0,zero,0
+1982,Connie Saylor,335.0,346.0,-11.0,12,World 600,15,0,118,0.0,zero,0
+1982,Connie Saylor,335.0,346.0,-11.0,21,Busch 500,20,0,103,0.0,zero,0
+1982,Dick May,282.0,279.0,3.0,5,Warner W. Hodgdon Carolina 500,13,0,124,0.0,zero,0
+1982,Dick May,282.0,279.0,3.0,15,Gabriel 400,19,0,106,0.0,zero,0
+1982,Dick May,282.0,279.0,3.0,22,Southern 500,15,0,118,0.0,zero,0
+1982,Dick May,282.0,279.0,3.0,24,CRC Chemicals 500,23,0,94,0.0,zero,0
+1982,Dick May,282.0,279.0,3.0,29,Atlanta Journal 500,37,0,52,0.0,zero,0
+1982,Jim Sauter,201.0,196.0,5.0,4,Coca-Cola 500,10,0,134,0.0,zero,0
+1982,Cecil Gordon,109.0,112.0,-3.0,18,Mountain Dew 500,14,0,121,0.0,zero,0
+1982,Cecil Gordon,109.0,112.0,-3.0,24,CRC Chemicals 500,16,0,115,0.0,zero,0
+1982,Cecil Gordon,109.0,112.0,-3.0,25,Holly Farms 400,18,0,109,0.0,zero,0
+1983,Trevor Boys,2293.0,2181.0,112.0,7,Virginia National Bank 500,29,0,76,0.0,zero,0
+1983,Slick Johnson,905.0,705.0,200.0,28,Warner W. Hodgdon American 500,20,0,103,0.0,zero,0
+1983,Joe Fields,121.0,118.0,3.0,2,Richmond 400,26,0,85,0.0,zero,0
+1983,Joe Fields,121.0,118.0,3.0,24,Budweiser 500,14,0,121,0.0,zero,0
+1983,Jim Vandiver,88.0,0.0,88.0,4,Coca-Cola 500,39,0,46,0.0,zero,0
+1983,Jim Vandiver,88.0,0.0,88.0,12,World 600,21,0,100,0.0,zero,0
+1983,Jimmy Walker,82.0,76.0,6.0,26,Holly Farms 400,27,0,82,0.0,zero,0
+1984,Ken Schrader,228.0,231.0,-3.0,17,Pepsi 420,19,0,106,0.0,zero,0
+1984,Ken Schrader,228.0,231.0,-3.0,27,Holly Farms 400,17,0,112,0.0,zero,0
+1984,Derrike Cope,194.0,185.0,9.0,13,Budweiser 400,15,0,118,0.0,zero,0
+1984,A.J. Foyt,101.0,104.0,-3.0,19,Talladega 500,36,0,55,0.0,zero,0
+1984,L.D. Ottinger,97.0,100.0,-3.0,27,Holly Farms 400,22,0,97,0.0,zero,0
+1985,Slick Johnson,343.0,446.0,-103.0,3,Carolina 500,15,0,118,0.0,zero,0
+1986,Jim Sauter,361.0,666.0,-305.0,15,Pepsi FireCracker 400,23,0,94,0.0,zero,0
+1987,Greg Sacks,1200.0,1100.0,100.0,9,Winston 500,26,0,85,0.0,zero,0
+1987,Connie Saylor,486.0,617.0,-131.0,14,Miller 400,38,0,49,0.0,zero,0
+1987,Connie Saylor,486.0,617.0,-131.0,27,AC Delco 500,25,0,88,0.0,zero,0
+1987,Trevor Boys,460.0,303.0,157.0,16,Summer 500,11,4,135,0.0,zero,0
+1987,Trevor Boys,460.0,303.0,157.0,18,Bud at Glen,38,0,49,0.0,zero,0
+1987,Trevor Boys,460.0,303.0,157.0,21,Southern 500,36,0,55,0.0,zero,0
+1987,Trevor Boys,460.0,303.0,157.0,22,Wrangler Indigo 400,24,0,91,0.0,zero,0
+1987,Trevor Boys,460.0,303.0,157.0,23,Delaware 500,33,0,64,0.0,zero,0
+1987,Trevor Boys,460.0,303.0,157.0,25,Holly Farms 400,24,0,91,0.0,zero,0
+1987,Trevor Boys,460.0,303.0,157.0,26,Oakwood 500,25,1,93,0.0,zero,0
+1987,Slick Johnson,444.0,550.0,-106.0,6,First Union 400,19,1,111,0.0,zero,0
+1987,Slick Johnson,444.0,550.0,-106.0,24,Goody's 500,25,0,88,0.0,zero,0
+1987,Slick Johnson,444.0,550.0,-106.0,25,Holly Farms 400,32,0,67,0.0,zero,0
+1987,Ernie Irvan,324.0,329.0,-5.0,24,Goody's 500,15,0,118,0.0,zero,0
+1987,Ernie Irvan,324.0,329.0,-5.0,25,Holly Farms 400,22,0,97,0.0,zero,0
+1987,Brad Teague,319.0,324.0,-5.0,20,Busch 500,25,0,88,0.0,zero,0
+1988,Rodney Combs,1468.0,1319.0,149.0,4,Motorcraft 500,27,0,82,0.0,zero,0
+1988,Rodney Combs,1468.0,1319.0,149.0,5,TranSouth 500,32,0,67,0.0,zero,0
+1988,Jim Sauter,463.0,597.0,-134.0,21,Southern 500,23,0,94,0.0,zero,0
+1988,Jim Sauter,463.0,597.0,-134.0,27,AC Delco 500,17,0,112,0.0,zero,0
+1989,Roy Smith,83.0,40.0,43.0,12,Banquet 300,39,0,46,0.0,zero,0
