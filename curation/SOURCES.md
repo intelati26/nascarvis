@@ -154,3 +154,10 @@ the page itself was not fetched (Jayski refuses automated requests) and its reus
 nascaR.data and the race each adjustment is applied from. This table replaces the earlier "inferred" notes for Green, Wallace and Ward Burton and gives the infraction race for
 Jarrett (New Hampshire, race 19: the table says 1/8th of an inch, the Gainesville Sun headline says a quarter-inch) and Johnson (Daytona 6 July, race 17). Mark Martin's penalty
 (Rockingham, race 34) is already inside nascaR.data's race row (155 instead of 180), so it needs no adjustment.
+
+## points_1984.csv (two rows)
+
+Richmond, 26 Feb 1984 (race 2, Miller High Life 400 in nascaR.data): nascaR.data and a results page supplied by the project owner show 0 points for Mike Alexander (21st) and Jimmy Hensley
+(22nd). The project owner reports that Jayski's race page, <https://www.jayski.com/race-results/1984-nascar-winston-cup-series/miller-high-life-400-richmond/>, has the points as expected,
+100 and 97 (the finishing-position scores). The page was not fetched (Jayski refuses automated requests; its reuse terms are unchecked). `points_1984.csv` restores 100 and 97 with override=1.
+Alexander's official total (1,862) also confirms his 100. Hensley is not in the official 1984 table and his other three 1984 rows (races 8, 23, 25) are still 0 in this repo: Jayski's pages for those races may show his points.
