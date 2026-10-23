@@ -161,3 +161,11 @@ Richmond, 26 Feb 1984 (race 2, Miller High Life 400 in nascaR.data): nascaR.data
 (22nd). The project owner reports that Jayski's race page, <https://www.jayski.com/race-results/1984-nascar-winston-cup-series/miller-high-life-400-richmond/>, has the points as expected,
 100 and 97 (the finishing-position scores). The page was not fetched (Jayski refuses automated requests; its reuse terms are unchecked). `points_1984.csv` restores 100 and 97 with override=1.
 Alexander's official total (1,862) also confirms his 100. Hensley is not in the official 1984 table; the project owner then reported that Jayski's pages for his other three 1984 starts (races 8, 23, 25) show 103, 97 and 97, and those rows are restored too (4 rows in all).
+
+## final_standings_1984_jayski.csv (Jayski 1984 standings, pasted by the project owner)
+
+111 drivers: position, points, starts, wins (page not fetched; reuse terms unchecked). Findings: its points column equals the raw nascaR.data sum for all 111 drivers (so it is not an independent check of the
+race rows), including Mike Alexander at 1,762 (the data's Richmond zero) and Jimmy Hensley at 0; its ranking order follows the official totals (Alexander sits at 28th, between 1,870 and 1,811, which fits
+Wikipedia's 1,862; Bowman is ahead of Forbes-Robinson, which fits 362; Cope is ahead of Bailey, which fits 194). Drivers not running for championship points (Hensley, Gene Coyle, Laurent Rioux and others) are
+listed at 0 even though Jayski's race pages show finishing-position scores for them, so a zero in nascaR.data can mean "not a championship driver" and not a missing score: restoring such rows in bulk would
+break the standings. Hensley's four restored race rows are therefore cancelled by four adjustments.
