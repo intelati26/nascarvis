@@ -752,6 +752,7 @@ def main():
     chart = open(os.path.join(HERE, "vendor", "chart.umd.min.js"), encoding="utf-8").read()
     fmts = open(os.path.join(HERE, "formats.js"), encoding="utf-8").read()
     wikitext = open(os.path.join(HERE, "wikitext.js"), encoding="utf-8").read()
+    sqlview = open(os.path.join(HERE, "leaderssql.js"), encoding="utf-8").read()
     data["adjustments"] = json.load(open(os.path.join(HERE, "adjustments.json"), encoding="utf-8"))
     if a.single_file:
         shards_js, data_tags = "", ""
@@ -771,6 +772,7 @@ def main():
     html = (tpl.replace("/*__CHARTJS__*/", chart.replace("</script", "<\\/script"))
                .replace("/*__FORMATS__*/", fmts)
                .replace("/*__WIKITEXT__*/", wikitext)
+               .replace("/*__SQLVIEW__*/", sqlview)
                .replace("/*__SHARDS__*/", shards_js.replace("</script", "<\\/script"))
                .replace("<!--__DATA_TAGS__-->", data_tags)
                .replace("/*__DATA__*/", data_js))

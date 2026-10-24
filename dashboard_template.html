@@ -264,6 +264,18 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <h2 id="l-title">Leaders</h2>
     <div class="tablewrap" style="max-height:680px"><table id="t-leaders"></table></div>
   </div>
+  <details class="card" id="l-sql">
+    <summary><b>Show as SQL</b> <span class="sub" style="display:inline">the query behind this table, to read, copy and change</span></summary>
+    <div class="sub" style="margin-top:8px">This is the SQL that gives the table above from the <code>results</code> table (one row per driver per race). To run it, start the query server
+      (<code>python query/serve_query.py</code>), paste it into <b>Edit SQL</b> there, or use the link, which opens the same query in the builder's form
+      (the builder shows rates as 0 to 1, not percentages). Change the settings above and the SQL follows.</div>
+    <div class="controls" style="margin:8px 0">
+      <label><input type="checkbox" id="l-sqlexplain" checked> Explain each clause</label>
+      <button class="btn" id="l-sqlcopy" type="button">Copy</button>
+      <a class="btn" id="l-sqlopen" target="_blank" rel="noopener">Open in query builder</a>
+    </div>
+    <textarea class="wiki" id="l-sqltext" rows="16" readonly spellcheck="false"></textarea>
+  </details>
 </section>
 
 </main>
@@ -271,6 +283,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
 <script>/*__CHARTJS__*/</script>
 <script>/*__FORMATS__*/</script>
 <script>/*__WIKITEXT__*/</script>
+<script>/*__SQLVIEW__*/</script>
 <script>/*__SHARDS__*/</script>
 <!--__DATA_TAGS__-->
 <script>
@@ -841,7 +854,21 @@ function renderLeaders() {
     {h:'Starts', k:a=>a.n}, {h:'W', k:a=>a.w}, {h:'T5', k:a=>a.t5}, {h:'T10', k:a=>a.t10}, {h:'Poles', k:a=>a.poles},
     {h:'Laps Led', k:a=>a.led}, {h:'Avg Fin', k:a=>Math.round(10 * a.fsum / a.n) / 10, html:a=>f1(a.fsum / a.n)},
   ], lead, {file:`leaders-${$('l-stat').value}-${r.bySeason ? 'season' : 'career'}-${r.from}-${r.to}`});
+  renderLeadersSql();
 }
+// ---- Show as SQL (leaderssql.js writes the text from the same settings the table uses)
+function renderLeadersSql() {
+  if (!$('l-sql').open) return;
+  const g = NASCARSql.leaders({stat: $('l-stat').value, scope: $('l-scope').value, from: +$('l-from').value, to: +$('l-to').value, minStarts: +$('l-min').value || 0,
+    exactWins: $('l-wins').value === '' ? null : +$('l-wins').value, top: +$('l-top').value, explain: $('l-sqlexplain').checked});
+  $('l-sqltext').value = g.sql; $('l-sqlopen').href = NASCARSql.builderUrl(g.spec);
+}
+$('l-sql').ontoggle = renderLeadersSql; $('l-sqlexplain').onchange = renderLeadersSql;
+$('l-sqlcopy').onclick = async () => {
+  const b = $('l-sqlcopy');
+  try { await navigator.clipboard.writeText($('l-sqltext').value); } catch (e) { $('l-sqltext').select(); document.execCommand('copy'); }
+  b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500);
+};
 ['l-stat','l-scope','l-from','l-to','l-min','l-wins','l-top'].forEach(id => $(id).onchange = renderLeaders);
 ['l-min','l-wins'].forEach(id => $(id).oninput = renderLeaders);
 

@@ -15,6 +15,10 @@ clicking a header and exports to CSV. The Driver history tab also exports a driv
 project's [results key](https://en.wikipedia.org/wiki/Template:NASCAR_driver_results_legend), and the quickbio career-results
 table (`wikitext.js`). You choose which seasons (table rows) to include. Track codes are mapped by hand; any it has to guess are flagged in a comment.
 
+The Leaders tab has a **Show as SQL** panel: the SQL that gives the leaderboard on screen, written to be read and changed (each clause is explained
+if you leave that on), with a link that opens the same query in the query builder (`query/`, start it with `python query/serve_query.py`).
+`leaderssql.js` writes it; its tests run the generated SQL against a database and compare it with an independent leaderboard.
+
 ### Viewing it on a phone (Termux)
 
 ```bash
@@ -35,7 +39,7 @@ values, whether the points follow one table by finishing position or scale by ra
 and the champion by summed points). `--official FILE` also compares final totals with official standings.
 Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
 
-Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `python tests/test_shards.py` (needs pyarrow and node) and
+Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `node tests/test_leaderssql.js`, `python tests/test_leaderssql.py`, `python tests/test_shards.py` (needs pyarrow and node) and
 `python tests/test_audit_points.py` (needs pyarrow).
 
 ## Race-by-race standings (work in progress)
