@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NASCARvis Query</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#667085;--line:#e3e6eb;--accent:#1f6feb;--chip:#eef1f5;--bad:#cf222e;--warn:#9a6700;--code:#f0f3f7}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1318;--card:#171c23;--ink:#e6e9ee;--muted:#8b95a3;--line:#262d37;--accent:#58a6ff;--chip:#222a35;--bad:#f85149;--warn:#d29922;--code:#11161c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;gap:14px;align-items:center;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:16px;margin:0}header a{color:var(--accent);text-decoration:none}
+main{display:grid;grid-template-columns:minmax(320px,430px) minmax(0,1fr);gap:16px;max-width:1500px;margin:0 auto;padding:16px}
+section{min-width:0}
+@media(max-width:900px){main{grid-template-columns:minmax(0,1fr);padding:12px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.card h2{font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+label{display:flex;flex-direction:column;font-size:11px;color:var(--muted);gap:2px}
+select,input,textarea{max-width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:5px 7px;min-width:0}
+.row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.grid input{width:100%}
+.btn{font:inherit;font-size:12px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:5px 10px;cursor:pointer}
+.btn:hover{background:var(--chip)}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chips label{flex-direction:row;align-items:center;gap:4px;background:var(--chip);border-radius:99px;padding:2px 9px;color:var(--ink);font-size:12px;cursor:pointer}
+.chips input{padding:0;margin:0}
+pre,textarea.sql{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0;width:100%;overflow:auto}
+textarea.sql{min-height:230px;resize:vertical}
+.banner{padding:6px 10px;border-radius:8px;font-size:12px;margin-bottom:8px}
+.banner.err{background:rgba(207,34,46,.12);color:var(--bad)}.banner.warn{background:rgba(154,103,0,.14);color:var(--warn)}
+.muted{color:var(--muted);font-size:12px}
+.tablewrap{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{padding:5px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{position:sticky;top:0;background:var(--card);color:var(--muted);cursor:pointer;z-index:1}
+td.l,th.l{text-align:left}tr:hover td{background:var(--chip)}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>NASCARvis query</h1>
+  <a href="../dashboard.html">&larr; dashboard</a>
+  <span class="muted" id="status"></span>
+</header>
+<main>
+<section>
+  <div class="card">
+    <h2>Saved queries</h2>
+    <div class="row"><select id="saved" style="flex:1 1 100%"></select><button class="btn" id="load">Load</button><button class="btn" id="save">Save as&hellip;</button></div>
+  </div>
+  <div class="card"><h2>Parameters</h2><div class="grid" id="params"></div></div>
+  <div class="card"><h2>Row filters <span class="muted">(before grouping)</span></h2><div id="filters"></div><button class="btn" id="addf">+ filter</button></div>
+  <div class="card"><h2>Group by</h2><div class="chips" id="groups"></div></div>
+  <div class="card"><h2>Measures</h2><div class="chips" id="measures"></div>
+    <div class="row" style="margin-top:8px"><span class="muted">Inline count where</span>
+      <input id="cn" placeholder="name" size="10"><select id="cf"></select><select id="co"></select><input id="cv" placeholder="value" size="6"><button class="btn" id="addc">add</button></div>
+    <div id="inline"></div></div>
+  <div class="card"><h2>Aggregate filters <span class="muted">(after grouping)</span></h2><div id="afilters"></div><button class="btn" id="adda">+ filter</button>
+    <div class="row" style="margin-top:8px"><span class="muted">Qualifier</span><select id="qual"></select><span id="qparam"></span></div></div>
+  <div class="card"><h2>Sort</h2><div id="sorts"></div><button class="btn" id="adds">+ sort</button></div>
+</section>
+<section>
+  <div class="card">
+    <h2>SQL <span class="muted" id="sqlnote"></span></h2>
+    <div id="banner"></div>
+    <textarea class="sql" id="sql" readonly spellcheck="false"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn primary" id="run">Run</button>
+      <button class="btn" id="edit">Edit SQL</button>
+      <button class="btn" id="back" style="display:none">Back to builder</button>
+      <button class="btn" id="specjson">Spec JSON</button>
+      <span class="muted" id="bound"></span>
+    </div>
+    <pre id="specbox" style="display:none;margin-top:8px"></pre>
+    <div id="comp" class="muted" style="margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <h2>Results <span class="muted" id="meta"></span></h2>
+    <div class="row"><button class="btn" id="csv" disabled>Download CSV</button></div>
+    <div class="tablewrap"><table id="result"></table></div>
+  </div>
+</section>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const OPS = ['=', '!=', '<', '<=', '>', '>=', 'like', 'in', 'between'];
+let CAT = null, SUBJ = null, subjectName = 'driver_race', spec = null, custom = false, lastParams = {}, lastResult = null, timer = null;
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {});
+  const j = await r.json().catch(() => ({error: 'the server did not answer with JSON'}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+const blank = () => ({subject: subjectName, params: {}, row_filters: [], group_by: [], measures: [], aggregate_filters: [], sort: [], limit: {param: 'limit'}});
+const outputs = () => [...spec.group_by, ...spec.measures.map(m => typeof m === 'string' ? m : m.name)];
+const dims = () => Object.entries(SUBJ.columns).filter(([, c]) => c.role === 'dimension').map(([k]) => k);
+const fieldOpts = sel => Object.entries(SUBJ.columns).map(([k, c]) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${esc(c.label)}</option>`).join('');
+const opOpts = sel => OPS.map(o => `<option ${o === sel ? 'selected' : ''}>${o}</option>`).join('');
+const paramOpts = sel => Object.entries(SUBJ.params).map(([k, p]) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${esc(p.label)}</option>`).join('');
+const listVal = v => Array.isArray(v) ? v.join(', ') : (v ?? '');
+const parseVal = (op, t) => {
+  const num = x => (x.trim() !== '' && !isNaN(x)) ? Number(x) : x.trim();
+  return (op === 'in' || op === 'between') ? t.split(',').map(num) : num(t);
+};
+
+// ---------------------------------------------------------------- builder -> DOM
+function renderFilterRows(el, list, kind) {            // kind: 'row' (column) or 'agg' (measure)
+  el.innerHTML = list.map((f, i) => {
+    const target = kind === 'row'
+      ? `<select data-k="field">${fieldOpts(f.field)}</select>`
+      : `<select data-k="measure">${Object.entries(SUBJ.measures).map(([k, m]) => `<option value="${k}" ${k === f.measure ? 'selected' : ''}>${esc(m.label)}</option>`).join('')}</select>`;
+    const isParam = 'param' in f;
+    return `<div class="row" data-i="${i}">${target}<select data-k="op">${opOpts(f.op)}</select>
+      <select data-k="src"><option value="value" ${isParam ? '' : 'selected'}>value</option><option value="param" ${isParam ? 'selected' : ''}>parameter</option></select>
+      ${isParam ? `<select data-k="param">${paramOpts(f.param)}</select>` : `<input data-k="value" size="9" value="${esc(listVal(f.value))}" placeholder="${f.op === 'between' ? 'low, high' : f.op === 'in' ? 'a, b, c' : 'value'}">`}
+      <button class="x" data-del="${i}" title="remove">&times;</button></div>`;
+  }).join('');
+  el.onchange = el.oninput = e => {
+    const row = e.target.closest('[data-i]'); if (!row) return;
+    const f = list[+row.dataset.i], k = e.target.dataset.k;
+    if (k === 'src') { e.target.value === 'param' ? (delete f.value, f.param = Object.keys(SUBJ.params)[0]) : (delete f.param, f.value = ''); renderBuilder(); }
+    else if (k === 'value') f.value = parseVal(f.op, e.target.value);
+    else if (k) { f[k] = e.target.value; if (k === 'op' || k === 'field' || k === 'measure') renderBuilder(); }
+    changed();
+  };
+  el.onclick = e => { const d = e.target.dataset.del; if (d !== undefined) { list.splice(+d, 1); renderBuilder(); changed(); } };
+}
+
+function renderBuilder() {
+  $('params').innerHTML = Object.entries(SUBJ.params).map(([k, p]) =>
+    `<label>${esc(p.label)}<input data-p="${k}" value="${esc(spec.params[k] ?? '')}" placeholder="${p.default === null ? 'any' : esc(p.default)}"></label>`).join('');
+  $('params').oninput = e => { const k = e.target.dataset.p; if (!k) return; e.target.value === '' ? delete spec.params[k] : spec.params[k] = e.target.value; changed(); };
+  renderFilterRows($('filters'), spec.row_filters, 'row');
+  renderFilterRows($('afilters'), spec.aggregate_filters, 'agg');
+  $('groups').innerHTML = dims().map(k => `<label><input type="checkbox" data-g="${k}" ${spec.group_by.includes(k) ? 'checked' : ''}>${esc(SUBJ.columns[k].label)}</label>`).join('');
+  $('groups').onchange = e => { const k = e.target.dataset.g; spec.group_by = e.target.checked ? [...spec.group_by, k] : spec.group_by.filter(x => x !== k); renderBuilder(); changed(); };
+  const named = spec.measures.filter(m => typeof m === 'string');
+  $('measures').innerHTML = Object.entries(SUBJ.measures).map(([k, m]) => `<label><input type="checkbox" data-m="${k}" ${named.includes(k) ? 'checked' : ''}>${esc(m.label)}</label>`).join('');
+  $('measures').onchange = e => { const k = e.target.dataset.m; if (e.target.checked) spec.measures.push(k); else spec.measures = spec.measures.filter(m => m !== k); renderBuilder(); changed(); };
+  $('inline').innerHTML = spec.measures.filter(m => typeof m !== 'string').map(m => `<div class="muted">${esc(m.name)}: count where ${esc(m.count_if.field)} ${esc(m.count_if.op)} ${esc(listVal(m.count_if.value))} <button class="x" data-ri="${esc(m.name)}">&times;</button></div>`).join('');
+  $('inline').onclick = e => { const n = e.target.dataset.ri; if (n) { spec.measures = spec.measures.filter(m => typeof m === 'string' || m.name !== n); renderBuilder(); changed(); } };
+  $('sorts').innerHTML = spec.sort.map((s, i) => `<div class="row" data-i="${i}"><select data-k="by">${outputs().map(o => `<option ${o === s.by ? 'selected' : ''}>${o}</option>`).join('')}</select>
+      <select data-k="dir"><option ${s.dir === 'asc' ? 'selected' : ''}>asc</option><option ${s.dir === 'desc' ? 'selected' : ''}>desc</option></select><button class="x" data-del="${i}">&times;</button></div>`).join('');
+  $('sorts').onchange = e => { const r = e.target.closest('[data-i]'); if (r && e.target.dataset.k) { spec.sort[+r.dataset.i][e.target.dataset.k] = e.target.value; changed(); } };
+  $('sorts').onclick = e => { const d = e.target.dataset.del; if (d !== undefined) { spec.sort.splice(+d, 1); renderBuilder(); changed(); } };
+  $('qual').innerHTML = '<option value="">none</option>' + Object.entries(SUBJ.qualifiers || {}).map(([k, q]) => `<option value="${k}" ${spec.qualifier && spec.qualifier.name === k ? 'selected' : ''}>${esc(q.label)}</option>`).join('');
+  $('qual').onchange = () => { $('qual').value ? spec.qualifier = {name: $('qual').value} : delete spec.qualifier; changed(); };
+  $('qparam').textContent = spec.qualifier ? '(uses the "' + (SUBJ.qualifiers[spec.qualifier.name].params || []).join(', ') + '" parameter above)' : '';
+  $('comp').textContent = spec.companions ? 'Companions (recorded in the spec, not run in this sketch): ' + spec.companions.join('; ') : '';
+}
+
+// ---------------------------------------------------------------- compile / run
+function changed() { if (custom) return; clearTimeout(timer); timer = setTimeout(compile, 200); }
+function banner(msg, cls) { $('banner').innerHTML = msg ? `<div class="banner ${cls || 'err'}">${esc(msg)}</div>` : ''; }
+async function compile() {
+  try {
+    const j = await api('/api/compile', {spec});
+    $('sql').value = j.sql; lastParams = j.params; banner('');
+    $('bound').textContent = 'parameters: ' + JSON.stringify(j.params);
+    $('run').disabled = false; $('specbox').textContent = JSON.stringify(spec, null, 2);
+  } catch (e) { banner(e.message); $('run').disabled = true; }
+}
+async function run() {
+  $('meta').textContent = 'running…';
+  try {
+    const j = await api('/api/run', custom ? {sql: $('sql').value, params: lastParams} : {spec});
+    lastResult = j; banner(custom ? 'Custom SQL: not reverse-parsed. Builder changes are ignored until you go back to the builder.' : '', 'warn');
+    if (!custom) { $('sql').value = j.sql; lastParams = j.params; }
+    showTable(j);
+    $('meta').textContent = `${j.row_count} rows · ${j.ms} ms${j.truncated ? ' · truncated at the row limit' : ''}${j.custom ? ' · custom SQL' : ''}`;
+  } catch (e) { banner(e.message); $('meta').textContent = ''; }
+}
+function showTable(j, sortCol, dir) {
+  let rows = j.rows.slice();
+  if (sortCol != null) rows.sort((a, b) => { const x = a[sortCol], y = b[sortCol]; return ((x == null) - (y == null)) || (typeof x === 'string' ? String(x).localeCompare(y) : x - y) * dir; });
+  const textCol = j.columns.map((_, c) => j.rows.some(r => typeof r[c] === 'string'));
+  $('result').innerHTML = '<thead><tr>' + j.columns.map((c, i) => `<th data-c="${i}" class="${textCol[i] ? 'l' : ''}">${esc(c)}${sortCol === i ? (dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + r.map((v, i) => `<td class="${textCol[i] ? 'l' : ''}">${esc(v)}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  $('result').onclick = e => { const c = e.target.closest('th'); if (c) { const i = +c.dataset.c; showTable(j, i, sortCol === i ? -dir : (textCol[i] ? 1 : -1)); } };
+  $('csv').disabled = false;
+}
+$('csv').onclick = () => {
+  const q = v => v == null ? '' : /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
+  const txt = [lastResult.columns.map(q).join(','), ...lastResult.rows.map(r => r.map(q).join(','))].join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], {type: 'text/csv'})); a.download = 'query-result.csv'; a.click();
+};
+
+// ---------------------------------------------------------------- buttons
+$('run').onclick = run;
+$('addf').onclick = () => { spec.row_filters.push({field: 'season', op: '>=', value: ''}); renderBuilder(); };
+$('adda').onclick = () => { spec.aggregate_filters.push({measure: 'wins', op: '>=', value: 1}); renderBuilder(); changed(); };
+$('adds').onclick = () => { const o = outputs(); if (o.length) { spec.sort.push({by: o[o.length - 1], dir: 'desc'}); renderBuilder(); changed(); } };
+$('addc').onclick = () => {
+  const name = $('cn').value.trim(); if (!/^[A-Za-z_]\w*$/.test(name)) return banner('Give the inline count a simple name (letters, digits, underscore).');
+  const op = $('co').value; spec.measures.push({name, count_if: {field: $('cf').value, op, value: parseVal(op, $('cv').value)}});
+  $('cn').value = ''; $('cv').value = ''; renderBuilder(); changed();
+};
+$('edit').onclick = () => { custom = true; $('sql').readOnly = false; $('edit').style.display = 'none'; $('back').style.display = ''; $('sqlnote').textContent = '(custom SQL, not reverse-parsed)'; banner('Custom SQL: not reverse-parsed. Builder changes are ignored until you go back to the builder.', 'warn'); };
+$('back').onclick = () => { custom = false; $('sql').readOnly = true; $('edit').style.display = ''; $('back').style.display = 'none'; $('sqlnote').textContent = ''; banner(''); compile(); };
+$('specjson').onclick = () => { const b = $('specbox'); b.style.display = b.style.display === 'none' ? '' : 'none'; };
+$('load').onclick = () => { const q = SAVED.find(s => s.name === $('saved').value); if (q) { setSpec(JSON.parse(JSON.stringify(q.spec))); } };
+$('save').onclick = async () => {
+  const name = prompt('Save as (a-z, 0-9, - and _):'); if (!name) return;
+  try { await api('/api/save', {name, title: prompt('Title:', name) || name, spec}); await loadSaved(name); banner(`Saved query/saved/${name}.sql and ${name}.query.json`, 'warn'); }
+  catch (e) { banner(e.message); }
+};
+let SAVED = [];
+async function loadSaved(select) {
+  SAVED = await api('/api/saved');
+  $('saved').innerHTML = SAVED.map(s => `<option value="${esc(s.name)}" ${s.name === select ? 'selected' : ''}>${esc(s.title || s.name)}</option>`).join('');
+}
+function setSpec(s) { spec = s; spec.params = spec.params || {}; ['row_filters', 'group_by', 'measures', 'aggregate_filters', 'sort'].forEach(k => spec[k] = spec[k] || []); custom = false; $('back').onclick(); renderBuilder(); compile(); }
+
+(async function init() {
+  try {
+    const j = await api('/api/catalog'); CAT = j.catalog; SUBJ = CAT.subjects[subjectName];
+    $('status').textContent = j.db_ready ? `${CAT.title} · up to ${j.max_rows} rows per query` : 'database not built: run  python query/build_db.py';
+    $('cf').innerHTML = fieldOpts('start'); $('co').innerHTML = opOpts('>=');
+    await loadSaved();
+    const first = SAVED.find(s => s.name.startsWith('a2')) || SAVED[0];
+    setSpec(first ? JSON.parse(JSON.stringify(first.spec)) : blank());
+  } catch (e) { $('status').textContent = ''; banner('Could not reach the query server: ' + e.message + '. Start it with  python query/serve_query.py'); }
+})();
+</script>
+</body>
+</html>

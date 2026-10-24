@@ -1,0 +1,66 @@
+{
+  "title": "Most poles by drivers who never won (inline count)",
+  "database": "data/query.db",
+  "parameters": {
+    "v1": 20,
+    "v2": 0,
+    "v3": 1,
+    "limit": 15
+  },
+  "output": {
+    "columns": [
+      "driver",
+      "starts",
+      "poles",
+      "wins",
+      "starts_20th_or_worse"
+    ]
+  },
+  "spec": {
+    "subject": "driver_race",
+    "params": {
+      "limit": 15
+    },
+    "group_by": [
+      "driver"
+    ],
+    "measures": [
+      "starts",
+      "poles",
+      "wins",
+      {
+        "name": "starts_20th_or_worse",
+        "count_if": {
+          "field": "start",
+          "op": ">=",
+          "value": 20
+        }
+      }
+    ],
+    "aggregate_filters": [
+      {
+        "measure": "wins",
+        "op": "=",
+        "value": 0
+      },
+      {
+        "measure": "poles",
+        "op": ">=",
+        "value": 1
+      }
+    ],
+    "sort": [
+      {
+        "by": "poles",
+        "dir": "desc"
+      },
+      {
+        "by": "starts",
+        "dir": "desc"
+      }
+    ],
+    "limit": {
+      "param": "limit"
+    }
+  }
+}

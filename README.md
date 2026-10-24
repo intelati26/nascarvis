@@ -35,12 +35,28 @@ values, whether the points follow one table by finishing position or scale by ra
 and the champion by summed points). `--official FILE` also compares final totals with official standings.
 Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
 
-Data completeness: [`nascaR_completeness.csv`](nascaR_completeness.csv) (and a [text grid](nascaR_completeness_grid.txt)) shows, season by season, how much of
-each field nascaR.data has, where the points came from, and how the season compares with Wikipedia's final standings. Regenerate it with
-`python curation/completeness.py`.
-
 Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `python tests/test_shards.py` (needs pyarrow and node) and
 `python tests/test_audit_points.py` (needs pyarrow).
+
+## Race-by-race standings (work in progress)
+
+The Season tab can show the standings after any race, which needs points for every race. nascaR.data has them from 1962 on (except
+1974), but 1949-1961 and 1974 are mostly blank, and for 1972-73 the column holds only rank points. To allow race-by-race standings
+for those seasons, work is being done to reconcile each season's final standings with the finishing results: per-race points are
+rebuilt from the scoring rules of the time (purse-based scales, distance points) and every driver's total is checked against the
+official final standings. Where a driver's rebuilt total matches exactly, nothing is marked; where it had to be reconciled, or cannot
+be checked, the dashboard shows `≈` before the points.
+
+Status, on the [`curation/early-season-points`](https://github.com/intelati26/nascarvis/tree/curation/early-season-points) branch
+(not merged): 1949 (from a published chart), 1950-51 and 1972-73 are rebuilt; 1952-57 and 1974 are not, for lack of purses or
+earnings. On that branch, [`curation/WIKIPEDIA_SUMMARY.md`](https://github.com/intelati26/nascarvis/blob/curation/early-season-points/curation/WIKIPEDIA_SUMMARY.md)
+has the season-by-season table and sources, and
+[`curation/discrepancies.csv`](https://github.com/intelati26/nascarvis/blob/curation/early-season-points/curation/discrepancies.csv)
+lists every disagreement found so far.
+
+[`nascaR_completeness.csv`](nascaR_completeness.csv) (and a [text grid](nascaR_completeness_grid.txt)) shows, season by season, how much of each
+field nascaR.data has, where the points came from, and how the season compares with Wikipedia's final standings. It is generated on the
+curated branch by `curation/completeness.py`; this copy is a snapshot.
 
 ## Lap-by-lap data and offline storage
 
