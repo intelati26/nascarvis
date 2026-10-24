@@ -216,6 +216,14 @@ async function loadSaved(select) {
 }
 function setSpec(s) { spec = s; spec.params = spec.params || {}; ['row_filters', 'group_by', 'measures', 'aggregate_filters', 'sort'].forEach(k => spec[k] = spec[k] || []); custom = false; $('back').onclick(); renderBuilder(); compile(); }
 
+// A link from the dashboard's "Show as SQL" opens a spec: #spec=<base64url JSON>. It is only data; the server checks it against the catalog like any spec.
+function specFromHash() {
+  const m = /^#spec=([A-Za-z0-9_-]+)$/.exec(location.hash); if (!m) return null;
+  try {
+    const b = m[1].replace(/-/g, '+').replace(/_/g, '/'), s = JSON.parse(decodeURIComponent(escape(atob(b + '='.repeat((4 - b.length % 4) % 4)))));
+    return s && typeof s === 'object' && !Array.isArray(s) ? s : null;
+  } catch (e) { banner('Could not read the query in the link: ' + e.message); return null; }
+}
 (async function init() {
   try {
     const j = await api('/api/catalog'); CAT = j.catalog; SUBJ = CAT.subjects[subjectName];
@@ -223,7 +231,7 @@ function setSpec(s) { spec = s; spec.params = spec.params || {}; ['row_filters',
     $('cf').innerHTML = fieldOpts('start'); $('co').innerHTML = opOpts('>=');
     await loadSaved();
     const first = SAVED.find(s => s.name.startsWith('a2')) || SAVED[0];
-    setSpec(first ? JSON.parse(JSON.stringify(first.spec)) : blank());
+    setSpec(specFromHash() || (first ? JSON.parse(JSON.stringify(first.spec)) : blank()));
   } catch (e) { $('status').textContent = ''; banner('Could not reach the query server: ' + e.message + '. Start it with  python query/serve_query.py'); }
 })();
 </script>
