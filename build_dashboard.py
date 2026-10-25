@@ -520,7 +520,7 @@ def fetch_all_history_parquet(seasons, out_dir, compression='snappy', force=Fals
 
 # ---- season shards (see shards.js): the dashboard data split into one script file per season
 SHARD_DICTS = {"drivers": "driver", "tracks": "track", "names": "name", "makes": "make",
-               "teams": "team", "statuses": "status", "surfaces": "surface", "ttypes": "ttype"}
+               "teams": "team", "statuses": "status", "surfaces": "surface", "ttypes": "ttype", "tbanks": "tbank", "tshapes": "tshape"}
 SHARD_COLS = ["season", "race", "car", "length", "start", "finish", "pts", "laps", "led",
               "s1", "s2", "s3", "rating", "win"]
 
@@ -564,7 +564,7 @@ def write_data_files(data, data_dir):
                        "rows": hi - lo})
         lo = hi
     manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"],
-                "adjustments": data["adjustments"], "curated": data.get("curated", {}), "trackTypes": data.get("trackTypes", [])}
+                "adjustments": data["adjustments"], "curated": data.get("curated", {}), "trackFilters": data.get("trackFilters", [])}
     mtext = "NV.manifest(%s);\n" % json.dumps(manifest, separators=(",", ":"))
     rewritten += write_if_changed(os.path.join(data_dir, "manifest.js"), mtext)
     for f in os.listdir(data_dir):         # seasons no longer built (e.g. a later --from)
@@ -650,6 +650,8 @@ def main():
     keep = sorted((i for i, s in enumerate(t["Season"]) if s >= a.first),
                   key=lambda i: (t["Season"][i], t["Race"][i], t["Finish"][i]))
     row_type, _ = track_types.classify_table(t)          # decided on the whole history, so a season range does not change a race's type
+    banking, shapes = track_types.load_attributes(HERE)
+    row_bank, row_shape = track_types.classify_attributes(t, banking, shapes)
     col = lambda name: [clean(t[name][i]) for i in keep]
 
     expected_by_season = {}
@@ -680,10 +682,12 @@ def main():
     statuses, status = dic("Status", lambda v: ("" if v is None else str(v)).lower())
     surfaces, surface = dic("Surface")
     ttypes = sorted({row_type[i] or "" for i in keep}); ttype = [ttypes.index(row_type[i] or "") for i in keep]
+    tbanks = sorted({row_bank[i] for i in keep}); tbank = [tbanks.index(row_bank[i]) for i in keep]
+    tshapes = sorted({row_shape[i] for i in keep}); tshape = [tshapes.index(row_shape[i]) for i in keep]
     data = dict(
         title=a.title, drivers=drivers, tracks=tracks, names=names, makes=makes, teams=teams,
-        statuses=statuses, surfaces=surfaces, ttypes=ttypes, ttype=ttype,
-        trackTypes=[{"key": k, "label": l} for k, l in track_types.TYPES],
+        statuses=statuses, surfaces=surfaces, ttypes=ttypes, ttype=ttype, tbanks=tbanks, tbank=tbank, tshapes=tshapes, tshape=tshape,
+        trackFilters=track_types.FILTERS,
         season=[int(v) for v in col("Season")], race=[int(v) for v in col("Race")],
         driver=driver, track=track, name=name, make=make, team=team, status=status, surface=surface,
         car=[str(v) for v in col("Car")], length=num("Length"),

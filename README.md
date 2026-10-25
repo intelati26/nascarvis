@@ -22,6 +22,11 @@ Rockingham, New Hampshire and Atlanta count as a mile and a mile and a half); le
 contradicts its track (one Charlotte race recorded as a road course) takes the track's usual type. The Track tab also has "All ... tracks" to see a whole type
 together, and the Driver tab a By track type table.
 
+Two more filters sit beside it and combine with it: **Banking** (flat, 12° or less; medium; high, 20° or more) and **Shape** (egg / dogleg ovals: Darlington,
+Phoenix, Gateway). Banking is the mean of a track's turn angles, taken by layout and era from the Wikipedia infobox (`fetch_track_banking.py` writes
+`track_attributes.csv`; Atlanta, for example, has three layouts: 24° to 1996, 24° from 1997, 28° from 2022), so a race gets the banking its track had that season. About
+79% of races have it: road courses and the old dirt tracks do not, and are left out when a banking filter is on. Shape tags are a hand-kept list, `track_shapes.csv`.
+
 The Leaders tab has a **Show as SQL** panel: the SQL that gives the leaderboard on screen, written to be read and changed (each clause is explained
 if you leave that on), with a link that opens the same query in the query builder (`query/`, start it with `python query/serve_query.py`).
 `leaderssql.js` writes it; its tests run the generated SQL against a database and compare it with an independent leaderboard.

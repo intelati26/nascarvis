@@ -12,7 +12,7 @@
 const NV = (function () {
   // dictionary list -> the per-row index column that points into it
   const DICTS = { drivers: 'driver', tracks: 'track', names: 'name', makes: 'make',
-                  teams: 'team', statuses: 'status', surfaces: 'surface', ttypes: 'ttype' };
+                  teams: 'team', statuses: 'status', surfaces: 'surface', ttypes: 'ttype', tbanks: 'tbank', tshapes: 'tshape' };
   // plain per-row columns
   const COLS = ['season', 'race', 'car', 'length', 'start', 'finish', 'pts', 'laps', 'led',
                 's1', 's2', 's3', 'rating', 'win'];
@@ -33,7 +33,7 @@ const NV = (function () {
     for (const s of order) {
       if (!shardMap.has(s)) throw new Error('season ' + s + ' did not load (is its file in the data folder?)');
     }
-    const out = { title: m.title, adjustments: m.adjustments, lapFiles: m.lapFiles, curated: m.curated || {}, trackTypes: m.trackTypes || [] };
+    const out = { title: m.title, adjustments: m.adjustments, lapFiles: m.lapFiles, curated: m.curated || {}, trackFilters: m.trackFilters || [] };
     for (const c of COLS) out[c] = [];
     for (const [dk, ik] of Object.entries(DICTS)) {
       // one global dictionary, sorted, as the single-file build has always had

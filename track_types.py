@@ -78,6 +78,64 @@ def classify_table(t):
     return [by_race[(s, r)] for s, r in zip(t["Season"], t["Race"])], by_race
 
 
+# ---- banking and shape: attributes of the track, not of its length, and (for banking) of the track's layout in that season
+BANK_FLAT_MAX = 12.0        # turn banking up to this many degrees is flat (Martinsville, Phoenix, Pocono, New Hampshire, Indianapolis)
+BANK_HIGH_MIN = 20.0        # this many degrees and up is high (Darlington, Rockingham, Charlotte, Atlanta, Bristol, Daytona, Talladega)
+BANDS = [
+    ("flat", "Flat (12° or less)"),
+    ("medium", "Medium (over 12°, under 20°)"),
+    ("high", "High (20° or more)"),
+]
+SHAPES = [("egg", "Egg / dogleg ovals")]
+
+
+def banking_band(deg):
+    if deg is None: return ""
+    return "flat" if deg <= BANK_FLAT_MAX else "high" if deg >= BANK_HIGH_MIN else "medium"
+
+
+def load_attributes(root):
+    """(banking, shapes): banking = {track: [(from_season, to_season, degrees)]} from track_attributes.csv (fetch_track_banking.py), shapes = {track: shape} from track_shapes.csv (by hand)."""
+    import csv, os
+    banking, shapes = collections.defaultdict(list), {}
+    p = os.path.join(root, "track_attributes.csv")
+    if os.path.exists(p):
+        for r in csv.DictReader(open(p, encoding="utf-8")):
+            if r["banking_deg"]:
+                banking[r["track"]].append((int(r["from_season"]) if r["from_season"] else 0, int(r["to_season"]) if r["to_season"] else 9999, float(r["banking_deg"])))
+    p = os.path.join(root, "track_shapes.csv")
+    if os.path.exists(p):
+        for r in csv.DictReader(open(p, encoding="utf-8")): shapes[r["track"]] = r["shape"]
+    return banking, shapes
+
+
+def banking_for(rows, season):
+    """Turn banking in `season` from a track's layouts [(from, to, degrees)]: the layout covering the season (the newest one if several), else the nearest layout in time
+    (a track's early seasons use its first listed layout, its later ones the last)."""
+    if not rows: return None
+    covering = [r for r in rows if r[0] <= season <= r[1]]
+    if covering: return max(covering, key=lambda r: r[0])[2]
+    return min(rows, key=lambda r: min(abs(season - r[0]), abs(season - r[1])))[2]
+
+
+def classify_attributes(t, banking, shapes):
+    """Per row of the nascaR.data table: (banking band, shape), each '' when unknown. Banking is by track and season (a layout's years), shape by track."""
+    out_b, out_s = [], []
+    for s, tr in zip(t["Season"], t["Track"]):
+        tr = ALIAS.get(tr, tr)
+        out_b.append(banking_band(banking_for(banking.get(tr), s)))
+        out_s.append(shapes.get(tr, ""))
+    return out_b, out_s
+
+
+# what the dashboard and the query database list as filters: key, label, the data column, the SQL column, and the allowed values
+FILTERS = [
+    {"key": "type", "label": "Track type", "column": "ttype", "dict": "ttypes", "sql": "track_type", "values": [{"key": k, "label": l} for k, l in TYPES]},
+    {"key": "bank", "label": "Banking", "column": "tbank", "dict": "tbanks", "sql": "banking", "values": [{"key": k, "label": l} for k, l in BANDS]},
+    {"key": "shape", "label": "Shape", "column": "tshape", "dict": "tshapes", "sql": "track_shape", "values": [{"key": k, "label": l} for k, l in SHAPES]},
+]
+
+
 if __name__ == "__main__":
     import os
     import pyarrow.parquet as pq
