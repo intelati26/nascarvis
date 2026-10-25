@@ -22,7 +22,7 @@ spec (JSON) -> engine.compile_spec -> SQL + bound parameters -> engine.run_sql (
 | `build_db.py` | Pack importer: parquet to SQLite (`results`, `season_info`). |
 | `serve_query.py` | Static files plus `/api/catalog`, `/api/saved`, `/api/compile`, `/api/run`, `/api/save`. Localhost only, rejects other `Host` headers. |
 | `query.html` | Builder: parameters, row filters, group by, measures (plus inline counts), aggregate filters, qualifier, sort; live SQL; results with CSV export; "Edit SQL" for hand-edited queries. |
-| `saved/*.sql` + `*.query.json` | Saved queries (two files, as in the design). Also the golden files for the compiler test. |
+| `saved/*.sql` + `*.query.json` | Saved queries (two files, as in the design). Also the golden files for the compiler test. Good ones to start from: `winners_by_track_type`, `winners_by_track` (each driver's wins within a type or at a track; raise Wins to shorten them) and `winners_long_flat` (two track filters at once: type and banking). |
 
 ## What is implemented
 

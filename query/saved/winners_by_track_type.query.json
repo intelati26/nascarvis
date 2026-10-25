@@ -1,0 +1,80 @@
+{
+  "title": "Winners by track type: each driver's wins within each type (raise 'Wins' to shorten the list; add a Track type filter to see one type)",
+  "database": "data/query.db",
+  "parameters": {
+    "series": "Cup",
+    "wins": 5,
+    "limit": 300
+  },
+  "output": {
+    "columns": [
+      "track_type",
+      "driver",
+      "wins",
+      "starts",
+      "win_rate",
+      "first_season",
+      "last_season"
+    ]
+  },
+  "spec": {
+    "subject": "driver_race",
+    "params": {
+      "series": "Cup",
+      "wins": 5,
+      "limit": 300
+    },
+    "row_filters": [
+      {
+        "field": "series",
+        "op": "=",
+        "param": "series"
+      },
+      {
+        "field": "season",
+        "op": ">=",
+        "param": "min_season"
+      },
+      {
+        "field": "season",
+        "op": "<=",
+        "param": "max_season"
+      }
+    ],
+    "group_by": [
+      "track_type",
+      "driver"
+    ],
+    "measures": [
+      "wins",
+      "starts",
+      "win_rate",
+      "first_season",
+      "last_season"
+    ],
+    "aggregate_filters": [
+      {
+        "measure": "wins",
+        "op": ">=",
+        "param": "wins"
+      }
+    ],
+    "sort": [
+      {
+        "by": "track_type",
+        "dir": "asc"
+      },
+      {
+        "by": "wins",
+        "dir": "desc"
+      },
+      {
+        "by": "starts",
+        "dir": "asc"
+      }
+    ],
+    "limit": {
+      "param": "limit"
+    }
+  }
+}
