@@ -34,6 +34,32 @@ into the SQL; column and measure names come only from the catalog.
 Safety: the database is opened read-only (`mode=ro`, `PRAGMA query_only`), one SELECT/WITH statement only, 1,000-row cap,
 10-second limit. Saving is the only write path and is confined to `query/saved/` with a restricted file name.
 
+## The laps table
+
+`python query/build_db.py` also loads lap-by-lap times when `lap_times_<season>.parquet` files are in the repository root (`python fetch_lap_times.py --season 2024`; it needs
+only `requests`, and uses the `nascar-api` package instead if that is installed). The table is `laps`, one row per driver per lap:
+`season, race, driver, driver_id, car, lap, lap_time, lap_speed, position` (`position` is the running position on that lap). `driver` is the name used in `results`, matched through the
+car number, so `laps` joins to `results` on `(season, race, driver)`. NASCAR's feed has lap times for **2020 onward**: its files for 2015 to 2019 do not exist (every request is answered
+"Access Denied"), so the table starts in 2020. Races are paired with `results` by track within a season, because the feed numbers them by date; races without results yet are skipped
+and reported by the build. The default database has 2,303,507 laps in 246 races (2020 to 2026, 287 MB); use `--no-laps` for a small one.
+
+Checks against `results`: laps run in 1st match `results.led` exactly in 94.6% of driver-races (99.6% within 2 laps), and a driver's last lap number matches `results.laps` in 97.5%.
+
+The lap times are the feed's, unedited, and it has noise: laps under caution and red-flag laps are long (2,843 laps over 500 s; 310 are exactly 9999.999 with a speed under 1 mph, the feed's
+marker for a stopped race), 19 laps are under 10 s, and a few impossible laps remain (a 37 s, 257 mph lap at Talladega in 2026). Filter before averaging, for example
+`lap_time BETWEEN 10 AND 500`, and prefer medians.
+
+```sql
+-- laps spent leading, by driver, for one race (this agrees with results.led)
+SELECT driver, SUM(position = 1) AS laps_led FROM laps WHERE season = 2024 AND race = 1 GROUP BY driver ORDER BY laps_led DESC LIMIT 5;
+
+-- the five fastest timed laps at Talladega in the feed
+SELECT l.season, l.driver, l.lap_time, l.lap_speed
+FROM laps l JOIN (SELECT DISTINCT season, race, track FROM results) r ON r.season = l.season AND r.race = l.race
+WHERE r.track = 'Talladega Superspeedway' AND l.lap_time BETWEEN 10 AND 500
+ORDER BY l.lap_time LIMIT 5;
+```
+
 ## Recorded in a spec but not implemented yet
 
 `window` (named time scopes such as last N days), `relations` (parameterized SQL templates), `companions` (follow-up queries for

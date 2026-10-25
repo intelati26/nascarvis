@@ -15,6 +15,9 @@ Columns:
   lap, lap_time, lap_speed, position
 
 The file is kept in Parquet for efficient compression and easy filtering.
+
+NASCAR's feed has lap times from 2020 on; earlier seasons have no lap files (requests are answered 403) and nothing is written. With the nascar-api package installed it is used; without it
+the same public JSON feed is read directly through nascar_feed.py, which needs only requests.
 """
 import argparse
 import os
@@ -133,10 +136,13 @@ def main():
     try:
         from nascar_api.enums import Series
         from nascar_api.repos import HistoricNascarRepo
-    except ImportError:
-        sys.exit("needs the nascar-api package:  pip install nascar-api  (Python 3.11+)")
+        repo, series = HistoricNascarRepo(), Series.CUP
+    except ImportError:                       # no nascar-api package: read the same public JSON feed directly (nascar_feed.py, needs only requests)
+        from nascar_feed import HttpNascarRepo
+        repo, series = HttpNascarRepo(), 1
+        print("nascar-api is not installed: reading NASCAR's public JSON feed directly")
 
-    run(HistoricNascarRepo(), Series.CUP, a)
+    run(repo, series, a)
 
 
 if __name__ == "__main__":

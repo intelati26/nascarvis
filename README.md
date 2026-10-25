@@ -51,7 +51,7 @@ values, whether the points follow one table by finishing position or scale by ra
 and the champion by summed points). `--official FILE` also compares final totals with official standings.
 Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
 
-Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `node tests/test_leaderssql.js`, `python tests/test_leaderssql.py`, `python tests/test_track_types.py`, `python tests/test_shards.py` (needs pyarrow and node) and
+Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `node tests/test_leaderssql.js`, `python tests/test_leaderssql.py`, `python tests/test_track_types.py`, `python tests/test_nascar_feed.py`, `python tests/test_laps_db.py`, `python tests/test_shards.py` (needs pyarrow and node) and
 `python tests/test_audit_points.py` (needs pyarrow).
 
 ## Race-by-race standings (work in progress)
@@ -84,5 +84,9 @@ python fetch_lap_times.py --season 2026 --out lap_times_2026.parquet
 ```
 
 This stores one row per driver-lap in a compressed Parquet file, which keeps the data offline-friendly and much smaller than CSV or JSON while remaining easy to filter by season, race, driver or lap number.
+
+Lap times exist in NASCAR's feed from **2020**; for 2015 to 2019 its lap files do not exist, so there is nothing to fetch for those seasons. The `nascar-api` package is optional:
+without it `fetch_lap_times.py` reads the same public JSON feed through `nascar_feed.py` (needs only `requests`). The query database (`python query/build_db.py`) loads these files
+into a `laps` table; see `query/README.md`.
 
 The output is designed for later dashboard or analysis work without requiring an internet connection at runtime. For the current dashboard, the summary race files remain the fast default; lap-by-lap data is loaded only when you specifically want it.
