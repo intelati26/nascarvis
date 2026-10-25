@@ -1,0 +1,86 @@
+{
+  "title": "Winners at long, flat tracks (Pocono, Indianapolis, Ontario): two track filters at once, most wins first",
+  "database": "data/query.db",
+  "parameters": {
+    "series": "Cup",
+    "v1": "long",
+    "v2": "flat",
+    "wins": 1,
+    "limit": 50
+  },
+  "output": {
+    "columns": [
+      "driver",
+      "wins",
+      "starts",
+      "win_rate",
+      "first_season",
+      "last_season"
+    ]
+  },
+  "spec": {
+    "subject": "driver_race",
+    "params": {
+      "series": "Cup",
+      "wins": 1,
+      "limit": 50
+    },
+    "row_filters": [
+      {
+        "field": "series",
+        "op": "=",
+        "param": "series"
+      },
+      {
+        "field": "season",
+        "op": ">=",
+        "param": "min_season"
+      },
+      {
+        "field": "season",
+        "op": "<=",
+        "param": "max_season"
+      },
+      {
+        "field": "track_type",
+        "op": "=",
+        "value": "long"
+      },
+      {
+        "field": "banking",
+        "op": "=",
+        "value": "flat"
+      }
+    ],
+    "group_by": [
+      "driver"
+    ],
+    "measures": [
+      "wins",
+      "starts",
+      "win_rate",
+      "first_season",
+      "last_season"
+    ],
+    "aggregate_filters": [
+      {
+        "measure": "wins",
+        "op": ">=",
+        "param": "wins"
+      }
+    ],
+    "sort": [
+      {
+        "by": "wins",
+        "dir": "desc"
+      },
+      {
+        "by": "starts",
+        "dir": "asc"
+      }
+    ],
+    "limit": {
+      "param": "limit"
+    }
+  }
+}
