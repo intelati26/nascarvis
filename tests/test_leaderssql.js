@@ -49,12 +49,16 @@ assert.ok(ex.filter(l => l.startsWith('-- ')).length >= 6 && ex[1].startsWith('-
 assert.ok(!S.leaders({...base, explain: true}).sql.includes('HAVING'), 'no HAVING comment when there is no HAVING');
 
 // the track-type filter: one extra WHERE line, one extra spec filter, nothing when blank
-const withType = S.leaders({...base, trackType: 'superspeedway'});
+const withType = S.leaders({...base, trackFilters: [{sql: 'track_type', value: 'superspeedway'}]});
 assert.ok(withType.sql.includes("WHERE r.series = 'Cup'\n  AND r.season >= 1949\n  AND r.season <= 2026\n  AND r.track_type = 'superspeedway'\nGROUP BY"), 'track type is an AND in the WHERE');
 assert.deepStrictEqual(withType.spec.row_filters.at(-1), {field: 'track_type', op: '=', value: 'superspeedway'});
-assert.strictEqual(S.leaders({...base, trackType: ''}).sql, S.leaders(base).sql, 'blank track type changes nothing');
-assert.ok(S.leaders({...base, trackType: 'road', explain: true}).sql.includes('-- WHERE keeps only the races inside the season range and of this kind of track'), 'the explanation mentions it');
-assert.throws(() => S.leaders({...base, trackType: "x'; DROP TABLE results; --"}), /bad track type/, 'a track type is a plain key, never pasted SQL');
+assert.strictEqual(S.leaders({...base, trackFilters: [{sql: 'track_type', value: ''}]}).sql, S.leaders(base).sql, 'a blank filter changes nothing');
+const two = S.leaders({...base, trackFilters: [{sql: 'track_type', value: 'short'}, {sql: 'banking', value: 'flat'}]});
+assert.ok(two.sql.includes("  AND r.track_type = 'short'\n  AND r.banking = 'flat'\nGROUP BY"), 'two filters are two ANDs, in order');
+assert.deepStrictEqual(two.spec.row_filters.slice(-2), [{field: 'track_type', op: '=', value: 'short'}, {field: 'banking', op: '=', value: 'flat'}]);
+assert.ok(S.leaders({...base, trackFilters: [{sql: 'track_type', value: 'road'}], explain: true}).sql.includes('-- WHERE keeps only the races inside the season range and of the kinds of track chosen'), 'the explanation mentions it');
+assert.throws(() => S.leaders({...base, trackFilters: [{sql: 'track_type', value: "x'; DROP TABLE results; --"}]}), /bad track filter/, 'a filter value is a plain key, never pasted SQL');
+assert.throws(() => S.leaders({...base, trackFilters: [{sql: 'track_type; DROP', value: 'long'}]}), /bad track filter/, 'a filter column is a plain name too');
 
 // the spec
 const sp = S.leaders({...base, stat: 'winpct', exactWins: 2}).spec;

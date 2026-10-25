@@ -39,6 +39,8 @@ def main():
     sp = lambda v: None if clean(v) is None else (11 - int(v) if 1 <= v <= 10 else 0)
 
     row_type, _ = bd.track_types.classify_table(t)          # the type of every race, from the whole history (track_types.py)
+    banking, shapes = bd.track_types.load_attributes(ROOT)
+    row_bank, row_shape = bd.track_types.classify_attributes(t, banking, shapes)
     rows = []
     for i, season in enumerate(t["Season"]):
         if season < a.first: continue
@@ -48,7 +50,7 @@ def main():
             t["Make"][i], t["Team"][i], str(t["Car"][i]), (t["Status"][i] or "").lower(),
             clean(t["Start"][i]), int(t["Finish"][i]), clean(t["Laps"][i]), clean(t["Led"][i]) or 0,
             clean(t["Pts"][i]), clean(t["Rating"][i]), clean(t["Length"][i]),
-            sum(x for x in stage if x) if any(x is not None for x in stage) else None, row_type[i]))
+            sum(x for x in stage if x) if any(x is not None for x in stage) else None, row_type[i], row_bank[i] or None, row_shape[i] or None))
 
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     if os.path.exists(a.out): os.remove(a.out)
@@ -57,12 +59,13 @@ def main():
         CREATE TABLE results (
           series TEXT, season INTEGER, race INTEGER, driver TEXT, track TEXT, race_name TEXT, surface TEXT,
           make TEXT, team TEXT, car TEXT, status TEXT, start INTEGER, finish INTEGER, laps INTEGER, led INTEGER,
-          pts REAL, rating REAL, track_length REAL, stage_pts INTEGER, track_type TEXT);
+          pts REAL, rating REAL, track_length REAL, stage_pts INTEGER, track_type TEXT, banking TEXT, track_shape TEXT);
         CREATE INDEX results_season ON results(season, race);
         CREATE INDEX results_driver ON results(driver, season);
         CREATE INDEX results_track ON results(track);
-        CREATE INDEX results_track_type ON results(track_type);""")
-    con.executemany("INSERT INTO results VALUES (" + ",".join("?" * 20) + ")", rows)
+        CREATE INDEX results_track_type ON results(track_type);
+        CREATE INDEX results_banking ON results(banking);""")
+    con.executemany("INSERT INTO results VALUES (" + ",".join("?" * 22) + ")", rows)
     con.executescript("""
         CREATE TABLE season_info AS
           SELECT season, COUNT(DISTINCT race) AS races, MAX(race) AS last_race,
