@@ -2,7 +2,7 @@
 """Build data/query.db (SQLite) for the query engine from cup_series.parquet.  python query/build_db.py [--from 1949]
 
 Tables
-  results      one row per driver per race (the `driver_race` subject)
+  results      one row per driver per race (the `driver_race` subject); track_type is the race's type (superspeedway, long, intermediate, road, short; see track_types.py)
   season_info  season, races, last_race, is_partial (1 for the newest season in the data)
 Blank `Pts` are filled from curation/points_*.csv, exactly as build_dashboard.py does, so the dashboard and the queries agree.
 Stage columns S1-S3 in the source are finishing positions; they are turned into stage points (1st = 10 ... 10th = 1).
@@ -38,6 +38,7 @@ def main():
     clean = bd.clean
     sp = lambda v: None if clean(v) is None else (11 - int(v) if 1 <= v <= 10 else 0)
 
+    row_type, _ = bd.track_types.classify_table(t)          # the type of every race, from the whole history (track_types.py)
     rows = []
     for i, season in enumerate(t["Season"]):
         if season < a.first: continue
@@ -47,7 +48,7 @@ def main():
             t["Make"][i], t["Team"][i], str(t["Car"][i]), (t["Status"][i] or "").lower(),
             clean(t["Start"][i]), int(t["Finish"][i]), clean(t["Laps"][i]), clean(t["Led"][i]) or 0,
             clean(t["Pts"][i]), clean(t["Rating"][i]), clean(t["Length"][i]),
-            sum(x for x in stage if x) if any(x is not None for x in stage) else None))
+            sum(x for x in stage if x) if any(x is not None for x in stage) else None, row_type[i]))
 
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     if os.path.exists(a.out): os.remove(a.out)
@@ -56,11 +57,12 @@ def main():
         CREATE TABLE results (
           series TEXT, season INTEGER, race INTEGER, driver TEXT, track TEXT, race_name TEXT, surface TEXT,
           make TEXT, team TEXT, car TEXT, status TEXT, start INTEGER, finish INTEGER, laps INTEGER, led INTEGER,
-          pts REAL, rating REAL, track_length REAL, stage_pts INTEGER);
+          pts REAL, rating REAL, track_length REAL, stage_pts INTEGER, track_type TEXT);
         CREATE INDEX results_season ON results(season, race);
         CREATE INDEX results_driver ON results(driver, season);
-        CREATE INDEX results_track ON results(track);""")
-    con.executemany("INSERT INTO results VALUES (" + ",".join("?" * 19) + ")", rows)
+        CREATE INDEX results_track ON results(track);
+        CREATE INDEX results_track_type ON results(track_type);""")
+    con.executemany("INSERT INTO results VALUES (" + ",".join("?" * 20) + ")", rows)
     con.executescript("""
         CREATE TABLE season_info AS
           SELECT season, COUNT(DISTINCT race) AS races, MAX(race) AS last_race,

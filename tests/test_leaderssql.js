@@ -48,6 +48,14 @@ const ex = S.leaders({...base, explain: true}).sql.split('\n');
 assert.ok(ex.filter(l => l.startsWith('-- ')).length >= 6 && ex[1].startsWith('-- SELECT'), 'explain adds a comment before each clause');
 assert.ok(!S.leaders({...base, explain: true}).sql.includes('HAVING'), 'no HAVING comment when there is no HAVING');
 
+// the track-type filter: one extra WHERE line, one extra spec filter, nothing when blank
+const withType = S.leaders({...base, trackType: 'superspeedway'});
+assert.ok(withType.sql.includes("WHERE r.series = 'Cup'\n  AND r.season >= 1949\n  AND r.season <= 2026\n  AND r.track_type = 'superspeedway'\nGROUP BY"), 'track type is an AND in the WHERE');
+assert.deepStrictEqual(withType.spec.row_filters.at(-1), {field: 'track_type', op: '=', value: 'superspeedway'});
+assert.strictEqual(S.leaders({...base, trackType: ''}).sql, S.leaders(base).sql, 'blank track type changes nothing');
+assert.ok(S.leaders({...base, trackType: 'road', explain: true}).sql.includes('-- WHERE keeps only the races inside the season range and of this kind of track'), 'the explanation mentions it');
+assert.throws(() => S.leaders({...base, trackType: "x'; DROP TABLE results; --"}), /bad track type/, 'a track type is a plain key, never pasted SQL');
+
 // the spec
 const sp = S.leaders({...base, stat: 'winpct', exactWins: 2}).spec;
 assert.deepStrictEqual(sp.params, {series: 'Cup', min_season: 1949, max_season: 2026, limit: 50, min_starts: 20, wins: 2});

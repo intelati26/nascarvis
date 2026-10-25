@@ -33,12 +33,13 @@ const NASCARSql = (function () {
 
   const int = (v, d) => Number.isFinite(+v) && v !== '' && v !== null ? Math.trunc(+v) : d;
 
-  // o: {stat, scope: 'career' | 'season', from, to, minStarts, exactWins (number or null), top, explain (bool)}
+  // o: {stat, scope: 'career' | 'season', from, to, minStarts, exactWins (number or null), top, explain (bool), trackType (a key from track_types.py, or empty for all)}
   function leaders(o) {
     const S = STATS[o.stat]; if (!S) throw new Error(`unknown stat ${o.stat}`);
     const season = o.scope === 'season', from = int(o.from, 1949), to = int(o.to, 9999), top = Math.max(1, int(o.top, 50));
     const minStarts = S.rate ? Math.max(0, int(o.minStarts, 0)) : 0, exact = o.exactWins == null || o.exactWins === '' ? null : int(o.exactWins, null);
     const order = S.order || S.expr, dir = S.low ? 'ASC' : 'DESC';
+    const tt = o.trackType || ''; if (tt && !/^[a-z_]+$/.test(tt)) throw new Error(`bad track type ${tt}`);
     const note = (text) => o.explain ? [`-- ${text}`] : [];
 
     const sel = ['r.driver AS "driver"'];
@@ -55,8 +56,9 @@ const NASCARSql = (function () {
     L.push('SELECT', sel.map(s => '  ' + s).join(',\n'));
     L.push(...note('FROM names the table: results has one row per driver per race. "r" is a short name for it.'));
     L.push('FROM results r');
-    L.push(...note('WHERE keeps only the races inside the season range. It runs before grouping.'));
+    L.push(...note('WHERE keeps only the races inside the season range' + (tt ? ' and of this kind of track (r.track_type is decided per race: superspeedway, long, intermediate, road or short)' : '') + '. It runs before grouping.'));
     L.push(`WHERE r.series = 'Cup'`, `  AND r.season >= ${from}`, `  AND r.season <= ${to}`);
+    if (tt) L.push(`  AND r.track_type = '${tt}'`);
     L.push(...note(season ? 'GROUP BY collapses the races into one row per driver and season.' : 'GROUP BY collapses all of a driver\'s races into one row. Add r.season to get one row per driver-season.'));
     L.push(season ? 'GROUP BY r.driver, r.season' : 'GROUP BY r.driver');
     if (having.length) {
@@ -67,7 +69,7 @@ const NASCARSql = (function () {
     L.push(`ORDER BY ${order} ${dir}, COUNT(*) DESC`);
     L.push(...note('LIMIT stops after this many rows.'));
     L.push(`LIMIT ${top}`);
-    return {sql: L.join('\n'), spec: spec(o, S, {season, from, to, top, minStarts, exact}), stat: S};
+    return {sql: L.join('\n'), spec: spec(o, S, {season, from, to, top, minStarts, exact, tt}), stat: S};
   }
 
   // The same query as a spec for query/query.html. A rate comes out as a fraction (0-1) there, as the catalog defines it, where the SQL above gives a percentage.
@@ -82,6 +84,7 @@ const NASCARSql = (function () {
       sort: [{by: S.measure, dir: S.low ? 'asc' : 'desc'}, ...(S.measure === 'starts' ? [] : [{by: 'starts', dir: 'desc'}])],
       limit: {param: 'limit'},
     };
+    if (v.tt) s.row_filters.push({field: 'track_type', op: '=', value: v.tt});
     if (S.rate) { params.min_starts = v.minStarts; s.qualifier = {name: 'min_starts'}; }
     if (v.exact !== null) { params.wins = v.exact; s.aggregate_filters = [{measure: 'wins', op: '=', param: 'wins'}]; }
     return s;

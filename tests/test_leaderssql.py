@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.join(ROOT, "query"))
 import engine  # noqa: E402
 
 CAT = engine.load_catalog(os.path.join(ROOT, "query", "catalog_nascar.json"))
+TYPES = [v["value"] for v in CAT["subjects"]["driver_race"]["columns"]["track_type"]["values"]]      # the catalog's own list of track types
 
 
 def make_db(path):
@@ -25,20 +26,21 @@ def make_db(path):
     con = sqlite3.connect(path)
     con.executescript("""
       CREATE TABLE results (series TEXT, season INT, race INT, driver TEXT, track TEXT, race_name TEXT, surface TEXT, make TEXT,
-        team TEXT, car TEXT, status TEXT, start INT, finish INT, laps INT, led INT, pts REAL, rating REAL, track_length REAL, stage_pts INT);
+        team TEXT, car TEXT, status TEXT, start INT, finish INT, laps INT, led INT, pts REAL, rating REAL, track_length REAL, stage_pts INT, track_type TEXT);
       CREATE TABLE season_info (season INT, races INT, last_race INT, is_partial INT);""")
     rows = []
     drivers = [f"Driver {chr(65 + i)}" for i in range(18)]
     for season in range(2000, 2006):
         con.execute("INSERT INTO season_info VALUES (?, 12, 12, ?)", (season, int(season == 2005)))
         for race in range(1, 13):
+            ttype = TYPES[(season + race) % len(TYPES)]
             field = [d for d in drivers if rnd.random() < 0.75 or d in drivers[:6]]
             rnd.shuffle(field)
             for finish, d in enumerate(field, 1):
                 status = "running" if rnd.random() < 0.8 else rnd.choice(["engine", "accident", "crash"])
                 rows.append(("Cup", season, race, d, "Dover", "r", "paved", "Ford", "T", "1", status, rnd.randint(1, len(field)), finish, 100,
-                             rnd.choice([0, 0, 0, 3, 40]), 10.0, 80.0, 1.0, 0))
-    con.executemany("INSERT INTO results VALUES (" + ",".join("?" * 19) + ")", rows)
+                             rnd.choice([0, 0, 0, 3, 40]), 10.0, 80.0, 1.0, 0, ttype))
+    con.executemany("INSERT INTO results VALUES (" + ",".join("?" * 20) + ")", rows)
     con.commit(); con.close()
     return rows
 
@@ -52,8 +54,9 @@ def generate(opts):
 # --- the dashboard's rules, written again independently (dashboard_template.html leaderRows)
 def expected(rows, o):
     by = {}
-    for (_, season, _, driver, _, _, _, _, _, _, status, start, finish, _, led, *_rest) in rows:
+    for (_, season, _, driver, _, _, _, _, _, _, status, start, finish, _, led, *_rest, ttype) in rows:
         if not o["from"] <= season <= o["to"]: continue
+        if o.get("trackType") and ttype != o["trackType"]: continue
         k = (driver, season) if o["scope"] == "season" else (driver,)
         a = by.setdefault(k, dict(n=0, w=0, t5=0, t10=0, poles=0, led=0, dnf=0, fsum=0))
         a["n"] += 1; a["fsum"] += finish; a["w"] += finish == 1; a["t5"] += finish <= 5; a["t10"] += finish <= 10
@@ -86,6 +89,8 @@ def main():
     stats = ["wins", "top5", "top10", "starts", "poles", "led", "dnf", "winpct", "t5pct", "t10pct", "avgfin"]
     cases = [dict(stat=s, scope=sc, **{"from": 2000, "to": 2005}, minStarts=ms, exactWins=ew, top=1000, explain=ex)
              for s, sc, ms, ew, ex in itertools.product(stats, ["career", "season"], [0, 25], [None, 1], [False])]
+    cases += [dict(stat=s, scope=sc, **{"from": 2000, "to": 2005}, minStarts=ms, exactWins=None, top=1000, explain=False, trackType=ty)
+              for s, sc, ms, ty in itertools.product(["wins", "top10", "avgfin", "winpct"], ["career", "season"], [0, 8], TYPES)]
     cases += [dict(stat="wins", scope="career", **{"from": 2002, "to": 2004}, minStarts=0, exactWins=None, top=1000, explain=True),
               dict(stat="avgfin", scope="season", **{"from": 2001, "to": 2003}, minStarts=10, exactWins=None, top=1000, explain=True)]
     checked = 0

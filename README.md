@@ -15,6 +15,13 @@ clicking a header and exports to CSV. The Driver history tab also exports a driv
 project's [results key](https://en.wikipedia.org/wiki/Template:NASCAR_driver_results_legend), and the quickbio career-results
 table (`wikitext.js`). You choose which seasons (table rows) to include. Track codes are mapped by hand; any it has to guess are flagged in a comment.
 
+**Track types.** Wherever you filter by track (the Track tab, the Driver tab's best tracks, the Leaders tab, and the query builder's `track_type` column) there is a
+type list: Superspeedway (plate), Long (over 1.5 mi), Intermediate (1.5-mile ovals), Road course, and Short track (1 mile and under). The type is decided per
+race, from its length and surface, in `track_types.py`: the plate tracks are Daytona and Talladega; "a mile" means up to 1.06 miles and "1.5" up to 1.55 (so
+Rockingham, New Hampshire and Atlanta count as a mile and a mile and a half); lengths between 1.06 and 1.5 (Darlington) are put in Intermediate. A race that
+contradicts its track (one Charlotte race recorded as a road course) takes the track's usual type. The Track tab also has "All ... tracks" to see a whole type
+together, and the Driver tab a By track type table.
+
 The Leaders tab has a **Show as SQL** panel: the SQL that gives the leaderboard on screen, written to be read and changed (each clause is explained
 if you leave that on), with a link that opens the same query in the query builder (`query/`, start it with `python query/serve_query.py`).
 `leaderssql.js` writes it; its tests run the generated SQL against a database and compare it with an independent leaderboard.
@@ -39,7 +46,7 @@ values, whether the points follow one table by finishing position or scale by ra
 and the champion by summed points). `--official FILE` also compares final totals with official standings.
 Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
 
-Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `node tests/test_leaderssql.js`, `python tests/test_leaderssql.py`, `python tests/test_shards.py` (needs pyarrow and node) and
+Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `node tests/test_leaderssql.js`, `python tests/test_leaderssql.py`, `python tests/test_track_types.py`, `python tests/test_shards.py` (needs pyarrow and node) and
 `python tests/test_audit_points.py` (needs pyarrow).
 
 ## Race-by-race standings (work in progress)
