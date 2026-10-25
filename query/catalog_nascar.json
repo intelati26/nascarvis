@@ -23,6 +23,7 @@
         "track":        {"label": "Track",           "type": "text",   "role": "dimension", "sql": "r.track"},
         "race_name":    {"label": "Race",            "type": "text",   "role": "dimension", "sql": "r.race_name"},
         "surface":      {"label": "Surface",         "type": "text",   "role": "dimension", "sql": "r.surface"},
+        "track_type":   {"label": "Track type",      "type": "text",   "role": "dimension", "sql": "r.track_type", "values": [{"value": "superspeedway", "label": "Superspeedway (plate)"}, {"value": "long", "label": "Long (over 1.5 mi)"}, {"value": "intermediate", "label": "Intermediate (1.5-mile ovals)"}, {"value": "road", "label": "Road course"}, {"value": "short", "label": "Short track (1 mile and under)"}]},
         "make":         {"label": "Manufacturer",    "type": "text",   "role": "dimension", "sql": "r.make"},
         "team":         {"label": "Team",            "type": "text",   "role": "dimension", "sql": "r.team"},
         "car":          {"label": "Car number",      "type": "text",   "role": "dimension", "sql": "r.car"},

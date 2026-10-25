@@ -205,13 +205,20 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
   <div class="card">
     <div class="tools"><button class="btn" data-csv="driver-best-tracks">CSV</button></div>
     <h2>Best tracks</h2><div class="sub">Tracks with at least 3 starts, ranked by average finish.</div>
+    <div class="controls" style="margin:6px 0"><label>Track type<select id="d-ttype"></select></label></div>
     <div class="tablewrap" style="max-height:360px"><table id="t-dtracks"></table></div>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="driver-by-type">CSV</button></div>
+    <h2>By track type</h2><div class="sub">Every start, grouped by the kind of track.</div>
+    <div class="tablewrap"><table id="t-dtype"></table></div>
   </div>
 </section>
 
 <!-- ============================ TRACK ============================ -->
 <section class="panel" id="p-track">
   <div class="controls">
+    <label>Track type<select id="k-type"></select></label>
     <label>Track<select id="k-track" style="min-width:280px"></select></label>
   </div>
   <div class="cards" id="k-cards"></div>
@@ -256,6 +263,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <label>To<select id="l-to"></select></label>
     <label>Min starts (rates)<input type="number" id="l-min" value="20" min="0" style="width:80px"></label>
     <label>Exactly N wins<input type="number" id="l-wins" placeholder="any" min="0" style="width:80px"></label>
+    <label>Track type<select id="l-ttype"></select></label>
     <label>Show<select id="l-top"><option>25</option><option selected>50</option><option>100</option><option>250</option></select></label>
   </div>
   <div class="sub" id="l-note"></div>
@@ -306,6 +314,10 @@ for (let i = 0; i < N; i++) {
 const seasons = [...rowsBySeason.keys()].sort((a,b)=>b-a);
 const dnf = i => D.status[i] !== undefined && D.statuses[D.status[i]] !== 'running';
 const drv = i => D.drivers[D.driver[i]];
+// track types are decided per race in track_types.py and shipped as D.ttype (an index into D.ttypes); D.trackTypes has the labels in display order
+const ttypeOf = i => D.ttypes[D.ttype[i]];
+const ttypeLabel = k => (D.trackTypes.find(t => t.key === k) || {label: '–'}).label;
+const typeOptions = all => [['', all], ...D.trackTypes.map(t => [t.key, t.label])];
 const nz = v => v == null ? 0 : v;
 const avg = a => { const b=a.filter(v=>v!=null); return b.length ? b.reduce((x,y)=>x+y,0)/b.length : null; };
 const f1 = v => v == null ? '' : v.toFixed(1);
@@ -404,7 +416,7 @@ function download(blob, name) {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-png],[data-csv]'); if (b) { b.dataset.png ? toPNG(b.dataset.png) : toCSV(b.dataset.csv); return; }
   const l = e.target.closest('[data-driver]'); if (l) { $('d-driver').value = l.dataset.driver; show('driver'); renderDriver(); }
-  const t = e.target.closest('[data-track]'); if (t) { $('k-track').value = t.dataset.track; show('track'); renderTrack(); }
+  const t = e.target.closest('[data-track]'); if (t) { $('k-type').value = ''; fillTrackList(); $('k-track').value = t.dataset.track; show('track'); renderTrack(); }
   const rr = e.target.closest('[data-race]'); if (rr) { const [s,n] = rr.dataset.race.split('-'); $('r-season').value=s; fillRaces(); $('r-race').value=n; show('race'); renderRace(); }
 });
 let titleFn = () => D.title;
@@ -676,14 +688,22 @@ function renderDriver() {
     {h:'Laps Led', k:r=>r.led}, {h:'DNF', k:r=>r.dnf}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
   ], seasonStats.slice().reverse(), {file:'driver-' + name.replace(/\W+/g,'_')});
   // best tracks
-  const byTrack = new Map(); rows.forEach(i => { const t=D.track[i]; if(!byTrack.has(t)) byTrack.set(t,[]); byTrack.get(t).push(i); });
+  const tsel = $('d-ttype').value;
+  const byTrack = new Map(); rows.filter(i => !tsel || ttypeOf(i) === tsel).forEach(i => { const t=D.track[i]; if(!byTrack.has(t)) byTrack.set(t,[]); byTrack.get(t).push(i); });
   const tr = [...byTrack.entries()].filter(([,v])=>v.length>=3).map(([t,v])=>{ const f=v.map(i=>D.finish[i]);
-    return {t, name:D.tracks[t], starts:v.length, wins:f.filter(x=>x===1).length, t5:f.filter(x=>x<=5).length, t10:f.filter(x=>x<=10).length, avgfin:avg(f), rating:avg(v.map(i=>D.rating[i]))}; })
+    const tc = new Map(); v.forEach(i => tc.set(ttypeOf(i), (tc.get(ttypeOf(i))||0)+1));
+    return {t, name:D.tracks[t], type:ttypeLabel([...tc.entries()].sort((a,b)=>b[1]-a[1])[0][0]), starts:v.length, wins:f.filter(x=>x===1).length, t5:f.filter(x=>x<=5).length, t10:f.filter(x=>x<=10).length, avgfin:avg(f), rating:avg(v.map(i=>D.rating[i]))}; })
     .sort((a,b)=>a.avgfin-b.avgfin);
   renderTable($('t-dtracks'), 'driver-best-tracks', [
-    {h:'Track', k:r=>r.name, l:1, html:r=>`<a data-track="${r.t}">${esc(r.name)}</a>`}, {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins},
+    {h:'Track', k:r=>r.name, l:1, html:r=>`<a data-track="${r.t}">${esc(r.name)}</a>`}, {h:'Type', k:r=>r.type, l:1}, {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins},
     {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10}, {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
   ], tr);
+  const byType = D.trackTypes.map(tt => { const v = rows.filter(i => ttypeOf(i) === tt.key); if (!v.length) return null; const f = v.map(i=>D.finish[i]);
+    return {type:tt.label, starts:v.length, wins:f.filter(x=>x===1).length, t5:f.filter(x=>x<=5).length, t10:f.filter(x=>x<=10).length, avgfin:avg(f), led:v.reduce((a,i)=>a+nz(D.led[i]),0), rating:avg(v.map(i=>D.rating[i]))}; }).filter(Boolean);
+  renderTable($('t-dtype'), 'driver-by-type', [
+    {h:'Track type', k:r=>r.type, l:1}, {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins}, {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10},
+    {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Laps Led', k:r=>r.led}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
+  ], byType);
   lastDriver = {name, bySeason, seasonStats}; renderWikiYears(); renderWikitext();
 }
 // ---- Wikipedia export (wikitext.js builds the text; this only turns the dashboard's data into its input)
@@ -760,12 +780,26 @@ function renderDriverForm(name, bySeason) {
 }
 $('d-driver').onchange = renderDriver;
 $('d-metric').onchange = renderDriver;
+$('d-ttype').onchange = renderDriver;
 $('d-season').onchange = () => { const name=$('d-driver').value; const by=new Map(); driverRows(name).forEach(i=>{const s=D.season[i]; if(!by.has(s)) by.set(s,[]); by.get(s).push(i);}); renderDriver(); };
 
 // ============================================================ TRACK
+// The track list follows the type filter; with a type chosen, "All <type> tracks" shows every race of that type together.
+function fillTrackList() {
+  const type = $('k-type').value, cur = $('k-track').value, cnt = new Map(), seenRace = new Set();
+  for (let i = 0; i < N; i++) {
+    if (type && ttypeOf(i) !== type) continue;
+    const k = D.season[i] * 100 + D.race[i]; if (seenRace.has(k)) continue; seenRace.add(k);
+    cnt.set(D.track[i], (cnt.get(D.track[i]) || 0) + 1);
+  }
+  const items = [...cnt.entries()].sort((a, b) => b[1] - a[1]).map(([i, n]) => [i, `${D.tracks[i]} (${n} races)`]);
+  if (type) items.unshift(['-1', `All ${ttypeLabel(type)} tracks (${seenRace.size} races)`]);
+  fillSelect($('k-track'), items, items.some(x => String(x[0]) === cur) ? cur : items[0][0]);
+}
 function renderTrack() {
-  const ti = +$('k-track').value, tname = D.tracks[ti];
-  const rows = []; for (let i=0;i<N;i++) if (D.track[i]===ti) rows.push(i);
+  const type = $('k-type').value, ti = +$('k-track').value, all = ti < 0, tname = all ? `All ${ttypeLabel(type)} tracks` : D.tracks[ti];
+  const rows = []; for (let i=0;i<N;i++) if ((all || D.track[i]===ti) && (!type || ttypeOf(i)===type)) rows.push(i);
+  if (!rows.length) return;
   const winners = rows.filter(i=>D.finish[i]===1).sort((a,b)=>D.season[b]-D.season[a]||D.race[b]-D.race[a]);
   const stat = (k,v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
   titleFn = () => tname;
@@ -773,10 +807,12 @@ function renderTrack() {
   const racesHere = new Set(rows.map(i=>D.season[i]*100+D.race[i])).size;
   const wc = new Map(); winners.forEach(i => wc.set(D.driver[i], (wc.get(D.driver[i])||0)+1));
   const topW = [...wc.entries()].sort((a,b)=>b[1]-a[1]);
-  const len = D.length[rows[0]];
+  const lens = [...new Set(rows.map(i=>D.length[i]).filter(v=>v!=null))].sort((a,b)=>a-b);
+  const lenText = !lens.length ? '–' : lens.length === 1 ? lens[0] + ' mi' : `${lens[0]}–${lens[lens.length-1]} mi`;
+  const surf = [...new Set(rows.map(i=>D.surfaces[D.surface[i]]).filter(Boolean))], types = [...new Set(rows.map(ttypeOf))];
   const sp = winners.map(i=>D.start[i]).filter(v=>v!=null);
-  $('k-cards').innerHTML = stat('Races', racesHere) + stat('Years', `${yrs[0]}–${yrs[yrs.length-1]}`) + stat('Length', len ? len+' mi' : '–') +
-    stat('Surface', esc(D.surfaces[D.surface[rows[0]]]||'–')) + stat('Most wins', topW.length ? `${driverLink(D.drivers[topW[0][0]])} (${topW[0][1]})` : '–') +
+  $('k-cards').innerHTML = stat('Races', racesHere) + stat('Years', `${yrs[0]}–${yrs[yrs.length-1]}`) + stat('Length', lenText) +
+    stat('Surface', esc(surf.join(' / ') || '–')) + stat('Type', types.length === 1 ? esc(ttypeLabel(types[0])) : 'mixed') + stat('Most wins', topW.length ? `${driverLink(D.drivers[topW[0][0]])} (${topW[0][1]})` : '–') +
     stat('Avg winner start', sp.length ? f1(avg(sp)) : '–') + stat('Pole winners', winners.filter(i=>D.start[i]===1).length) +
     stat('Avg DNFs / race', f1(rows.filter(dnf).length / racesHere));
   const t = themeColors(), top = topW.slice(0,12);
@@ -802,6 +838,7 @@ function renderTrack() {
   ], dr);
 }
 $('k-track').onchange = renderTrack;
+$('k-type').onchange = () => { fillTrackList(); renderTrack(); };
 
 // ============================================================ LEADERS
 // Career or single-season leaders for any stat, computed from the loaded results.
@@ -817,10 +854,11 @@ const LSTATS = {
 function leaderRows() {
   const S = LSTATS[$('l-stat').value], bySeason = $('l-scope').value === 'season';
   const from = +$('l-from').value, to = +$('l-to').value, minStarts = +$('l-min').value || 0;
-  const exactW = $('l-wins').value === '' ? null : +$('l-wins').value;
+  const exactW = $('l-wins').value === '' ? null : +$('l-wins').value, tt = $('l-ttype').value;
   const agg = new Map();
   for (let i = 0; i < N; i++) {
     const se = D.season[i]; if (se < from || se > to) continue;
+    if (tt && ttypeOf(i) !== tt) continue;
     const k = bySeason ? D.driver[i] * 10000 + se : D.driver[i];
     let a = agg.get(k);
     if (!a) agg.set(k, a = {d:D.driver[i], season:bySeason ? se : null, n:0, w:0, t5:0, t10:0, poles:0, led:0, dnf:0, fsum:0, first:se, last:se});
@@ -834,13 +872,13 @@ function leaderRows() {
   out.sort((x, y) => (S.low ? x.val - y.val : y.val - x.val) || y.n - x.n);
   let rank = 0, prev = null;                       // ties share a rank: 1, 2, 2, 4
   out.forEach((a, k) => { if (a.val !== prev) { rank = k + 1; prev = a.val; } a.rank = rank; });
-  return {S, bySeason, from, to, minStarts, exactW, rows: out};
+  return {S, bySeason, from, to, minStarts, exactW, tt, rows: out};
 }
 function renderLeaders() {
   const r = leaderRows(), top = +$('l-top').value, latest = seasons[0];
   const lead = r.rows.slice(0, top), S = r.S;
-  titleFn = () => `${S.label} leaders, ${r.bySeason ? 'single season' : 'career'} ${r.from}–${r.to}`;
-  $('l-title').textContent = `${S.label} — ${r.bySeason ? 'single season' : 'career'}, ${r.from}–${r.to}` + (r.exactW != null ? `, exactly ${r.exactW} win${r.exactW===1?'':'s'}` : '');
+  titleFn = () => `${S.label} leaders, ${r.bySeason ? 'single season' : 'career'} ${r.from}–${r.to}` + (r.tt ? `, ${ttypeLabel(r.tt)}` : '');
+  $('l-title').textContent = `${S.label} — ${r.bySeason ? 'single season' : 'career'}, ${r.from}–${r.to}` + (r.exactW != null ? `, exactly ${r.exactW} win${r.exactW===1?'':'s'}` : '') + (r.tt ? `, ${ttypeLabel(r.tt)}` : '');
   $('l-note').textContent = `${r.rows.length.toLocaleString()} ${r.bySeason ? 'driver-seasons' : 'drivers'} match; showing ${lead.length}. ` +
     (S.rate ? `Rate stats need at least ${r.minStarts} starts. ` : '') +
     `Poles count starts from P1 (penalties and rain-outs can differ).` +
@@ -860,7 +898,7 @@ function renderLeaders() {
 function renderLeadersSql() {
   if (!$('l-sql').open) return;
   const g = NASCARSql.leaders({stat: $('l-stat').value, scope: $('l-scope').value, from: +$('l-from').value, to: +$('l-to').value, minStarts: +$('l-min').value || 0,
-    exactWins: $('l-wins').value === '' ? null : +$('l-wins').value, top: +$('l-top').value, explain: $('l-sqlexplain').checked});
+    exactWins: $('l-wins').value === '' ? null : +$('l-wins').value, top: +$('l-top').value, explain: $('l-sqlexplain').checked, trackType: $('l-ttype').value});
   $('l-sqltext').value = g.sql; $('l-sqlopen').href = NASCARSql.builderUrl(g.spec);
 }
 $('l-sql').ontoggle = renderLeadersSql; $('l-sqlexplain').onchange = renderLeadersSql;
@@ -869,7 +907,7 @@ $('l-sqlcopy').onclick = async () => {
   try { await navigator.clipboard.writeText($('l-sqltext').value); } catch (e) { $('l-sqltext').select(); document.execCommand('copy'); }
   b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500);
 };
-['l-stat','l-scope','l-from','l-to','l-min','l-wins','l-top'].forEach(id => $(id).onchange = renderLeaders);
+['l-stat','l-scope','l-from','l-to','l-min','l-wins','l-top','l-ttype'].forEach(id => $(id).onchange = renderLeaders);
 ['l-min','l-wins'].forEach(id => $(id).oninput = renderLeaders);
 
 // ============================================================ init
@@ -886,8 +924,8 @@ fillSelect($('r-season'), seasons.map(s=>[s,s]), seasons[0]); fillRaces();
 const startCount = new Array(D.drivers.length).fill(0); for (let i=0;i<N;i++) startCount[D.driver[i]]++;
 $('d-list').innerHTML = D.drivers.map(d=>`<option value="${esc(d)}">`).join('');
 const cur = standings(seasons[0]); $('d-driver').value = [...cur.drivers].sort((a,b)=>(cur.rank.get(a).at(-1)??999)-(cur.rank.get(b).at(-1)??999))[0];
-const trackCount = new Array(D.tracks.length).fill(0), seen = new Set(); for (let i=0;i<N;i++){ const k=D.season[i]*100+D.race[i]; if(!seen.has(k)){seen.add(k); trackCount[D.track[i]]++;} }
-fillSelect($('k-track'), D.tracks.map((t,i)=>[i,t]).filter(([i])=>trackCount[i]).sort((a,b)=>trackCount[b[0]]-trackCount[a[0]]).map(([i,t])=>[i,`${t} (${trackCount[i]} races)`]));
+fillSelect($('k-type'), typeOptions('All track types'), ''); fillSelect($('d-ttype'), typeOptions('All track types'), ''); fillSelect($('l-ttype'), typeOptions('All track types'), '');
+fillTrackList();
 const asc = seasons.slice().sort((a,b)=>a-b);
 fillSelect($('l-from'), asc.map(s=>[s,s]), asc[0]); fillSelect($('l-to'), asc.map(s=>[s,s]), asc[asc.length-1]);
 renderSeason();

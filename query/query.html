@@ -117,7 +117,9 @@ function renderFilterRows(el, list, kind) {            // kind: 'row' (column) o
     const isParam = 'param' in f;
     return `<div class="row" data-i="${i}">${target}<select data-k="op">${opOpts(f.op)}</select>
       <select data-k="src"><option value="value" ${isParam ? '' : 'selected'}>value</option><option value="param" ${isParam ? 'selected' : ''}>parameter</option></select>
-      ${isParam ? `<select data-k="param">${paramOpts(f.param)}</select>` : `<input data-k="value" size="9" value="${esc(listVal(f.value))}" placeholder="${f.op === 'between' ? 'low, high' : f.op === 'in' ? 'a, b, c' : 'value'}">`}
+      ${isParam ? `<select data-k="param">${paramOpts(f.param)}</select>` : kind === 'row' && SUBJ.columns[f.field]?.values && (f.op === '=' || f.op === '!=')
+        ? `<select data-k="value"><option value="">choose&hellip;</option>${SUBJ.columns[f.field].values.map(v => `<option value="${esc(v.value)}" ${v.value === f.value ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select>`
+        : `<input data-k="value" size="9" value="${esc(listVal(f.value))}" placeholder="${f.op === 'between' ? 'low, high' : f.op === 'in' ? 'a, b, c' : 'value'}">`}
       <button class="x" data-del="${i}" title="remove">&times;</button></div>`;
   }).join('');
   el.onchange = el.oninput = e => {
