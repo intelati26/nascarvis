@@ -89,4 +89,7 @@ Lap times exist in NASCAR's feed from **2020**; for 2015 to 2019 its lap files d
 without it `fetch_lap_times.py` reads the same public JSON feed through `nascar_feed.py` (needs only `requests`). The query database (`python query/build_db.py`) loads these files
 into a `laps` table; see `query/README.md`.
 
+Loop statistics (one row per driver per race: running positions, green-flag and quality passes, fast laps, driver rating) come from `python fetch_loop_stats.py --from 2015`. NASCAR's feed
+has them for **2019 onward** only (2015 and 2016 are empty, 2017 and 2018 are missing); the query database loads them as a `loop_stats` table, described in `query/README.md`.
+
 The output is designed for later dashboard or analysis work without requiring an internet connection at runtime. For the current dashboard, the summary race files remain the fast default; lap-by-lap data is loaded only when you specifically want it.

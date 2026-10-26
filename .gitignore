@@ -6,6 +6,7 @@ results_*.csv
 fastest_laps.csv
 race_events.csv
 lap_times_*.parquet
+loop_stats_*.parquet
 lap_data/
 lap_data_sample.txt
 dashboard.html

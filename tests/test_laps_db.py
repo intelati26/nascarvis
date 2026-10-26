@@ -30,6 +30,10 @@ def main():
     assert pairs == {17: 17} and len(skipped) == 1 and skipped[0][0] == 31, (pairs, skipped)
     pairs, skipped = b.align_races([(5, "Atlanta Motor Speedway")], [(5, "EchoPark Speedway")], {"EchoPark Speedway": "Atlanta Motor Speedway"})
     assert pairs == {5: 5}, "the 2026 name of Atlanta"
+    pairs, skipped = b.align_races([(4, "ISM Raceway"), (35, "ISM Raceway")], [(4, "Phoenix Raceway"), (35, "Phoenix Raceway")], b.LAP_TRACK_ALIAS)
+    assert pairs == {4: 4, 35: 35} and not skipped, "the feed's 2019 name for Phoenix, two races"
+    pairs, skipped = b.align_races([(4, "Phoenix Raceway")], [(4, "Phoenix Raceway")], b.LAP_TRACK_ALIAS)
+    assert pairs == {4: 4}, "an alias does not break the plain name"
     print("align_races: moved races, repeated tracks, exact over shared word, aliases, skipped OK")
 
     # ---- load_laps on a small database and a fixture lap file
@@ -66,6 +70,36 @@ def main():
     out = b.load_laps(con2, os.path.join(d, "empty"))
     assert out["rows"] == 0 and con2.execute("SELECT COUNT(*) FROM laps").fetchone()[0] == 0
     print("no lap files: an empty laps table OK")
+
+    # ---- loop statistics: no driver name in the feed, so rows are tied to results by finishing position and checked against the start position or the lap count
+    con3 = sqlite3.connect(os.path.join(d, "t3.db"))
+    con3.execute("CREATE TABLE results (season INT, race INT, driver TEXT, track TEXT, car TEXT, finish INT, start INT, laps INT)")
+    con3.executemany("INSERT INTO results VALUES (?,?,?,?,?,?,?,?)", [
+        (2019, 1, "Joey Logano", "Daytona International Speedway", "22", 1, 10, 207), (2019, 1, "Denny Hamlin", "Daytona International Speedway", "11", 2, 3, 207),
+        (2019, 1, "Ricky Stenhouse Jr.", "Daytona International Speedway", "17", 3, 8, 150),
+        (2019, 2, "Joey Logano", "Atlanta Motor Speedway", "22", 1, 1, 325), (2019, 2, "Denny Hamlin", "Atlanta Motor Speedway", "11", 2, 2, 325)])
+    base = dict(mid_ps=5, closing_ps=1, closing_laps_diff=0, best_ps=1, worst_ps=20, avg_ps=12.5, passes_gf=100, passing_diff=10, passed_gf=90, quality_passes=50, fast_laps=2, top15_laps=100, lead_laps=30, rating=88.5)
+    rows = [dict(season=2019, race_num=1, race_id=4773, track_name="Daytona International Speedway", race_name="x", driver_id=1361, start_ps=10, ps=1, laps=207, **base),
+            dict(season=2019, race_num=1, race_id=4773, track_name="Daytona International Speedway", race_name="x", driver_id=1200, start_ps=3, ps=2, laps=207, **base),
+            dict(season=2019, race_num=1, race_id=4773, track_name="Daytona International Speedway", race_name="x", driver_id=999, start_ps=30, ps=3, laps=10, **base),   # neither start nor laps agree
+            dict(season=2019, race_num=3, race_id=4775, track_name="Atlanta Motor Speedway", race_name="x", driver_id=1361, start_ps=1, ps=1, laps=325, **base),            # the feed's race 3 is results race 2
+            dict(season=2019, race_num=3, race_id=4775, track_name="Atlanta Motor Speedway", race_name="x", driver_id=777, start_ps=9, ps=2, laps=325, **base),             # same lap count as the results' 2nd place, but not his start: stays unmatched
+            dict(season=2019, race_num=3, race_id=4775, track_name="Atlanta Motor Speedway", race_name="x", driver_id=1200, start_ps=2, ps=5, laps=320, **base),           # finish moved by a penalty: his driver_id (learned in race 1) names him
+            dict(season=2019, race_num=2, race_id=4774, track_name="Phoenix Raceway", race_name="x", driver_id=1361, start_ps=1, ps=1, laps=312, **base)]            # no Phoenix race in the results
+    pd.DataFrame(rows).to_parquet(os.path.join(d, "loop_stats_2019.parquet"), index=False)
+    out = b.load_loop_stats(con3, d)
+    got = con3.execute("SELECT season, race, driver, driver_id, ps, start_ps, rating FROM loop_stats ORDER BY race, ps").fetchall()
+    assert out["races"] == 2 and out["rows"] == len(got) == 6, out
+    assert got == [(2019, 1, "Joey Logano", 1361, 1, 10, 88.5), (2019, 1, "Denny Hamlin", 1200, 2, 3, 88.5), (2019, 1, None, 999, 3, 30, 88.5),
+                   (2019, 2, "Joey Logano", 1361, 1, 1, 88.5), (2019, 2, None, 777, 2, 9, 88.5), (2019, 2, "Denny Hamlin", 1200, 5, 2, 88.5)], got
+    assert out["renumbered"] == [(2019, 3, 2)] and [s[:2] for s in out["skipped"]] == [(2019, 2)], out
+    assert abs(out["matched"] - 4 / 6) < 1e-9, "four of the six rows are tied to a driver"
+    assert con3.execute("SELECT COUNT(*) FROM loop_stats l JOIN results r ON r.season = l.season AND r.race = l.race AND r.driver = l.driver").fetchone()[0] == 4, "joins to results"
+    con4 = sqlite3.connect(os.path.join(d, "t4.db"))
+    con4.execute("CREATE TABLE results (season INT, race INT, driver TEXT, track TEXT, car TEXT, finish INT, start INT, laps INT)")
+    out = b.load_loop_stats(con4, os.path.join(d, "empty"))
+    assert out["rows"] == 0 and con4.execute("SELECT COUNT(*) FROM loop_stats").fetchone()[0] == 0
+    print("load_loop_stats: tied by driver_id learned from finish+start, a moved finish still named, a lap-count coincidence left NULL, renumbered and skipped races, empty table OK")
 
 
 if __name__ == "__main__":

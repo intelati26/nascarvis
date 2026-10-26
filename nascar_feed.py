@@ -7,6 +7,7 @@ It has the two calls the lap exporters need, with the same names as the nascar-a
     repo.get_lap_times(2024, 1, race_id=5273)        # one dict per driver: full_name, number, manufacturer, driver_id, laps = [{lap, lap_time, lap_speed, position}]
 
 The feed has lap-by-lap times from 2020; before that its lap-times files do not exist (a request is answered 403 Access Denied) and get_lap_times returns [].
+Loop statistics (get_loop_stats) are patchier: 2015 and 2016 answer 200 with a JSON null, 2017 and 2018 are 403, and real data starts in 2019. Null, empty and missing are all None here.
 Be polite: one request at a time with a pause, and a descriptive user agent."""
 import time
 
@@ -48,6 +49,12 @@ class HttpNascarRepo:
     def get_races(self, year, series=1):
         data = self.safe_get(f"{DOMAIN}/{year}/race_list_basic.json")
         return (data or {}).get(f"series_{int(getattr(series, 'value', series))}", [])
+
+    def get_loop_stats(self, year, series=1, race_id=None):
+        """One race's loop statistics: {race_id, race_name, sch_laps, act_laps, drivers: [one dict per driver: driver_id, start_ps, mid_ps, ps, ...]}, or None when the feed has none."""
+        data = self.safe_get(f"https://cf.nascar.com/loopstats/prod/{year}/{int(getattr(series, 'value', series))}/{race_id}.json")
+        race = data[0] if isinstance(data, list) and data else None
+        return race if isinstance(race, dict) and race.get("drivers") else None
 
     def get_lap_times(self, year, series=1, race_id=None):
         data = self.safe_get(f"{DOMAIN}/{year}/{int(getattr(series, 'value', series))}/{race_id}/lap-times.json")

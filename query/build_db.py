@@ -4,6 +4,10 @@
 Tables
   results      one row per driver per race (the `driver_race` subject); track_type is the race's type (superspeedway, long, intermediate, road, short; see track_types.py)
   season_info  season, races, last_race, is_partial (1 for the newest season in the data)
+  loop_stats   one row per driver per race of NASCAR's loop statistics (position at the start, middle and finish, average and worst running position, green-flag passes, quality passes,
+               fast laps, laps in the top 15, laps led, driver rating), from the loop_stats_<season>.parquet files fetch_loop_stats.py writes. The feed names no driver, so a row is tied to
+               `results` by its NASCAR driver_id (learned from rows where finish and start both agree), else by finish and start; `driver` is NULL where neither works. Only the seasons the feed has
+               (see fetch_loop_stats.py) are there.
   laps         one row per driver per lap (season, race, driver, driver_id, car, lap, lap_time, lap_speed, position), from the lap_times_<season>.parquet files that
                fetch_lap_times.py writes (NASCAR's feed has them from 2020). `driver` is the name used in `results`, matched through the car number, so the tables join on
                (season, race, driver). Races are paired with the results by track, within a season (the feed numbers races by date); a race with no match is skipped and reported. Without those files the table exists but is empty.
@@ -37,7 +41,7 @@ _norm = lambda s: re.sub(r"[^a-z]", "", str(s).lower())
 _name = lambda s: _norm(re.sub(r"\(.*?\)|\b(?:jr|sr|ii|iii|iv)\b\.?", "", str(s), flags=re.I))
 
 
-LAP_TRACK_ALIAS = {"Naval Base Coronado": "San Diego Street Course"}      # the same race under two names (results / the lap feed)
+LAP_TRACK_ALIAS = {"San Diego Street Course": "Naval Base Coronado", "ISM Raceway": "Phoenix Raceway"}      # one track under two names (the feed and the results); both sides are mapped to the right-hand name
 
 
 def align_races(feed, results, alias=None):
@@ -48,7 +52,7 @@ def align_races(feed, results, alias=None):
     free, pairs, skipped = sorted(results), {}, []
     for fnum, ftrack in sorted(feed):
         key = lambda t: _norm(alias.get(t, t))
-        cands = [r for r in free if key(r[1]) == _norm(ftrack)] or [r for r in free if _words(alias.get(r[1], r[1])) & _words(ftrack)]
+        cands = [r for r in free if key(r[1]) == key(ftrack)] or [r for r in free if _words(alias.get(r[1], r[1])) & _words(alias.get(ftrack, ftrack))]
         if not cands:
             skipped.append((fnum, f"no race at {ftrack} left in the results" if any(_words(ftrack) & _words(alias.get(r[1], r[1])) for r in results) else f"no race at {ftrack} in the results"))
             continue
@@ -95,6 +99,66 @@ def load_laps(con, laps_dir, alias=None, log=print):
     return out
 
 
+LOOP_COLS = ["start_ps", "mid_ps", "ps", "closing_ps", "closing_laps_diff", "best_ps", "worst_ps", "avg_ps", "passes_gf", "passing_diff", "passed_gf", "quality_passes",
+             "fast_laps", "top15_laps", "lead_laps", "laps", "rating"]
+
+
+def load_loop_stats(con, loop_dir, alias=None):
+    """Create and fill the `loop_stats` table from loop_stats_<season>.parquet in loop_dir. Needs `results` to exist.
+    Returns {rows, races, skipped: [(season, feed race, why)], renumbered, matched} where matched is the share of rows tied to a results driver."""
+    import pandas as pd
+    alias = {**LAP_TRACK_ALIAS, **(alias or {})}
+    con.executescript("""
+        CREATE TABLE loop_stats (season INTEGER, race INTEGER, driver TEXT, driver_id INTEGER, start_ps INTEGER, mid_ps INTEGER, ps INTEGER, closing_ps INTEGER, closing_laps_diff INTEGER,
+          best_ps INTEGER, worst_ps INTEGER, avg_ps REAL, passes_gf INTEGER, passing_diff INTEGER, passed_gf INTEGER, quality_passes INTEGER, fast_laps INTEGER, top15_laps INTEGER,
+          lead_laps INTEGER, laps INTEGER, rating REAL);
+        CREATE INDEX loop_stats_race ON loop_stats(season, race, driver);
+        CREATE INDEX loop_stats_driver ON loop_stats(driver, season);""")
+    out = {"rows": 0, "races": 0, "skipped": [], "renumbered": [], "matched": 0}
+    files = sorted(glob.glob(os.path.join(loop_dir, "loop_stats_[0-9][0-9][0-9][0-9].parquet")))
+    if not files: return out
+    res = {}                                           # (season, race) -> [track, {finish: (driver, start, laps)}]
+    for season, race, driver, track, finish, start, laps in con.execute("SELECT season, race, driver, track, finish, start, laps FROM results"):
+        res.setdefault((season, race), [track, {}])[1][finish] = (driver, start, laps)
+    matched = total = 0
+    for path in files:
+        df = pd.read_parquet(path)
+        for season in sorted(int(s) for s in df["season"].unique()):
+            ds = df[df["season"] == season]
+            feed = [(int(n), str(t)) for n, t in ds.groupby("race_num")["track_name"].first().items()]
+            pairs, skipped = align_races(feed, [(r, v[0]) for (s, r), v in res.items() if s == season], alias)
+            out["skipped"] += [(season, n, why) for n, why in skipped]
+            out["renumbered"] += [(season, f, r) for f, r in pairs.items() if f != r]
+            # The feed names no driver. Pass 1: a row whose finishing position AND start position both agree with the results is certainly that driver; the most common
+            # name for each NASCAR driver_id in the season is kept. Pass 2: a row takes its driver_id's name when that driver is in the race's results, else the driver
+            # at the same finish with the same start; anything else stays NULL (a finish moved by a post-race penalty, say).
+            races = {fnum: (race, ds[ds["race_num"] == fnum].to_dict("records")) for fnum, race in sorted(pairs.items())}
+            votes = {}
+            for race, recs in races.values():
+                for rec in recs:
+                    hit = res[(season, race)][1].get(rec["ps"])
+                    if hit and hit[1] is not None and hit[1] == rec["start_ps"]:
+                        votes.setdefault(rec["driver_id"], {}).setdefault(hit[0], 0)
+                        votes[rec["driver_id"]][hit[0]] += 1
+            ident = {i: max(v, key=v.get) for i, v in votes.items()}
+            for race, recs in races.values():
+                in_race = {v[0] for v in res[(season, race)][1].values()}
+                rows = []
+                for rec in recs:
+                    hit = res[(season, race)][1].get(rec["ps"])
+                    name = ident.get(rec["driver_id"])
+                    if name not in in_race:
+                        name = hit[0] if hit and hit[1] is not None and hit[1] == rec["start_ps"] else None
+                    rows.append([season, race, name, rec["driver_id"]] + [rec[c] for c in LOOP_COLS])
+                    total += 1; matched += name is not None
+                con.executemany("INSERT INTO loop_stats VALUES (" + ",".join("?" * (4 + len(LOOP_COLS))) + ")",
+                                [[None if (isinstance(v, float) and v != v) else (v.item() if hasattr(v, "item") else v) for v in r] for r in rows])
+                out["rows"] += len(rows); out["races"] += 1
+    out["matched"] = matched / total if total else 0
+    con.commit()
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default=os.path.join(ROOT, "cup_series.parquet"))
@@ -102,6 +166,8 @@ def main():
     ap.add_argument("--from", dest="first", type=int, default=1949)
     ap.add_argument("--laps-dir", default=ROOT, help="folder with lap_times_<season>.parquet (python fetch_lap_times.py --season 2024); default: the repository root")
     ap.add_argument("--no-laps", action="store_true", help="leave the laps table empty")
+    ap.add_argument("--loop-dir", default=ROOT, help="folder with loop_stats_<season>.parquet (python fetch_loop_stats.py); default: the repository root")
+    ap.add_argument("--no-loop", action="store_true", help="leave the loop_stats table empty")
     a = ap.parse_args()
 
     bd = load_build_dashboard()
@@ -153,6 +219,14 @@ def main():
         for s, r, why in lp["skipped"]: print(f"  skipped laps for {s} (feed race {r}): {why}")
     else:
         print("laps: no lap_times_<season>.parquet files found (python fetch_lap_times.py --season 2024), so the laps table is empty")
+    ls = load_loop_stats(con, "/nonexistent" if a.no_loop else a.loop_dir, alias=bd.track_types.ALIAS)
+    if ls["races"]:
+        yrs = con.execute("SELECT MIN(season), MAX(season), COUNT(DISTINCT season) FROM loop_stats").fetchone()
+        print(f"loop stats: {ls['rows']:,} rows in {ls['races']} races, {yrs[2]} seasons ({yrs[0]}-{yrs[1]}); {100 * ls['matched']:.1f}% of rows tied to a results driver")
+        for s, f, r in ls["renumbered"]: print(f"  loop stats for {s}: the feed's race {f} is race {r} in the results (matched by track)")
+        for s, r, why in ls["skipped"]: print(f"  skipped loop stats for {s} (feed race {r}): {why}")
+    else:
+        print("loop stats: no loop_stats_<season>.parquet files found (python fetch_loop_stats.py), so the loop_stats table is empty")
     n = con.execute("SELECT COUNT(*), MIN(season), MAX(season) FROM results").fetchone()
     con.close()
     print(f"wrote {a.out}: {n[0]:,} rows, seasons {n[1]}-{n[2]}, {os.path.getsize(a.out)/1e6:.1f} MB")

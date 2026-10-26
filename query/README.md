@@ -60,6 +60,33 @@ WHERE r.track = 'Talladega Superspeedway' AND l.lap_time BETWEEN 10 AND 500
 ORDER BY l.lap_time LIMIT 5;
 ```
 
+## The loop_stats table
+
+NASCAR's loop statistics, one row per driver per race, from `python fetch_loop_stats.py` (`loop_stats_<season>.parquet` in the repository root, loaded by `build_db.py` like the laps).
+Columns: `season, race, driver, driver_id` and then `start_ps, mid_ps, ps, closing_ps` (running position at the start, halfway, the finish and the closing laps), `best_ps, worst_ps, avg_ps`
+(over the race), `passes_gf, passed_gf, passing_diff` (green-flag passes made, times passed, the difference), `quality_passes` (passes of a car in the top 15), `fast_laps`, `top15_laps`,
+`lead_laps`, `laps` and `rating` (NASCAR's driver rating for the race). `driver` is the name used in `results`; the feed names no driver, only a NASCAR `driver_id`, so a row is tied to
+`results` through that id (learned from rows whose finish and start both agree), and the table joins to `results` on `(season, race, driver)`.
+
+**Coverage: 2019 to 2026, 10,672 rows in 282 races (2026 through race 30).** NASCAR's feed has no loop statistics before that: 2015 and 2016 answer with a JSON null, 2017 and 2018 do not
+exist (the race list itself starts in 2015, and a sample of 2014 race ids answered null or "Access Denied"). I found no public archive of earlier per-race loop data; the sport has had loop data
+since 2005, but the sites that show it are blocked to scrapers or give season summaries only. Note that a request answered "200" can still be empty, so coverage here counts real rows only.
+
+Checks against `results` (10,670 tied rows): `rating` matches nascaR.data's `Rating` within 0.1 in 99.5%, `lead_laps` equals `led` in 99.9%, `laps` equals `laps` and `start_ps` equals
+`start` in 100%. In 366 rows (3.4%) `ps` differs from the results' `finish`. These are races where a driver was moved to the back after the flag and everyone behind him moved up a place: the loop
+feed keeps the running order and nascaR.data the official finish. Examples: Jimmie Johnson in 2020 race 7 at Charlotte (2nd to 40th, status disqualified), Denny Hamlin in 2022 race 21 at Pocono
+(1st to 35th), Kevin Harvick in 2023 race 31 at Talladega (2nd to 38th). So the table also shows where the official order was altered.
+`fast_laps` does not equal "laps fastest of all cars" recomputed from `laps` (28% exact), so it is NASCAR's own definition: use it as given.
+
+```sql
+-- best average driver rating in 2024, 20 or more starts
+SELECT driver, ROUND(AVG(rating), 1) AS avg_rating, COUNT(*) AS races, SUM(lead_laps) AS laps_led FROM loop_stats WHERE season = 2024 GROUP BY driver HAVING races >= 20 ORDER BY avg_rating DESC LIMIT 5;
+
+-- races where the loop feed and the results disagree about the finishing order
+SELECT l.season, l.race, COUNT(*) AS drivers_moved FROM loop_stats l JOIN results r ON r.season = l.season AND r.race = l.race AND r.driver = l.driver
+WHERE l.ps <> r.finish GROUP BY l.season, l.race ORDER BY drivers_moved DESC LIMIT 5;
+```
+
 ## Recorded in a spec but not implemented yet
 
 `window` (named time scopes such as last N days), `relations` (parameterized SQL templates), `companions` (follow-up queries for

@@ -73,6 +73,19 @@ def main():
         assert len(dead.calls) == 3, "gives up after three tries"
     print("client: series, missing files, parsing, retries OK")
 
+    # ---- loop statistics: real data, a JSON null (the feed's answer for 2015 and 2016), an empty race and a missing file are told apart from each other by None
+    LOOP = {"loop": [{"race_id": 11, "race_name": "Daytona 500", "series_id": 1, "sch_laps": 200, "act_laps": 207,
+                       "drivers": [{"driver_id": 1361, "start_ps": 10, "ps": 1, "laps": 207, "rating": 87.52}, {"driver_id": 1200, "start_ps": 3, "ps": 2, "laps": 207, "rating": 101.0}]}]}
+    s = FakeSession({"https://cf.nascar.com/loopstats/prod/2024/1/11.json": Resp(200, LOOP["loop"]), "https://cf.nascar.com/loopstats/prod/2015/1/4382.json": Resp(200, [None]),
+                     "https://cf.nascar.com/loopstats/prod/2016/1/1.json": Resp(200, []), "https://cf.nascar.com/loopstats/prod/2017/1/2.json": Resp(403),
+                     "https://cf.nascar.com/loopstats/prod/2018/1/3.json": Resp(200, [{"race_id": 3, "drivers": []}])})
+    repo = nascar_feed.HttpNascarRepo(delay=0, session=s)
+    got = repo.get_loop_stats(2024, 1, race_id=11)
+    assert got["race_name"] == "Daytona 500" and [d["ps"] for d in got["drivers"]] == [1, 2]
+    assert repo.get_loop_stats(2015, 1, race_id=4382) is None, "a null entry is no data"
+    assert repo.get_loop_stats(2016, 1, race_id=1) is None and repo.get_loop_stats(2017, 1, race_id=2) is None and repo.get_loop_stats(2018, 1, race_id=3) is None, "empty list, 403 and a race with no drivers are no data"
+    print("loop statistics: real, null, empty and missing OK")
+
     # ---- fetch_lap_times.py end to end on the fake feed: races are numbered by date among completed points races
     import pandas as pd
     import fetch_lap_times
@@ -89,6 +102,21 @@ def main():
     fetch_lap_times.run(nascar_feed.HttpNascarRepo(delay=0, session=FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, RACES)})), 1, a)
     assert len(pd.read_parquet(out)) == 3, "races already in the file are not fetched again"
     print("exporter: numbering, skipped events, cleaned rows, incremental rerun OK")
+
+    # ---- fetch_loop_stats.py: races numbered like the lap exporter, races without loop statistics counted and left out, the columns the loader reads
+    import fetch_loop_stats
+    out = os.path.join(tempfile.mkdtemp(), "loop_stats_2024.parquet")
+    LS = "https://cf.nascar.com/loopstats/prod/2024/1/%d.json"
+    s = FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, RACES), LS % 11: Resp(200, LOOP["loop"]), LS % 12: Resp(200, [None])})
+    n, total = fetch_loop_stats.run(nascar_feed.HttpNascarRepo(delay=0, session=s), 2024, out)
+    df = pd.read_parquet(out)
+    assert (n, total) == (1, 2), "one of the two completed points races has loop statistics (the other answers null)"
+    assert list(df.columns) == ["season", "race_num", "race_id", "track_name", "race_name", "driver_id", "start_ps", "mid_ps", "ps", "closing_ps", "closing_laps_diff", "best_ps", "worst_ps", "avg_ps",
+                                "passes_gf", "passing_diff", "passed_gf", "quality_passes", "fast_laps", "top15_laps", "lead_laps", "laps", "rating"], list(df.columns)
+    assert df.race_num.tolist() == [1, 1] and df.ps.tolist() == [1, 2] and df.track_name.iloc[0] == "Daytona International Speedway" and df.driver_id.tolist() == [1361, 1200]
+    n2, _ = fetch_loop_stats.run(nascar_feed.HttpNascarRepo(delay=0, session=FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, RACES), LS % 12: Resp(200, [None])})), 2024, out)
+    assert n2 == 1 and len(pd.read_parquet(out)) == 2, "a rerun keeps the races already fetched"
+    print("fetch_loop_stats: numbering, null races counted and left out, columns, rerun OK")
 
 
 if __name__ == "__main__":
