@@ -148,6 +148,14 @@ def main():
     assert [lap for lap, _ in reds] == [40] and (20, 24) in segs, (segs, reds)
     print("fetch_race_events: stage rows, a caution segment and a red flag inferred from lap times OK")
 
+    # ---- build_dashboard.py --fetch-all-laps goes through the same fetcher (one parquet per season in the folder; a season the feed has nothing for writes nothing)
+    import build_dashboard
+    folder = tempfile.mkdtemp()
+    s = FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, RACES), f"{D}/2024/1/11/lap-times.json": Resp(200, LAPS_11), f"{D}/2019/race_list_basic.json": Resp(403)})
+    build_dashboard.fetch_all_laps([2019, 2024], folder, repo=nascar_feed.HttpNascarRepo(delay=0, session=s))
+    assert sorted(os.listdir(folder)) == ["lap_times_2024.parquet"] and len(pd.read_parquet(os.path.join(folder, "lap_times_2024.parquet"))) == 3, os.listdir(folder)
+    print("build_dashboard.fetch_all_laps: one file per season the feed has, nothing for the others OK")
+
 
 if __name__ == "__main__":
     main()
