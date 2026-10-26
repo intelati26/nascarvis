@@ -25,11 +25,10 @@ import argparse
 import math
 import os
 import statistics
-import sys
 
 import pandas as pd
 
-from fetch_best_laps import completed_points_races
+from nascar_feed import HttpNascarRepo, completed_points_races
 
 COLS = ["race_num", "kind", "start_lap", "end_lap", "minutes", "note"]
 INFERRED = "inferred"
@@ -141,8 +140,7 @@ def run(repo, series, a):
         if len(mine) and not a.refresh:
             continue
         try:
-            drivers = [d.model_dump() if hasattr(d, "model_dump") else d
-                       for d in repo.get_lap_times(a.season, series, race_id=r["race_id"])]
+            drivers = repo.get_lap_times(a.season, series, race_id=r["race_id"])
         except Exception as e:
             print(f"  race {n}: could not fetch lap times ({e.__class__.__name__}); no yellows for it")
             continue
@@ -172,12 +170,7 @@ def main():
     ap.add_argument("--no-cautions", action="store_true", help="only stage and race-length rows")
     ap.add_argument("--refresh", action="store_true", help="redo inferred caution/red rows")
     a = ap.parse_args()
-    try:
-        from nascar_api.enums import Series
-        from nascar_api.repos import HistoricNascarRepo
-    except ImportError:
-        sys.exit("needs the nascar-api package:  pip install nascar-api  (Python 3.11+)")
-    run(HistoricNascarRepo(), Series.CUP, a)
+    run(HttpNascarRepo(), 1, a)
 
 
 if __name__ == "__main__":

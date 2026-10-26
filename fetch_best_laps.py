@@ -2,7 +2,7 @@
 """
 Build fastest_laps.csv (each driver's best lap in every 2026 Cup race) from NASCAR's lap-time feed.
 
-  pip install nascar-api pandas          (nascar-api needs Python 3.11+)
+  pip install requests pandas
   python fetch_best_laps.py --season 2026 --results results_2026.csv
   python nascar_weekly_export.py results_2026.csv --fastest-laps fastest_laps.csv --week 30 ...
 
@@ -20,23 +20,11 @@ Output columns: race_num, race_id, driver, car, driver_id, best_lap_time (s),
 """
 import argparse
 import os
-import re
-import sys
 
 import pandas as pd
 
-STOP = {"speedway", "motor", "international", "raceway", "park", "course", "street", "road",
-        "circuit", "superspeedway", "stadium", "the", "of", "at", "autodrome"}
-
-
-def _dump(o):
-    return o.model_dump() if hasattr(o, "model_dump") else o
-
-
-def clean_name(n):
-    """'Kyle Larson (C)' -> 'Kyle Larson'"""
-    return re.sub(r"\s*\(.*?\)\s*", " ", str(n or "")).strip()
-
+import track_types
+from nascar_feed import HttpNascarRepo, clean_name, completed_points_races
 
 def best_lap(laps):
     """(time, lap number, speed) of the quickest timed lap, or None. Lap 0 has no time."""
@@ -50,23 +38,12 @@ def best_lap(laps):
     return best
 
 
-def _words(s):
-    return set(re.findall(r"[a-z]{4,}", str(s).lower())) - STOP
-
-
-def completed_points_races(races, race_type):
-    rs = [_dump(r) for r in races]
-    done = [r for r in rs if r.get("race_type_id") == race_type and (r.get("actual_laps") or 0) > 0]
-    done.sort(key=lambda r: str(r.get("race_date") or r.get("date_scheduled") or ""))
-    return rs, done
-
-
 def race_rows(repo, series, season, race_num, race):
     rid = race["race_id"]
-    laps = [_dump(x) for x in repo.get_lap_times(season, series, race_id=rid)]
+    laps = repo.get_lap_times(season, series, race_id=rid)
     fast = {}
     try:
-        loop = _dump(repo.get_loopstats(season, series, race_id=rid))
+        loop = repo.get_loop_stats(season, series, race_id=rid) or {}
         fast = {d["driver_id"]: d.get("fast_laps") for d in loop.get("drivers", [])}
     except Exception as e:                      # loop stats are a bonus; lap times are the point
         print(f"   (no loop stats for race {race_num}: {e.__class__.__name__})")
@@ -103,7 +80,7 @@ def run(repo, series, a):
     new = []
     for n, r in enumerate(done, 1):
         label = f"{n:>2}  id {r['race_id']}  {r.get('track_name')}  ({r.get('race_name', '').strip()})"
-        if tracks and n in tracks and not (_words(tracks[n]) & _words(r.get("track_name"))):
+        if tracks and n in tracks and not (track_types.words(tracks[n]) & track_types.words(r.get("track_name"))):
             print(f"WARNING race {n}: results say '{tracks[n]}' but the feed says '{r.get('track_name')}'")
         if n in have_nums:
             print("  have", label)
@@ -135,12 +112,7 @@ def main():
     ap.add_argument("--refresh", action="store_true", help="re-fetch races already in the output file")
     ap.add_argument("--only", type=int, help="fetch just this race number")
     a = ap.parse_args()
-    try:
-        from nascar_api.enums import Series
-        from nascar_api.repos import HistoricNascarRepo
-    except ImportError:
-        sys.exit("needs the nascar-api package:  pip install nascar-api  (Python 3.11+)")
-    run(HistoricNascarRepo(), Series.CUP, a)
+    run(HttpNascarRepo(), 1, a)
 
 
 if __name__ == "__main__":

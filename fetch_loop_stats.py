@@ -24,8 +24,7 @@ import os
 
 import pandas as pd
 
-from fetch_best_laps import completed_points_races
-from nascar_feed import HttpNascarRepo
+from nascar_feed import HttpNascarRepo, completed_points_races
 
 STATS = ["start_ps", "mid_ps", "ps", "closing_ps", "closing_laps_diff", "best_ps", "worst_ps", "avg_ps", "passes_gf", "passing_diff", "passed_gf", "quality_passes",
          "fast_laps", "top15_laps", "lead_laps", "laps", "rating"]

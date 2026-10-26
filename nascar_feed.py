@@ -1,6 +1,6 @@
-"""A small client for NASCAR's public JSON feed (cf.nascar.com/cacher), using only `requests`.
+"""A small client for NASCAR's public JSON feed (cf.nascar.com/cacher), using only `requests`. The fetch_*.py scripts all use it.
 
-It has the two calls the lap exporters need, with the same names as the nascar-api package's HistoricNascarRepo, so fetch_lap_times.py runs the same way with or without that package:
+The calls the exporters need:
 
     repo = HttpNascarRepo()
     repo.get_races(2024, 1)                          # the season's Cup events, as dicts (race_id, race_type_id, race_date, actual_laps, track_name, race_name, ...)
@@ -9,12 +9,28 @@ It has the two calls the lap exporters need, with the same names as the nascar-a
 The feed has lap-by-lap times from 2020; before that its lap-times files do not exist (a request is answered 403 Access Denied) and get_lap_times returns [].
 Loop statistics (get_loop_stats) are patchier: 2015 and 2016 answer 200 with a JSON null, 2017 and 2018 are 403, and real data starts in 2019. Null, empty and missing are all None here.
 Be polite: one request at a time with a pause, and a descriptive user agent."""
+import re
 import time
 
 import requests
 
+from webfetch import USER_AGENT
+
 DOMAIN = "https://cf.nascar.com/cacher"
-USER_AGENT = "nascarvis/1.0 (https://github.com/intelati26/nascarvis; personal research)"
+
+
+def clean_name(n):
+    """'Kyle Larson (C)' -> 'Kyle Larson'"""
+    return re.sub(r"\s*\(.*?\)\s*", " ", str(n or "")).strip()
+
+
+def completed_points_races(races, race_type=1):
+    """(all events, the completed points races in date order). The feed also lists the Clash, the Duels and other non-points events; the points races, numbered 1, 2, 3 ...
+    in this order, line up with the Race column of nascaR.data."""
+    rs = list(races)
+    done = [r for r in rs if r.get("race_type_id") == race_type and (r.get("actual_laps") or 0) > 0]
+    done.sort(key=lambda r: str(r.get("race_date") or r.get("date_scheduled") or ""))
+    return rs, done
 
 
 def _float(v):

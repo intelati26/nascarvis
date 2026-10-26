@@ -39,6 +39,7 @@ class FakeSession:
 
 
 D = nascar_feed.DOMAIN
+LS = "https://cf.nascar.com/loopstats/prod/2024/1/%d.json"
 RACES = {"series_1": [
     {"race_id": 12, "race_type_id": 1, "race_date": "2024-02-25T14:00:00", "actual_laps": 200, "track_name": "Las Vegas Motor Speedway", "race_name": "Pennzoil 400"},
     {"race_id": 10, "race_type_id": 2, "race_date": "2024-02-03T14:00:00", "actual_laps": 60, "track_name": "Los Angeles Memorial Coliseum", "race_name": "Clash"},
@@ -106,7 +107,6 @@ def main():
     # ---- fetch_loop_stats.py: races numbered like the lap exporter, races without loop statistics counted and left out, the columns the loader reads
     import fetch_loop_stats
     out = os.path.join(tempfile.mkdtemp(), "loop_stats_2024.parquet")
-    LS = "https://cf.nascar.com/loopstats/prod/2024/1/%d.json"
     s = FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, RACES), LS % 11: Resp(200, LOOP["loop"]), LS % 12: Resp(200, [None])})
     n, total = fetch_loop_stats.run(nascar_feed.HttpNascarRepo(delay=0, session=s), 2024, out)
     df = pd.read_parquet(out)
@@ -117,6 +117,36 @@ def main():
     n2, _ = fetch_loop_stats.run(nascar_feed.HttpNascarRepo(delay=0, session=FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, RACES), LS % 12: Resp(200, [None])})), 2024, out)
     assert n2 == 1 and len(pd.read_parquet(out)) == 2, "a rerun keeps the races already fetched"
     print("fetch_loop_stats: numbering, null races counted and left out, columns, rerun OK")
+
+    # ---- fetch_best_laps.py: each driver's quickest timed lap, with NASCAR's fast_laps from the loop statistics
+    import fetch_best_laps
+    out = os.path.join(tempfile.mkdtemp(), "fastest_laps.csv")
+    a = types.SimpleNamespace(season=2024, results=None, out=out, race_type=1, refresh=False, only=None)
+    loop = [{"race_id": 11, "drivers": [{"driver_id": 4030, "fast_laps": 7}, {"driver_id": 1234, "fast_laps": 0}]}]
+    s = FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, RACES), f"{D}/2024/1/11/lap-times.json": Resp(200, LAPS_11), LS % 11: Resp(200, loop)})
+    fetch_best_laps.run(nascar_feed.HttpNascarRepo(delay=0, session=s), 1, a)
+    df = pd.read_csv(out)
+    assert df.race_num.tolist() == [1, 1] and df.driver.tolist() == ["Kyle Larson", "Denny Hamlin"], df
+    assert df.best_lap_time.tolist() == [48.2, 49.9] and df.best_lap_num.tolist() == [3, 1] and df.best_lap_speed.tolist() == [186.7, 180.3], "the quickest timed lap; lap 2 (time 0) is ignored"
+    assert df.fast_laps.tolist() == [7, 0] and df.driver_id.tolist() == [4030, 1234], "fast_laps comes from the loop statistics by driver_id"
+    print("fetch_best_laps: quickest lap, ignored zero time, fast_laps from the loop feed OK")
+
+    # ---- fetch_race_events.py: stage ends and race length from the race record; cautions inferred from the lap times
+    import fetch_race_events
+    races = {"series_1": [dict(RACES["series_1"][2], stage_1_laps=60, stage_2_laps=60, stage_3_laps=80, actual_laps=200)]}
+    out = os.path.join(tempfile.mkdtemp(), "race_events.csv")
+    a = types.SimpleNamespace(season=2024, results=None, out=out, race_type=1, no_cautions=True, refresh=False)
+    fetch_race_events.run(nascar_feed.HttpNascarRepo(delay=0, session=FakeSession({f"{D}/2024/race_list_basic.json": Resp(200, races)})), 1, a)
+    df = pd.read_csv(out)
+    assert df[["race_num", "kind", "end_lap"]].values.tolist() == [[1, "stage", 60], [1, "stage", 120], [1, "total", 200]], df
+    green = [{"lap": lap, "lap_time": 50.0 + (lap % 3) * 0.1} for lap in range(1, 61)]
+    drivers = [{"laps": [dict(lp, lap_time=100.0 + lp["lap_time"] * 0 if 20 <= lp["lap"] <= 24 else lp["lap_time"]) for lp in green]} for _ in range(5)]
+    segs, reds = fetch_race_events.infer_flags(drivers)
+    assert segs == [(20, 24)] and reds == [], (segs, reds)
+    for d in drivers: d["laps"][39]["lap_time"] = 2000.0                                  # every lead-lap car loses the same lap: a red flag
+    segs, reds = fetch_race_events.infer_flags(drivers)
+    assert [lap for lap, _ in reds] == [40] and (20, 24) in segs, (segs, reds)
+    print("fetch_race_events: stage rows, a caution segment and a red flag inferred from lap times OK")
 
 
 if __name__ == "__main__":

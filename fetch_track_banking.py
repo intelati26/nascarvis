@@ -6,48 +6,21 @@ like "Quad-oval (1997-2021)" or "(2022-present)", gives the seasons it covers (f
 covers every season. One row per layout. A track with a hand-written `notes` value is never refetched, so a correction survives a rerun. The `shape` column is filled by hand.
 One request per page at most, a project user-agent, 0.8 s between requests; pages are cached in $TRACK_PAGE_CACHE (default /tmp/nascarvis_track_pages).
 Wikipedia text is CC BY-SA 4.0; only the angle, a short excerpt and the article link are kept here."""
-import argparse, collections, csv, json, os, re, time, urllib.error, urllib.parse, urllib.request
+import argparse, collections, csv, os, re
 import pyarrow.parquet as pq
+from webfetch import Wikipedia
 HERE = os.path.dirname(os.path.abspath(__file__))
-UA = "nascarvis/1.0 (https://github.com/intelati26/nascarvis; personal research)"
-CACHE = os.environ.get("TRACK_PAGE_CACHE", "/tmp/nascarvis_track_pages"); os.makedirs(CACHE, exist_ok=True)
+CACHE = os.environ.get("TRACK_PAGE_CACHE", "/tmp/nascarvis_track_pages")
 OUT = os.path.join(HERE, "track_attributes.csv")
 FIELDS = ["track", "races", "from_season", "to_season", "banking_deg", "banking_text", "layout", "article", "shape", "notes"]
 SKIP_LAYOUT = re.compile(r"road|roval|infield|dirt|short track", re.I)
-norm = lambda s: re.sub(r"[^a-z0-9]", "", s.lower())
-_last = [0.0]
-
-
-def get(url):
-    wait = 0.8 - (time.time() - _last[0])
-    if wait > 0: time.sleep(wait)
-    _last[0] = time.time()
-    return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=60).read().decode("utf-8", "replace")
-
-
-def cached(name, fn):
-    p = os.path.join(CACHE, name)
-    if os.path.exists(p): return open(p, encoding="utf-8").read()
-    v = fn(); open(p, "w", encoding="utf-8").write(v); return v
-
-
-def raw_page(title):
-    try:
-        return cached("p_" + norm(title) + ".txt", lambda: get("https://en.wikipedia.org/w/index.php?title=" + urllib.parse.quote(title) + "&action=raw"))
-    except urllib.error.HTTPError:
-        return ""
-
-
-def page(title, depth=0):
-    """(final title, wikitext), following a redirect."""
-    txt = raw_page(title)
-    m = re.match(r"\s*#redirect\s*\[\[([^\]|#]+)", txt, re.I)
-    return page(m.group(1), depth + 1) if m and depth < 3 else (title, txt)
+norm = lambda s: re.sub(r"[^a-z0-9]", "", s.lower())     # keeps digits, unlike nascar_data.norm
+wiki = Wikipedia(cache_dir=CACHE, page_name=lambda title: "p_" + norm(title) + ".txt")
 
 
 def search(track):
-    q = urllib.parse.urlencode({"action": "query", "list": "search", "srsearch": f"{track} NASCAR track", "srlimit": 5, "format": "json"})
-    hits = [h["title"] for h in json.loads(cached("s_" + norm(track) + ".json", lambda: get("https://en.wikipedia.org/w/api.php?" + q)))["query"]["search"]]
+    """The title of the track's article among the search hits: the exact name, else one that starts with it (not a museum)."""
+    hits = wiki.search(f"{track} NASCAR track", cache_name="s_" + norm(track) + ".json")
     return next((h for h in hits if norm(h) == norm(track)), None) or next((h for h in hits if norm(h).startswith(norm(track)) and "museum" not in h.lower()), None)
 
 
@@ -55,7 +28,7 @@ def article(track):
     """(title, wikitext) of the track's article: its own name first, then a search; only a page with an infobox `banking` field counts."""
     for title in [track, search(track)]:
         if not title: continue
-        t, txt = page(title)
+        t, txt = wiki.page(title)
         if re.search(r"^\s*\|\s*banking\s*=", txt, re.M | re.I): return t, txt
     return None, ""
 

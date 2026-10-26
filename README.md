@@ -79,14 +79,14 @@ curated branch by `curation/completeness.py`; this copy is a snapshot.
 The project already supports total race results and best-lap summaries. For full lap-by-lap detail, use the compact offline exporter:
 
 ```bash
-pip install nascar-api pandas pyarrow
+pip install requests pandas pyarrow
 python fetch_lap_times.py --season 2026 --out lap_times_2026.parquet
 ```
 
 This stores one row per driver-lap in a compressed Parquet file, which keeps the data offline-friendly and much smaller than CSV or JSON while remaining easy to filter by season, race, driver or lap number.
 
-Lap times exist in NASCAR's feed from **2020**; for 2015 to 2019 its lap files do not exist, so there is nothing to fetch for those seasons. The `nascar-api` package is optional:
-without it `fetch_lap_times.py` reads the same public JSON feed through `nascar_feed.py` (needs only `requests`). The query database (`python query/build_db.py`) loads these files
+Lap times exist in NASCAR's feed from **2020**; for 2015 to 2019 its lap files do not exist, so there is nothing to fetch for those seasons. The fetch scripts (`fetch_lap_times.py`, `fetch_loop_stats.py`,
+`fetch_best_laps.py`, `fetch_race_events.py`) read NASCAR's public JSON feed through `nascar_feed.py`, which needs only `requests`. The query database (`python query/build_db.py`) loads these files
 into a `laps` table; see `query/README.md`.
 
 Loop statistics (one row per driver per race: running positions, green-flag and quality passes, fast laps, driver rating) come from `python fetch_loop_stats.py --from 2015`. NASCAR's feed

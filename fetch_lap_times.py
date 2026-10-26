@@ -16,31 +16,20 @@ Columns:
 
 The file is kept in Parquet for efficient compression and easy filtering.
 
-NASCAR's feed has lap times from 2020 on; earlier seasons have no lap files (requests are answered 403) and nothing is written. With the nascar-api package installed it is used; without it
-the same public JSON feed is read directly through nascar_feed.py, which needs only requests.
+NASCAR's feed has lap times from 2020 on; earlier seasons have no lap files (requests are answered 403) and nothing is written. The feed is read through nascar_feed.py (needs only requests).
 """
 import argparse
 import os
-import sys
 
 import pandas as pd
 
-from fetch_best_laps import completed_points_races
-
-
-def _dump(obj):
-    return obj.model_dump() if hasattr(obj, "model_dump") else obj
-
-
-def clean_name(n):
-    import re
-    return re.sub(r"\s*\(.*?\)\s*", " ", str(n or "")).strip()
+from nascar_feed import HttpNascarRepo, clean_name, completed_points_races
 
 
 def race_rows(repo, series, season, race_num, race):
     rid = race["race_id"]
     rows = []
-    for driver in [_dump(x) for x in repo.get_lap_times(season, series, race_id=rid)]:
+    for driver in repo.get_lap_times(season, series, race_id=rid):
         driver_name = clean_name(driver.get("full_name"))
         driver_id = driver.get("driver_id")
         car = driver.get("number")
@@ -133,16 +122,7 @@ def main():
     if a.out is None:
         a.out = os.path.join(os.getcwd(), f"lap_times_{a.season}.parquet")
 
-    try:
-        from nascar_api.enums import Series
-        from nascar_api.repos import HistoricNascarRepo
-        repo, series = HistoricNascarRepo(), Series.CUP
-    except ImportError:                       # no nascar-api package: read the same public JSON feed directly (nascar_feed.py, needs only requests)
-        from nascar_feed import HttpNascarRepo
-        repo, series = HttpNascarRepo(), 1
-        print("nascar-api is not installed: reading NASCAR's public JSON feed directly")
-
-    run(repo, series, a)
+    run(HttpNascarRepo(), 1, a)
 
 
 if __name__ == "__main__":

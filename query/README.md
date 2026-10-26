@@ -37,7 +37,7 @@ Safety: the database is opened read-only (`mode=ro`, `PRAGMA query_only`), one S
 ## The laps table
 
 `python query/build_db.py` also loads lap-by-lap times when `lap_times_<season>.parquet` files are in the repository root (`python fetch_lap_times.py --season 2024`; it needs
-only `requests`, and uses the `nascar-api` package instead if that is installed). The table is `laps`, one row per driver per lap:
+only `requests`). The table is `laps`, one row per driver per lap:
 `season, race, driver, driver_id, car, lap, lap_time, lap_speed, position` (`position` is the running position on that lap). `driver` is the name used in `results`, matched through the
 car number, so `laps` joins to `results` on `(season, race, driver)`. NASCAR's feed has lap times for **2020 onward**: its files for 2015 to 2019 do not exist (every request is answered
 "Access Denied"), so the table starts in 2020. Races are paired with `results` by track within a season, because the feed numbers them by date; races without results yet are skipped
