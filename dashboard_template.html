@@ -53,6 +53,7 @@ textarea.wiki{width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,SFMono
 table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
 th,td{padding:5px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
 th{position:sticky;top:0;background:var(--card);color:var(--muted);font-weight:600;cursor:pointer;z-index:1}
+tfoot td{font-weight:700;border-top:2px solid var(--muted)}
 th:hover{color:var(--ink)}
 td.l,th.l{text-align:left}
 tr:hover td{background:var(--chip)}
@@ -138,9 +139,13 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     </div>
   </div>
   <div class="card">
-    <div class="tools"><select id="r-lap-view" aria-label="Lap chart view"><option value="green">Green-flag lap times</option><option value="pos">Running position</option><option value="all">All lap times</option></select> <button class="btn" data-png="c-laps">PNG</button></div>
+    <div class="tools"><select id="r-lap-view" aria-label="Lap chart view"><option value="green">Green-flag lap times</option><option value="speed">Green-flag speed (mph)</option><option value="pos">Running position</option><option value="all">All lap times</option></select> <button class="btn" data-png="c-laps">PNG</button></div>
     <h2>Laps</h2>
     <div class="sub" id="r-lap-note">Lap-by-lap time traces for the top finishers. Available when the offline lap JSON exists.</div>
+    <details id="r-lap-drivers" style="margin:6px 0"><summary>Drivers shown: <span id="r-lap-count"></span></summary>
+      <div class="tools" style="margin:6px 0"><button class="btn" data-pick="3">Top 3</button> <button class="btn" data-pick="8">Top 8</button> <button class="btn" data-pick="15">Top 15</button> <button class="btn" data-pick="all">All</button> <button class="btn" data-pick="none">None</button></div>
+      <div id="r-lap-pick" style="display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px"></div>
+    </details>
     <div class="chartbox" style="height:320px"><canvas id="c-laps"></canvas></div>
   </div>
   <div class="card">
@@ -392,13 +397,14 @@ const delta = v => v==null||v===0 ? '<span class="mut">0</span>' : v>0 ? `<span 
 const exportsCSV = {};      // key -> {cols, rows}  (plain values for CSV)
 function renderTable(el, key, cols, rows, opts={}) {
   // cols: [{h, k (value fn), html (optional fn), l (left align)}]
-  exportsCSV[key] = {file: opts.file || key, cols: cols.filter(c=>!c.nocsv).map(c=>c.h), rows: rows.map(r => cols.filter(c=>!c.nocsv).map(c => c.k(r))) };
+  exportsCSV[key] = {file: opts.file || key, cols: cols.filter(c=>!c.nocsv).map(c=>c.h), rows: rows.concat(opts.foot ? [opts.foot] : []).map(r => cols.filter(c=>!c.nocsv).map(c => c.k(r))) };
   const st = el._sort || {};
   let data = rows.slice();
   if (st.col != null) { const c = cols[st.col]; data.sort((a,b)=>{ const x=c.k(a), y=c.k(b);
     return (x==null)-(y==null) || (typeof x==='string' ? x.localeCompare(y) : x-y) ; }); if (st.dir<0) data.reverse(); }
   el.innerHTML = '<thead><tr>' + cols.map((c,i)=>`<th data-i="${i}" class="${c.l?'l':''}">${c.h}${st.col===i?(st.dir>0?' ▲':' ▼'):''}</th>`).join('') + '</tr></thead><tbody>' +
-    data.map(r => '<tr>' + cols.map(c=>`<td class="${c.l?'l':''}">${c.html ? c.html(r) : esc(c.k(r) ?? '')}</td>`).join('') + '</tr>').join('') + '</tbody>';
+    data.map(r => '<tr>' + cols.map(c=>`<td class="${c.l?'l':''}">${c.html ? c.html(r) : esc(c.k(r) ?? '')}</td>`).join('') + '</tr>').join('') + '</tbody>' +
+    (opts.foot ? '<tfoot><tr>' + cols.map(c=>`<td class="${c.l?'l':''}">${c.html ? c.html(opts.foot) : esc(c.k(opts.foot) ?? '')}</td>`).join('') + '</tr></tfoot>' : '');
   if (cols.some(c => c.html === ptsCell)) ptsLegend(el, el.innerHTML.includes('≈'));
   el.querySelectorAll('th').forEach(th => th.onclick = () => {
     const i = +th.dataset.i; el._sort = {col:i, dir: st.col===i ? -st.dir : (typeof cols[i].k(rows[0] ?? {}) === 'string' ? 1 : -1)};
@@ -564,6 +570,7 @@ function fillRaces() {
 
 // One race's laps as {driver: [{lap, lap_time, position}]}, or null. lapFiles[season] is either a path with {race} (one small file per race, columns as [laps],[times],[positions])
 // gzipped, or the older one plain file per season ({race: {driver: [rows]}}).
+const lapPick = {key: null, set: new Set()};   // drivers shown on the lap chart, reset to the top 8 when the race changes
 async function loadRaceLapData(season, raceNum) {
   const key = `${season}:${raceNum}`;
   if (lapCache.has(key)) return lapCache.get(key);
@@ -598,12 +605,18 @@ async function renderRaceLapData() {
     lapNote.textContent = 'Lap data unavailable for this race in the offline bundle.';
     return;
   }
-  const currentRaceRows = races(season).find(r => r.num === raceNum)?.rows || [];
-  const topDrivers = currentRaceRows.slice().sort((a,b)=>D.finish[a]-D.finish[b]).slice(0,8).map(i => drv(i));
-  const selectedDrivers = [...new Set(topDrivers.filter(d => raceData[d] && raceData[d].length))];
+  const race = races(season).find(r => r.num === raceNum);
+  const finishers = [...new Set((race?.rows || []).slice().sort((a,b)=>D.finish[a]-D.finish[b]).map(i => drv(i)).filter(d => raceData[d] && raceData[d].length))];
+  const raceKey = `${season}:${raceNum}`;
+  if (lapPick.key !== raceKey) { lapPick.key = raceKey; lapPick.set = new Set(finishers.slice(0, 8)); }
+  const selectedDrivers = finishers.filter(d => lapPick.set.has(d));
+  $('r-lap-count').textContent = `${selectedDrivers.length} of ${finishers.length}`;
+  $('r-lap-pick').innerHTML = finishers.map((d, k) => `<label><input type="checkbox" data-d="${esc(d)}"${lapPick.set.has(d) ? ' checked' : ''}> ${k + 1}. ${esc(d)}</label>`).join('');
+  $('r-lap-pick').onchange = e => { const d = e.target.dataset.d; if (e.target.checked) lapPick.set.add(d); else lapPick.set.delete(d); renderRaceLapData(); };
+  $('r-lap-drivers').onclick = e => { const n = e.target.dataset && e.target.dataset.pick; if (!n) return; lapPick.set = new Set(n === 'all' ? finishers : n === 'none' ? [] : finishers.slice(0, +n)); renderRaceLapData(); };
   if (!selectedDrivers.length) {
     if (charts['c-laps']) charts['c-laps'].destroy();
-    lapNote.textContent = 'Lap data exists, but no usable lap times were found for this race.';
+    lapNote.textContent = finishers.length ? 'No drivers selected: pick some under "Drivers shown".' : 'Lap data exists, but no usable lap times were found for this race.';
     return;
   }
   const t = themeColors();
@@ -611,7 +624,9 @@ async function renderRaceLapData() {
   // green flag: drop laps slower than 12% over the field's median lap (cautions and pit stops), which would flatten the racing laps
   const all = selectedDrivers.flatMap(d => raceData[d].map(p => p.lap_time).filter(v => v != null)).sort((a, b) => a - b);
   const cutoff = all.length ? all[Math.floor(all.length / 2)] * 1.12 : Infinity;
-  const point = {green: p => p.lap_time != null && p.lap_time <= cutoff ? {x: p.lap, y: p.lap_time} : null,
+  const miles = race?.length;   // track length: speed = miles * 3600 / lap seconds
+  const mph = s => miles ? miles * 3600 / s : null;
+  const point = {speed: p => p.lap_time != null && p.lap_time <= cutoff && miles ? {x: p.lap, y: mph(p.lap_time)} : null, green: p => p.lap_time != null && p.lap_time <= cutoff ? {x: p.lap, y: p.lap_time} : null,
                  all: p => p.lap_time != null ? {x: p.lap, y: p.lap_time} : null,
                  pos: p => p.position != null ? {x: p.lap, y: p.position} : null}[view];
   const datasets = selectedDrivers.map((driver, idx) => ({
@@ -627,7 +642,7 @@ async function renderRaceLapData() {
     fill: false,
   }));
   const nTotal = selectedDrivers.reduce((n, d) => n + raceData[d].length, 0), nShown = datasets.reduce((n, d) => n + d.data.length, 0);
-  lapNote.textContent = `Top finishers (${selectedDrivers.length} drivers)` + (view === 'green' && nShown < nTotal ? `; ${nTotal - nShown} slow laps (cautions, pit stops) left out of ${nTotal}.` : '.');
+  lapNote.textContent = `${selectedDrivers.length} driver${selectedDrivers.length === 1 ? '' : 's'}` + (view === 'speed' && !miles ? '; no track length recorded, so no speed.' : view === 'speed' ? `; ${miles} mi track, fastest lap ${Math.max(...datasets.flatMap(d => d.data.map(q => q.y))).toFixed(1)} mph` : '') + (view !== 'pos' && view !== 'all' && nShown < nTotal ? `; ${nTotal - nShown} slow laps (cautions, pit stops) left out of ${nTotal}.` : '.');
   mount('c-laps', {
     type: 'line',
     data: { datasets },
@@ -636,11 +651,11 @@ async function renderRaceLapData() {
       scales: {
         x: { type: 'linear', title: { display: true, text: 'Lap #' }, ticks: { precision: 0 } },
         y: view === 'pos' ? { reverse: true, min: 1, title: { display: true, text: 'Running position' }, ticks: { precision: 0 } }
-                          : { title: { display: true, text: 'Lap time (s)' } }
+                          : view === 'speed' ? { title: { display: true, text: 'Speed (mph)' } } : { title: { display: true, text: 'Lap time (s)' } }
       },
       plugins: {
         legend: { position: 'bottom' },
-        tooltip: { callbacks: { title: ctx => `${ctx[0].dataset.label}`, label: ctx => view === 'pos' ? `Lap ${ctx.parsed.x}: P${ctx.parsed.y}` : `Lap ${ctx.parsed.x}: ${ctx.parsed.y.toFixed(3)} s` } }
+        tooltip: { callbacks: { title: ctx => `${ctx[0].dataset.label}`, label: ctx => view === 'pos' ? `Lap ${ctx.parsed.x}: P${ctx.parsed.y}` : view === 'speed' ? `Lap ${ctx.parsed.x}: ${ctx.parsed.y.toFixed(2)} mph (${(miles * 3600 / ctx.parsed.y).toFixed(3)} s)` : `Lap ${ctx.parsed.x}: ${ctx.parsed.y.toFixed(3)} s` + (miles ? ` (${mph(ctx.parsed.y).toFixed(2)} mph)` : '') } }
       }
     }
   });
@@ -729,7 +744,8 @@ function renderDriver() {
     {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins}, {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10},
     {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Avg Start', k:r=>avgR(r.avgstart), html:r=>f1(r.avgstart)},
     {h:'Laps Led', k:r=>r.led}, {h:'DNF', k:r=>r.dnf}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
-  ], seasonStats.slice().reverse(), {file:'driver-' + name.replace(/\W+/g,'_')});
+  ], seasonStats.slice().reverse(), {file:'driver-' + name.replace(/\W+/g,'_'), foot: {s: 'Career', starts: rows.length, wins: fin.filter(f=>f===1).length, t5: fin.filter(f=>f<=5).length, t10: fin.filter(f=>f<=10).length,
+    avgfin: avg(fin), avgstart: avg(rows.map(i=>D.start[i])), led: rows.reduce((a,i)=>a+nz(D.led[i]),0), dnf: rows.filter(dnf).length, rating: avg(rows.map(i=>D.rating[i]))}});
   // best tracks
   const dst = tfState($('d-tf'));
   const byTrack = new Map(); rows.filter(i => tfMatch(i, dst)).forEach(i => { const t=D.track[i]; if(!byTrack.has(t)) byTrack.set(t,[]); byTrack.get(t).push(i); });
