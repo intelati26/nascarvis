@@ -32,6 +32,14 @@ KEYS = [k for k, _ in TYPES]
 PLATE = {"Daytona International Speedway", "Talladega Superspeedway"}
 ROAD_NAME = re.compile(r"road course|street course|naval base|watkins glen|sonoma|riverside|road america|circuit of the americas|autodromo|bridgehampton", re.I)
 ALIAS = {"EchoPark Speedway": "Atlanta Motor Speedway"}        # the Atlanta track under its 2026 name
+# words that say "a track" and so do not tell two tracks apart, for comparing the track names of two sources
+STOP = {"speedway", "motor", "international", "raceway", "park", "course", "street", "road", "circuit", "superspeedway", "stadium", "the", "of", "at", "autodrome"}
+
+
+def words(name):
+    """The telling words of a track name (4+ letters, no STOP words): two names share a track when these overlap."""
+    return set(re.findall(r"[a-z]{4,}", str(name).lower())) - STOP
+
 SHORT_MAX = 1.06            # a mile, as recorded (1.0, 1.017, 1.058)
 INTERMEDIATE_MIN = SHORT_MAX
 INTERMEDIATE_MAX = 1.55     # 1.5 miles, as recorded (1.5, 1.522, 1.54)

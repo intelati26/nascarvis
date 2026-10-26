@@ -16,27 +16,19 @@ Stage columns S1-S3 in the source are finishing positions; they are turned into 
 """
 import argparse
 import glob
-import importlib.util
 import os
 import re
 import sqlite3
-
-import pyarrow.parquet as pq
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
+sys.path.insert(0, ROOT)
+import nascar_data as nd
+import track_types
 
-
-def load_build_dashboard():
-    spec = importlib.util.spec_from_file_location("bd", os.path.join(ROOT, "build_dashboard.py"))
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-STOP = {"speedway", "motor", "international", "raceway", "park", "course", "street", "road", "circuit", "superspeedway", "stadium", "the", "of", "at", "autodrome"}
-_words = lambda s: set(re.findall(r"[a-z]{4,}", str(s).lower())) - STOP
-_norm = lambda s: re.sub(r"[^a-z]", "", str(s).lower())
+_words = track_types.words
+_norm = nd.norm
 # a driver's name for matching: without "(i)" style tags and Jr./Sr./II suffixes, so "Ricky Stenhouse" finds "Ricky Stenhouse Jr."
 _name = lambda s: _norm(re.sub(r"\(.*?\)|\b(?:jr|sr|ii|iii|iv)\b\.?", "", str(s), flags=re.I))
 
@@ -170,15 +162,13 @@ def main():
     ap.add_argument("--no-loop", action="store_true", help="leave the loop_stats table empty")
     a = ap.parse_args()
 
-    bd = load_build_dashboard()
-    t = pq.read_table(a.data).to_pydict()
-    bd.apply_curation(t, os.path.join(ROOT, "curation"))
-    clean = bd.clean
+    t = nd.load_results(path=a.data)
+    clean = nd.clean
     sp = lambda v: None if clean(v) is None else (11 - int(v) if 1 <= v <= 10 else 0)
 
-    row_type, _ = bd.track_types.classify_table(t)          # the type of every race, from the whole history (track_types.py)
-    banking, shapes = bd.track_types.load_attributes(ROOT)
-    row_bank, row_shape = bd.track_types.classify_attributes(t, banking, shapes)
+    row_type, _ = track_types.classify_table(t)          # the type of every race, from the whole history (track_types.py)
+    banking, shapes = track_types.load_attributes(ROOT)
+    row_bank, row_shape = track_types.classify_attributes(t, banking, shapes)
     rows = []
     for i, season in enumerate(t["Season"]):
         if season < a.first: continue
@@ -211,7 +201,7 @@ def main():
           FROM results GROUP BY season;
         CREATE UNIQUE INDEX season_info_season ON season_info(season);""")
     con.commit()
-    lp = load_laps(con, "/nonexistent" if a.no_laps else a.laps_dir, alias=bd.track_types.ALIAS)
+    lp = load_laps(con, "/nonexistent" if a.no_laps else a.laps_dir, alias=track_types.ALIAS)
     if lp["races"]:
         yrs = con.execute("SELECT MIN(season), MAX(season) FROM laps").fetchone()
         print(f"laps: {lp['rows']:,} rows in {lp['races']} races, seasons {yrs[0]}-{yrs[1]}; {100 * lp['matched']:.1f}% of drivers matched to results by car number or name")
@@ -219,7 +209,7 @@ def main():
         for s, r, why in lp["skipped"]: print(f"  skipped laps for {s} (feed race {r}): {why}")
     else:
         print("laps: no lap_times_<season>.parquet files found (python fetch_lap_times.py --season 2024), so the laps table is empty")
-    ls = load_loop_stats(con, "/nonexistent" if a.no_loop else a.loop_dir, alias=bd.track_types.ALIAS)
+    ls = load_loop_stats(con, "/nonexistent" if a.no_loop else a.loop_dir, alias=track_types.ALIAS)
     if ls["races"]:
         yrs = con.execute("SELECT MIN(season), MAX(season), COUNT(DISTINCT season) FROM loop_stats").fetchone()
         print(f"loop stats: {ls['rows']:,} rows in {ls['races']} races, {yrs[2]} seasons ({yrs[0]}-{yrs[1]}); {100 * ls['matched']:.1f}% of rows tied to a results driver")

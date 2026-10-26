@@ -24,10 +24,10 @@ New: --embed-laps will embed per-season lap JSON into dashboard.html (may be lar
 New: --fetch-all-laps will fetch every season's lap data and write compressed parquet sidecars.
 """
 import argparse
+import collections
 import csv
 import hashlib
 import json
-import math
 import os
 import re
 import time
@@ -38,6 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.insert(0, HERE)
 import track_types                                   # the track type of every race (see track_types.py)
+from nascar_data import apply_curation, clean, norm   # the curation overlay and the helpers shared with the other scripts
 URL = "https://nascar.kylegrealis.com/cup_series.parquet"
 
 
@@ -47,10 +48,6 @@ def fetch(path, force):
         with urllib.request.urlopen(req, timeout=60) as r, open(path, "wb") as f:
             f.write(r.read())
         print("downloaded", path)
-
-
-def clean(v):
-    return None if v is None or (isinstance(v, float) and math.isnan(v)) else v
 
 
 def read_table_rows(path):
@@ -563,7 +560,7 @@ def write_data_files(data, data_dir):
                        "rows": hi - lo})
         lo = hi
     manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"],
-                "adjustments": data["adjustments"], "trackFilters": data.get("trackFilters", [])}
+                "adjustments": data["adjustments"], "curated": data.get("curated", {}), "trackFilters": data.get("trackFilters", [])}
     mtext = "NV.manifest(%s);\n" % json.dumps(manifest, separators=(",", ":"))
     rewritten += write_if_changed(os.path.join(data_dir, "manifest.js"), mtext)
     for f in os.listdir(data_dir):         # seasons no longer built (e.g. a later --from)
@@ -572,23 +569,28 @@ def write_data_files(data, data_dir):
     return hashlib.sha1(mtext.encode("utf-8")).hexdigest()[:10], rewritten
 
 
-def apply_curation(t, folder):
-    """Fill blank `Pts` from curation/points_*.csv (hand-entered, keyed by season, race, finishing position).
-    Source values are never overwritten; disagreements are only reported."""
-    import csv, glob
-    idx = {(s, r, f): i for i, (s, r, f) in enumerate(zip(t["Season"], t["Race"], t["Finish"]))}
-    filled = conflicts = unmatched = 0
-    for path in sorted(glob.glob(os.path.join(folder, "points_*.csv"))):
-        for row in csv.DictReader(open(path, encoding="utf-8")):
-            i = idx.get((int(row["season"]), int(row["race"]), int(row["finish"])))
-            if i is None:
-                unmatched += 1
-            elif clean(t["Pts"][i]) is None:
-                t["Pts"][i] = float(row["pts"]); filled += 1
-            elif abs(t["Pts"][i] - float(row["pts"])) > 1e-9:
-                conflicts += 1
-    if filled or conflicts or unmatched:
-        print(f"curation: filled {filled} blank Pts values; {conflicts} disagree with the source (kept source); {unmatched} rows matched no result")
+def curated_exact(curation_dir, season_drivers, totals):
+    """For every season with curation/points_<season>.csv: the drivers whose points in the data (after curation, before any reconcile
+    adjustment) add up to exactly their total in the official final standings (final_standings_<season>.csv). Any other driver in a
+    curated season gets a marker in the dashboard (derived, reconciled or unverified), but only on the races the curation file covers.
+    Returns {season: {"exact": [driver names], "races": [race numbers the file covers]}}."""
+    import csv, difflib, glob
+    out = {}
+    for path in sorted(glob.glob(os.path.join(curation_dir, "points_*.csv"))):
+        m = re.search(r"points_(\d{4})\.csv$", path)
+        if not m: continue
+        season = int(m.group(1))
+        official_path = os.path.join(curation_dir, f"final_standings_{season}.csv")
+        races = sorted({int(r["race"]) for r in csv.DictReader(open(path, encoding="utf-8"))})
+        if not os.path.exists(official_path): out[season] = {"exact": [], "races": races}; continue
+        names = {norm(d): d for d in season_drivers.get(season, [])}
+        exact = []
+        for r in csv.DictReader(open(official_path, encoding="utf-8")):
+            o = norm(r["driver"])
+            k = o if o in names else next(iter(difflib.get_close_matches(o, list(names), n=1, cutoff=0.9)), None)
+            if k and abs(totals.get((season, names[k]), 0.0) - float(r["pts"])) < 1e-6: exact.append(names[k])
+        out[season] = {"exact": sorted(set(exact)), "races": races}
+    return out
 
 
 def main():
@@ -764,6 +766,11 @@ def main():
     wikitext = open(os.path.join(HERE, "wikitext.js"), encoding="utf-8").read()
     sqlview = open(os.path.join(HERE, "leaderssql.js"), encoding="utf-8").read()
     data["adjustments"] = json.load(open(os.path.join(HERE, "adjustments.json"), encoding="utf-8"))
+    sd, totals = collections.defaultdict(set), collections.defaultdict(float)
+    for i, sn in enumerate(data["season"]):
+        d = data["drivers"][data["driver"][i]]
+        sd[sn].add(d); totals[(sn, d)] += data["pts"][i] or 0
+    data["curated"] = {str(k): v for k, v in curated_exact(os.path.join(HERE, "curation"), sd, totals).items() if k in sd}
     if a.single_file:
         shards_js, data_tags = "", ""
         data_js = "const D = " + json.dumps(data, separators=(",", ":")) + ";"
