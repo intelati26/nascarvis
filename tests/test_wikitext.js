@@ -26,8 +26,29 @@ const r1 = lines.slice(lines.indexOf('! A Racing'));
 assert.deepStrictEqual(r1.slice(3, 8), ['| style="background:#FFFFBF;"| DAY<br>{{small|1}}', '| style="background:#DFDFDF;"| RCH<br>{{small|2}}', '| CAR', '| ATL', '| colspan=2|'],
   'first ride: races 1-2 coloured, 3-4 plain, 5-6 merged blank');
 const r2 = lines.slice(lines.indexOf('! B Motorsports'));
-ok(r2[3] === '| colspan=2|' && r2[4] === '| CAR' && r2[5] === '| ATL', 'second ride: races 1-2 blank (merged), 3-4 plain');
+ok(r2[3] === '| colspan=4|' && r2[4].includes('BRI<br>{{small|11}}'), 'second ride: races 1-4 blank (races 3-4 were not entered and show in the first ride\'s row), then its own races');
 ok(lines.includes('! [[Chevrolet]]') && lines.includes('! [[Ford Motor Company|Ford]]'), 'known makes are linked');
+
+// ---- one row per ride, and every race in exactly one row (Buddy Arrington 1964: car 78, a Dodge for 27 races and a Plymouth for one, race 4 of 10 here)
+const cellsOf = block => { const out = []; for (const l of block) { const m = /^\| colspan=(\d+)\|$/.exec(l); if (m) for (let i = 0; i < +m[1]; i++) out.push(null); else if (l === '|') out.push(null); else if (l.startsWith('| ')) out.push(l); } return out; };
+const dodge = e(5, {team: 'Arrington', car: 78, make: 'Dodge'}), plym = e(11, {team: 'Arrington', car: 78, make: 'Plymouth'});
+const alt = {season: 1964, slots: slots(10), rank: 54, pts: 800, entries: {1: dodge, 2: dodge, 3: dodge, 4: plym, 5: dodge, 6: dodge, 7: dodge, 8: dodge, 10: dodge}};   // race 9 not entered
+const at = W.seriesTable(W.seriesOf(1964), [alt], {}).split('\n');
+const rowStarts = at.reduce((a, l, i) => (l === '|-' ? a.concat(i) : a), []).slice(2);                // after the title row and the header row
+ok(rowStarts.length === 2, `two rows for two rides, not three: got ${rowStarts.length}`);
+const rowCells = rowStarts.map((st, i) => cellsOf(at.slice(st, rowStarts[i + 1] ?? at.length - 1)));
+ok(rowCells.every(r => r.length === 10), 'each row spans the 10 races');
+for (let slot = 0; slot < 10; slot++) ok(rowCells.filter(r => r[slot] !== null).length === 1, `race ${slot + 1} is in exactly one row`);
+ok(rowCells[0][3] === null && rowCells[1][3] !== null && rowCells[1][3].includes('{{small|11}}'), 'the Plymouth race is in the Plymouth row, and blank in the Dodge row');
+ok(rowCells[0][8] !== null && !rowCells[0][8].includes('small'), 'race 9, not entered, shows its track code in the row of the ride he drove before it (Dodge)');
+ok(rowCells[1].filter(c => c !== null).length === 1, 'the Plymouth row has only its one race');
+ok(at.includes('! rowspan=2| [[1964 NASCAR Grand National Series|1964]]') && at.includes('! rowspan=2| 54th'), 'year, rank and points span both rows');
+// a trailing race he did not enter goes to the row of the last ride; one before his first start to the first row
+const trail = {season: 1981, slots: slots(6), rank: 40, pts: 100, entries: {2: e(9), 3: e(12, {team: 'B', car: 2}), 4: e(15, {team: 'B', car: 2})}};
+const tr = W.seriesTable(W.seriesOf(1981), [trail], {}).split('\n'); const ts = tr.reduce((a, l, i) => (l === '|-' ? a.concat(i) : a), []).slice(2);
+const tc = ts.map((st, i) => cellsOf(tr.slice(st, ts[i + 1] ?? tr.length - 1)));
+ok(tc[0][0] !== null && tc[1][0] === null, 'a race before his first start shows in the first row');
+ok(tc[1][4] !== null && tc[1][5] !== null && tc[0][4] === null && tc[0][5] === null, 'races after his last start show in the last ride\'s row');
 
 // ---- every row covers exactly the table's width
 const cols = block => { let n = 0; for (const l of block) { const m = /^\| (?:style="[^"]*"\| )?.*$/.test(l); if (/^\|( colspan=(\d+)\|)?$/.test(l)) n += +(/colspan=(\d+)/.exec(l) || [0, 1])[1]; else if (m) n++; } return n; };

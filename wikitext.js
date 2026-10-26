@@ -77,24 +77,29 @@ const NASCARWikitext = (function () {
     for (let i = 1; i <= width; i++) L.push(`! ${i}`);
     L.push(`! {{Tooltip|${series.cls[0]}|${series.cls[1]}}}`, '! Pts', ...(o.ref === false ? [] : ['! Ref']));
     for (const s of seasons) {
+      // One row per ride (team, car number and make) he had that year, in the order he first drove it; every race appears in exactly one row, the row of the ride he drove it in.
+      // A race he did not enter shows its track code only, in the row of the ride he last drove before it (the first row until his first start); the other rows leave it blank.
       const nums = Object.keys(s.entries).map(Number).sort((a, b) => a - b);
-      const stints = [];
+      const rides = new Map();
       for (const n of nums) {
         const e = s.entries[n], k = `${e.team}|${e.car}|${e.make}`;
-        if (!stints.length || stints[stints.length - 1].key !== k) stints.push({ key: k, e, nums: new Set() });
-        stints[stints.length - 1].nums.add(n);
+        if (!rides.has(k)) rides.set(k, { e, nums: new Set() });
+        rides.get(k).nums.add(n);
       }
-      if (!stints.length) continue;
-      const rs = stints.length > 1 ? `rowspan=${stints.length}| ` : '';
-      stints.forEach((st, k) => {
+      if (!rides.size) continue;
+      const rows = [...rides.values()], rideOf = n => { const e = s.entries[n]; return rides.get(`${e.team}|${e.car}|${e.make}`); };
+      const owner = new Map(); let cur = rows[0];
+      for (const slot of s.slots) { if (s.entries[slot.num]) cur = rideOf(slot.num); owner.set(slot.num, cur); }
+      const rs = rows.length > 1 ? `rowspan=${rows.length}| ` : '';
+      rows.forEach((ride, k) => {
         L.push('|-');
         if (k === 0) L.push(`! ${rs}[[${s.season} ${series.article(s.season)}|${s.season}]]`);
-        L.push(`! ${st.e.team || ''}`, `! ${st.e.car ?? ''}`, `! ${MAKE[st.e.make] || st.e.make || ''}`);
+        L.push(`! ${ride.e.team || ''}`, `! ${ride.e.car ?? ''}`, `! ${MAKE[ride.e.make] || ride.e.make || ''}`);
         let blanks = 0;
         const flush = () => { if (blanks) L.push(blanks > 1 ? `| colspan=${blanks}|` : '|'); blanks = 0; };
         for (const slot of s.slots) {
-          if (!st.nums.has(slot.num) && s.entries[slot.num]) { blanks++; continue; }          // raced in another of his rides this year
-          flush(); L.push(raceCell(slot, st.nums.has(slot.num) ? s.entries[slot.num] : undefined, o));
+          if (owner.get(slot.num) !== ride) { blanks++; continue; }                          // another row has this race
+          flush(); L.push(raceCell(slot, ride.nums.has(slot.num) ? s.entries[slot.num] : undefined, o));
         }
         blanks += width - s.slots.length; flush();
         if (k === 0) L.push(`! ${rs}${s.rank == null ? '' : ordinal(s.rank)}`, `! ${rs}${s.pts == null ? '-' : num(s.pts)}`, ...(o.ref === false ? [] : [`! ${rs}`]));
