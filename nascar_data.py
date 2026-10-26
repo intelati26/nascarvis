@@ -10,6 +10,7 @@ build_dashboard.py, query/build_db.py and the scripts in curation/ share this; a
 """
 import csv
 import glob
+import json
 import math
 import os
 import re
@@ -17,6 +18,8 @@ import re
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PARQUET = os.path.join(ROOT, "cup_series.parquet")
 CURATION = os.path.join(ROOT, "curation")
+ADJUSTMENTS = os.path.join(ROOT, "adjustments.json")
+POINTS_COLUMNS = ["season", "race", "finish", "driver_in_source", "pts", "override"]
 
 
 def clean(v):
@@ -54,6 +57,24 @@ def apply_curation(t, folder=CURATION):
         print(f"curation: filled {filled} blank Pts values, replaced {replaced} with override=1 rows; "
               f"{conflicts} disagree with the source (kept source); {unmatched} rows matched no result")
     return t
+
+
+def read_adjustments(drop=lambda a: False):
+    """The standings adjustments in adjustments.json, without those `drop` selects (a derivation script redoes its own entries)."""
+    with open(ADJUSTMENTS) as f:
+        return [a for a in json.load(f) if not drop(a)]
+
+
+def write_adjustments(adj):
+    with open(ADJUSTMENTS, "w") as f:
+        json.dump(adj, f, indent=1)
+
+
+def write_points_csv(path, rows):
+    """curation/points_<season>.csv from rows of (season, race, finish, driver, pts, override); override true writes 1 (the source holds a wrong value to replace)."""
+    with open(path, "w", newline="") as f:
+        w = csv.writer(f); w.writerow(POINTS_COLUMNS)
+        for season, race, finish, driver, pts, override in rows: w.writerow([season, race, finish, driver, "%g" % pts, "1" if override else ""])
 
 
 def load_results(curated=True, path=PARQUET, folder=CURATION):

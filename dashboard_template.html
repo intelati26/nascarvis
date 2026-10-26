@@ -379,6 +379,7 @@ function fillSelect(sel, items, val) {
 const finishColor = f => f===1 ? 'background:#f5c518;color:#222' : f<=5 ? 'background:rgba(63,185,80,.35)' :
   f<=10 ? 'background:rgba(63,185,80,.16)' : f>=30 ? 'background:rgba(248,81,73,.22)' : '';
 const chips = fs => `<span class="chips">${fs.map(f => f==null?'<b class="mut">–</b>':`<b style="${finishColor(f)}">${f}</b>`).join('')}</span>`;
+const stat = (k, v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;     // a number card (Driver, Track and Race tabs)
 const delta = v => v==null||v===0 ? '<span class="mut">0</span>' : v>0 ? `<span class="up">▲${v}</span>` : `<span class="dn">▼${-v}</span>`;
 
 // ---- tables: render + sortable + CSV registry
@@ -617,7 +618,6 @@ function renderRace() {
   const w = rows[0], poleI = rows.find(i=>D.start[i]===1), mostLed = rows.slice().sort((a,b)=>nz(D.led[b])-nz(D.led[a]))[0];
   const gainer = rows.filter(i=>D.start[i]!=null).sort((a,b)=>(D.start[b]-D.finish[b])-(D.start[a]-D.finish[a]))[0];
   titleFn = () => `${season} ${r.name} (race ${r.num}) at ${r.track}`;
-  const stat = (k,v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
   $('r-cards').innerHTML = stat('Winner', driverLink(drv(w))) + stat('Started', D.start[w]==null?'–':'P'+D.start[w]) +
     stat('Pole', poleI==null?'–':driverLink(drv(poleI))) + stat('Most laps led', nz(D.led[mostLed])>0 ? `${driverLink(drv(mostLed))} (${D.led[mostLed]})` : '–') +
     stat('Biggest gain', gainer==null?'–':`${driverLink(drv(gainer))} (+${D.start[gainer]-D.finish[gainer]})`) +
@@ -666,7 +666,6 @@ function renderDriver() {
   const bySeason = new Map(); rows.forEach(i => { const s=D.season[i]; if(!bySeason.has(s)) bySeason.set(s,[]); bySeason.get(s).push(i); });
   const ss = [...bySeason.keys()].sort((a,b)=>a-b);
   const fin = rows.map(i=>D.finish[i]);
-  const stat = (k,v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
   titleFn = () => name;
   $('d-cards').innerHTML = stat('Seasons', `${ss[0]}–${ss[ss.length-1]}`) + stat('Starts', rows.length) + stat('Wins', fin.filter(f=>f===1).length) +
     stat('Top 5', fin.filter(f=>f<=5).length) + stat('Top 10', fin.filter(f=>f<=10).length) + stat('Avg finish', f1(avg(fin))) +
@@ -808,7 +807,6 @@ function renderTrack() {
   const rows = []; for (let i=0;i<N;i++) if ((all || D.track[i]===ti) && tfMatch(i, st)) rows.push(i);
   if (!rows.length) return;
   const winners = rows.filter(i=>D.finish[i]===1).sort((a,b)=>D.season[b]-D.season[a]||D.race[b]-D.race[a]);
-  const stat = (k,v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
   titleFn = () => tname;
   const yrs = [...new Set(rows.map(i=>D.season[i]))].sort();
   const racesHere = new Set(rows.map(i=>D.season[i]*100+D.race[i])).size;

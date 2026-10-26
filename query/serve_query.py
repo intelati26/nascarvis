@@ -12,30 +12,25 @@
 
 The database is opened read-only with row and time limits. Listens on 127.0.0.1 only and rejects other Host headers.
 """
-import argparse
-import functools
 import json
 import os
 import re
 import sys
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.dirname(HERE))
 import engine  # noqa: E402
+from serve import StaticHandler  # noqa: E402
 
 MAX_BODY = 200_000
 SAFE_NAME = re.compile(r"^[a-z0-9][a-z0-9_-]{0,59}$")
 
 
-class Handler(SimpleHTTPRequestHandler):
+class Handler(StaticHandler):
     catalog = None
     db = None
     saved_dir = os.path.join(HERE, "saved")
-
-    def end_headers(self):
-        self.send_header("Cache-Control", "no-cache")
-        super().end_headers()
 
     def log_message(self, fmt, *args):          # quieter console
         if "/api/" in (args[0] if args else ""): sys.stderr.write("%s\n" % (fmt % args))
@@ -115,21 +110,8 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
-    root = os.path.dirname(HERE)
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--port", type=int, default=8765)
-    ap.add_argument("--db", default=os.path.join(root, "data", "query.db"))
-    ap.add_argument("--catalog", default=os.path.join(HERE, "catalog_nascar.json"))
-    ap.add_argument("--dir", default=root)
-    a = ap.parse_args()
-    Handler.catalog = engine.load_catalog(a.catalog)
-    Handler.db = a.db
-    handler = functools.partial(Handler, directory=a.dir)
-    with ThreadingHTTPServer(("127.0.0.1", a.port), handler) as srv:
-        print(f"query page: http://127.0.0.1:{a.port}/query/query.html   (database: {a.db}, "
-              f"{'ready' if os.path.exists(a.db) else 'NOT BUILT - run python query/build_db.py'})   Ctrl+C to stop")
-        try: srv.serve_forever()
-        except KeyboardInterrupt: pass
+    import serve                      # the same server as `python serve.py` (it serves the dashboard too); this script is kept for the old command
+    serve.main()
 
 
 if __name__ == "__main__":

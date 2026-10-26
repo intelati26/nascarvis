@@ -52,8 +52,9 @@ def main():
     ap.add_argument("--bind", default="127.0.0.1")
     ap.add_argument("--dir", default=HERE)
     ap.add_argument("--db", default=None, help="the query database (default: data/query.db in --dir)")
+    ap.add_argument("--catalog", default=None, help="the query catalog (default: query/catalog_nascar.json in --dir)")
     a = ap.parse_args()
-    cls, has_query, db = make_handler(os.path.abspath(a.dir), a.db)
+    cls, has_query, db = make_handler(os.path.abspath(a.dir), a.db, a.catalog)
     with ThreadingHTTPServer((a.bind, a.port), functools.partial(cls, directory=a.dir)) as srv:
         base = f"http://{a.bind}:{a.port}"
         print(f"serving {a.dir}\n  dashboard:     {base}/dashboard.html")
