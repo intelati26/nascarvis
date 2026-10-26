@@ -5,7 +5,7 @@ and shown as a table, with a builder page for editing the spec.
 
 ```bash
 python query/build_db.py           # once: builds data/query.db from cup_series.parquet (+ curation/)
-python query/serve_query.py        # http://127.0.0.1:8765/query/query.html
+python serve.py                    # the dashboard and this builder: http://127.0.0.1:8765/query/query.html (python query/serve_query.py does the same)
 python tests/test_query_engine.py  # golden SQL, validation, safety, API
 ```
 

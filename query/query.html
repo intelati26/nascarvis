@@ -234,7 +234,7 @@ function specFromHash() {
     await loadSaved();
     const first = SAVED.find(s => s.name.startsWith('a2')) || SAVED[0];
     setSpec(specFromHash() || (first ? JSON.parse(JSON.stringify(first.spec)) : blank()));
-  } catch (e) { $('status').textContent = ''; banner('Could not reach the query server: ' + e.message + '. Start it with  python query/serve_query.py'); }
+  } catch (e) { $('status').textContent = ''; banner('Could not reach the query server: ' + e.message + '. Start it with  python serve.py'); }
 })();
 </script>
 </body>

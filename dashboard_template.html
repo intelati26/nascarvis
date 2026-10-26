@@ -275,9 +275,9 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
   </div>
   <details class="card" id="l-sql">
     <summary><b>Show as SQL</b> <span class="sub" style="display:inline">the query behind this table, to read, copy and change</span></summary>
-    <div class="sub" style="margin-top:8px">This is the SQL that gives the table above from the <code>results</code> table (one row per driver per race). To run it, start the query server
-      (<code>python query/serve_query.py</code>), paste it into <b>Edit SQL</b> there, or use the link, which opens the same query in the builder's form
-      (the builder shows rates as 0 to 1, not percentages). Change the settings above and the SQL follows.</div>
+    <div class="sub" style="margin-top:8px">This is the SQL that gives the table above from the <code>results</code> table (one row per driver per race). To run it, serve this folder with
+      <code>python serve.py</code> (it serves the dashboard and the query builder together; build the database once with <code>python query/build_db.py</code>), then paste the SQL into
+      <b>Edit SQL</b> in the builder, or use the link, which opens the same query in the builder's form (the builder shows rates as 0 to 1, not percentages). Change the settings above and the SQL follows.</div>
     <div class="controls" style="margin:8px 0">
       <label><input type="checkbox" id="l-sqlexplain" checked> Explain each clause</label>
       <button class="btn" id="l-sqlcopy" type="button">Copy</button>
@@ -903,12 +903,14 @@ function renderLeaders() {
   renderLeadersSql();
 }
 // ---- Show as SQL (leaderssql.js writes the text from the same settings the table uses)
+// the builder page lives next to this dashboard on the same server (python serve.py); opened from a file, fall back to serve.py's usual address
+const QUERY_PAGE = location.protocol.startsWith('http') ? new URL('query/query.html', location.href).href : 'http://127.0.0.1:8765/query/query.html';
 function renderLeadersSql() {
   if (!$('l-sql').open) return;
   const g = NASCARSql.leaders({stat: $('l-stat').value, scope: $('l-scope').value, from: +$('l-from').value, to: +$('l-to').value, minStarts: +$('l-min').value || 0,
     exactWins: $('l-wins').value === '' ? null : +$('l-wins').value, top: +$('l-top').value, explain: $('l-sqlexplain').checked,
     trackFilters: TF.map(f => ({sql: f.sql, value: tfState($('l-tf'))[f.key]})).filter(x => x.value)});
-  $('l-sqltext').value = g.sql; $('l-sqlopen').href = NASCARSql.builderUrl(g.spec);
+  $('l-sqltext').value = g.sql; $('l-sqlopen').href = NASCARSql.builderUrl(g.spec, QUERY_PAGE);
 }
 $('l-sql').ontoggle = renderLeadersSql; $('l-sqlexplain').onchange = renderLeadersSql;
 $('l-sqlcopy').onclick = async () => {

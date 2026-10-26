@@ -28,7 +28,7 @@ Phoenix, Gateway). Banking is the mean of a track's turn angles, taken by layout
 79% of races have it: road courses and the old dirt tracks do not, and are left out when a banking filter is on. Shape tags are a hand-kept list, `track_shapes.csv`.
 
 The Leaders tab has a **Show as SQL** panel: the SQL that gives the leaderboard on screen, written to be read and changed (each clause is explained
-if you leave that on), with a link that opens the same query in the query builder (`query/`, start it with `python query/serve_query.py`).
+if you leave that on), with a link that opens the same query in the query builder (`query/`; `python serve.py` serves the dashboard and the builder together).
 `leaderssql.js` writes it; its tests run the generated SQL against a database and compare it with an independent leaderboard.
 
 ### Viewing it on a phone (Termux)
@@ -36,7 +36,7 @@ if you leave that on), with a link that opens the same query in the query builde
 ```bash
 pkg install python python-pyarrow          # once
 python build_dashboard.py --update         # download data, rebuild dashboard.html + dashboard_data/
-python serve.py                            # serves this folder on http://localhost:8765 (Ctrl+C to stop)
+python serve.py                            # serves this folder on http://localhost:8765 (Ctrl+C to stop); with a query/ folder it also serves the query builder
 ```
 
 Then open `http://localhost:8765/dashboard.html` in the phone's browser. `serve.py` uses only the standard
@@ -51,7 +51,7 @@ values, whether the points follow one table by finishing position or scale by ra
 and the champion by summed points). `--official FILE` also compares final totals with official standings.
 Results go to `out/points_audit_seasons.csv` and `out/points_audit_rows.csv`.
 
-Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `node tests/test_leaderssql.js`, `python tests/test_leaderssql.py`, `python tests/test_track_types.py`, `python tests/test_nascar_feed.py`, `python tests/test_laps_db.py`, `python tests/test_shards.py` (needs pyarrow and node) and
+Tests: `node tests/test_formats.js`, `node tests/test_wikitext.js`, `node tests/test_leaderssql.js`, `python tests/test_leaderssql.py`, `python tests/test_track_types.py`, `python tests/test_nascar_feed.py`, `python tests/test_laps_db.py`, `python tests/test_serve.py`, `python tests/test_shards.py` (needs pyarrow and node) and
 `python tests/test_audit_points.py` (needs pyarrow).
 
 ## Race-by-race standings (work in progress)
