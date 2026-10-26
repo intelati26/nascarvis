@@ -44,7 +44,7 @@ library and listens on localhost only. Skip the middle command to view the data 
 
 A file manager's "open with HTML viewer" cannot read the data folder next to the page. If you must open a
 lone file, build with `--single-file` (everything embedded, about 8 MB for Cup). `--data-dir` puts the data
-folder elsewhere. Lap-by-lap JSON (`lap_times_<season>.json`) is loaded with `fetch()`, which needs the server.
+folder elsewhere. The Race tab's lap charts (`dashboard_data/laps/<season>-<race>.json.gz`, one file per race, fetched when the race is opened) are loaded with `fetch()`, which needs the server.
 
 Points audit: `python audit_points.py --from 1949 --to 2003` checks each season's `Pts` column (empty or negative
 values, whether the points follow one table by finishing position or scale by race, rows that break the pattern,
@@ -92,4 +92,19 @@ into a `laps` table; see `query/README.md`.
 Loop statistics (one row per driver per race: running positions, green-flag and quality passes, fast laps, driver rating) come from `python fetch_loop_stats.py --from 2015`. NASCAR's feed
 has them for **2019 onward** only (2015 and 2016 are empty, 2017 and 2018 are missing); the query database loads them as a `loop_stats` table, described in `query/README.md`.
 
-The output is designed for later dashboard or analysis work without requiring an internet connection at runtime. For the current dashboard, the summary race files remain the fast default; lap-by-lap data is loaded only when you specifically want it.
+The Race tab charts a race's laps (green-flag lap times, running position, or all lap times for the top eight finishers) from these files: `python build_dashboard.py` turns each `lap_times_<season>.parquet` into `dashboard_data/laps/<season>-<race>.json.gz` (gzipped, about 28 KB a race and 7 MB for the 246 races of 2020-2026, unpacked in the browser by `DecompressionStream`; the folder is git-ignored like the rest of `dashboard_data/`), paired with the results' races by track. A race with no lap file shows a note instead.
+
+## Early-season points (curation)
+
+`curation/` holds hand-curated and derived points for seasons where nascaR.data has none or incomplete values (1949, 1950,
+1951, 1972, 1973), plus Wikipedia final-standings references for 1949-1955, 1957, 1960 and 1972-1974 and a champion check for
+every season 1949-2003 (42 of 55 match exactly). `build_dashboard.py` applies `curation/points_*.csv`
+to blank `Pts`. See `curation/WIKIPEDIA_SUMMARY.md` for what exists per season and what is still missing, and
+`curation/SOURCES.md` for sources and licences.
+
+### Marked points
+
+In seasons rebuilt from `curation/` (1949-1951, 1972-1973) the dashboard shows `≈` before a driver's race points unless that
+driver's derived season total matches the official standings exactly. Drivers who were reconciled to the official total, or who
+are not in the official table and so cannot be checked, are marked; exact ones are not. The list of exact drivers per season is
+computed at build time (`curated` in the manifest) from `final_standings_<season>.csv` and the reconcile entries in `adjustments.json`.

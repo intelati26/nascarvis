@@ -138,8 +138,8 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     </div>
   </div>
   <div class="card">
-    <div class="tools"><button class="btn" data-png="c-laps">PNG</button></div>
-    <h2>Lap times</h2>
+    <div class="tools"><select id="r-lap-view" aria-label="Lap chart view"><option value="green">Green-flag lap times</option><option value="pos">Running position</option><option value="all">All lap times</option></select> <button class="btn" data-png="c-laps">PNG</button></div>
+    <h2>Laps</h2>
     <div class="sub" id="r-lap-note">Lap-by-lap time traces for the top finishers. Available when the offline lap JSON exists.</div>
     <div class="chartbox" style="height:320px"><canvas id="c-laps"></canvas></div>
   </div>
@@ -213,6 +213,12 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <div class="tools"><button class="btn" data-csv="driver-by-type">CSV</button></div>
     <h2>By track type</h2><div class="sub">Every start, grouped by the kind of track.</div>
     <div class="tablewrap"><table id="t-dtype"></table></div>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="driver-type-races">CSV</button></div>
+    <h2>Races by track type</h2><div class="sub" id="d-gridsub"></div>
+    <div class="controls" style="margin:6px 0"><select id="d-gridtype" aria-label="Track type"></select> <select id="d-gridtrack" aria-label="Track"></select></div>
+    <div class="tablewrap" style="max-height:520px"><table id="t-dgrid"></table></div>
   </div>
 </section>
 
@@ -393,6 +399,7 @@ function renderTable(el, key, cols, rows, opts={}) {
     return (x==null)-(y==null) || (typeof x==='string' ? x.localeCompare(y) : x-y) ; }); if (st.dir<0) data.reverse(); }
   el.innerHTML = '<thead><tr>' + cols.map((c,i)=>`<th data-i="${i}" class="${c.l?'l':''}">${c.h}${st.col===i?(st.dir>0?' ▲':' ▼'):''}</th>`).join('') + '</tr></thead><tbody>' +
     data.map(r => '<tr>' + cols.map(c=>`<td class="${c.l?'l':''}">${c.html ? c.html(r) : esc(c.k(r) ?? '')}</td>`).join('') + '</tr>').join('') + '</tbody>';
+  if (cols.some(c => c.html === ptsCell)) ptsLegend(el, el.innerHTML.includes('≈'));
   el.querySelectorAll('th').forEach(th => th.onclick = () => {
     const i = +th.dataset.i; el._sort = {col:i, dir: st.col===i ? -st.dir : (typeof cols[i].k(rows[0] ?? {}) === 'string' ? 1 : -1)};
     renderTable(el, key, cols, rows, opts); });
@@ -530,6 +537,20 @@ function playoffStatus(st, d, k) {
   for (let i = 0; i < st.rounds.length; i++) if (st.rounds[i].eliminated.includes(d) && k >= st.rounds[i].start + 2) return 'Out after ' + lab[i];
   return st.rounds.length > 2 && k >= st.rounds[2].start + 2 ? 'Final 4' : 'In';
 }
+// Points in seasons rebuilt in curation/ are marked with ≈ unless the driver's derived total matches the official standings exactly.
+const exactSets = {};
+function ptsCell(i) {
+  const v = D.pts[i], cur = D.curated && D.curated[D.season[i]];
+  if (!cur || !cur.races.includes(D.race[i])) return v == null ? '' : esc(v);      // only races rebuilt in curation/ can be marked
+  const set = exactSets[D.season[i]] || (exactSets[D.season[i]] = new Set(cur.exact));
+  if (set.has(drv(i))) return v == null ? '' : esc(v);
+  return `<span title="Derived from race purses and the scoring scale (or rebuilt from other sources); this driver's season total is reconciled to the official one, or could not be checked. See curation/WIKIPEDIA_SUMMARY.md.">≈${v == null ? '' : esc(v)}</span>`;
+}
+function ptsLegend(el, anyMarked) {
+  let n = el.parentElement.parentElement.querySelector('.ptslegend');
+  if (!n) { n = document.createElement('div'); n.className = 'sub ptslegend'; n.style.marginTop = '6px'; el.parentElement.after(n); }
+  n.textContent = anyMarked ? '≈ points derived from race purses and the scoring scale (or rebuilt from other sources); the driver\'s season total is reconciled to the official total or could not be checked. See curation/WIKIPEDIA_SUMMARY.md.' : '';
+}
 const avgR = v => v==null ? null : Math.round(v*10)/10;
 ['s-season','s-metric','s-top','s-topby','s-format','s-after','s-adj'].forEach(id => $(id).onchange = () => { if (id==='s-season') { hidden.clear(); $('s-race').dataset.season=''; fillFormats(); }
     renderSeason(); });
@@ -541,19 +562,23 @@ function fillRaces() {
   fillSelect($('r-race'), rl.map(r => [r.num, `${r.num}. ${r.name} — ${r.track}`]), rl[rl.length-1].num);
 }
 
+// One race's laps as {driver: [{lap, lap_time, position}]}, or null. lapFiles[season] is either a path with {race} (one small file per race, columns as [laps],[times],[positions])
+// gzipped, or the older one plain file per season ({race: {driver: [rows]}}).
 async function loadRaceLapData(season, raceNum) {
   const key = `${season}:${raceNum}`;
   if (lapCache.has(key)) return lapCache.get(key);
   const file = (D.lapFiles && D.lapFiles[String(season)]) || null;
-  if (!file) {
+  const perRace = file && file.includes('{race}');
+  if (!file || (perRace && D.lapRaces && D.lapRaces[String(season)] && !D.lapRaces[String(season)].includes(raceNum))) {
     lapCache.set(key, null);
     return null;
   }
   try {
-    const res = await fetch(file, {cache: 'force-cache'});
+    const res = await fetch(perRace ? file.replace('{race}', raceNum) : file, {cache: 'force-cache'});
     if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
-    const payload = await res.json();
-    const raceData = payload[String(raceNum)] ?? payload[raceNum] ?? null;
+    const payload = file.endsWith('.gz') ? await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).json() : await res.json();
+    let raceData = perRace ? payload : (payload[String(raceNum)] ?? null);
+    if (perRace) raceData = Object.fromEntries(Object.entries(payload).map(([d, c]) => [d, c[0].map((lap, i) => ({lap, lap_time: c[1][i], position: c[2][i]}))]));
     lapCache.set(key, raceData);
     return raceData;
   } catch (err) {
@@ -582,9 +607,16 @@ async function renderRaceLapData() {
     return;
   }
   const t = themeColors();
+  const view = $('r-lap-view').value;
+  // green flag: drop laps slower than 12% over the field's median lap (cautions and pit stops), which would flatten the racing laps
+  const all = selectedDrivers.flatMap(d => raceData[d].map(p => p.lap_time).filter(v => v != null)).sort((a, b) => a - b);
+  const cutoff = all.length ? all[Math.floor(all.length / 2)] * 1.12 : Infinity;
+  const point = {green: p => p.lap_time != null && p.lap_time <= cutoff ? {x: p.lap, y: p.lap_time} : null,
+                 all: p => p.lap_time != null ? {x: p.lap, y: p.lap_time} : null,
+                 pos: p => p.position != null ? {x: p.lap, y: p.position} : null}[view];
   const datasets = selectedDrivers.map((driver, idx) => ({
     label: driver,
-    data: raceData[driver].filter(p => p.lap_time != null).map(p => ({x: p.lap, y: p.lap_time})),
+    data: raceData[driver].map(point).filter(Boolean),
     borderColor: colorFor(idx),
     backgroundColor: colorFor(idx),
     pointRadius: 0,
@@ -594,7 +626,8 @@ async function renderRaceLapData() {
     spanGaps: false,
     fill: false,
   }));
-  lapNote.textContent = `Showing top-finishers' lap times for ${selectedDrivers.length} drivers.`;
+  const nTotal = selectedDrivers.reduce((n, d) => n + raceData[d].length, 0), nShown = datasets.reduce((n, d) => n + d.data.length, 0);
+  lapNote.textContent = `Top finishers (${selectedDrivers.length} drivers)` + (view === 'green' && nShown < nTotal ? `; ${nTotal - nShown} slow laps (cautions, pit stops) left out of ${nTotal}.` : '.');
   mount('c-laps', {
     type: 'line',
     data: { datasets },
@@ -602,11 +635,12 @@ async function renderRaceLapData() {
       interaction: { mode: 'nearest', intersect: false },
       scales: {
         x: { type: 'linear', title: { display: true, text: 'Lap #' }, ticks: { precision: 0 } },
-        y: { title: { display: true, text: 'Lap time (s)' } }
+        y: view === 'pos' ? { reverse: true, min: 1, title: { display: true, text: 'Running position' }, ticks: { precision: 0 } }
+                          : { title: { display: true, text: 'Lap time (s)' } }
       },
       plugins: {
         legend: { position: 'bottom' },
-        tooltip: { callbacks: { title: ctx => `${ctx[0].dataset.label}` , label: ctx => `Lap ${ctx.parsed.x}: ${ctx.parsed.y.toFixed(3)} s` } }
+        tooltip: { callbacks: { title: ctx => `${ctx[0].dataset.label}`, label: ctx => view === 'pos' ? `Lap ${ctx.parsed.x}: P${ctx.parsed.y}` : `Lap ${ctx.parsed.x}: ${ctx.parsed.y.toFixed(3)} s` } }
       }
     }
   });
@@ -642,13 +676,16 @@ function renderRace() {
     {h:'Fin', k:i=>D.finish[i]}, {h:'Start', k:i=>D.start[i]}, {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
     {h:'Driver', k:drv, l:1, html:i=>driverLink(drv(i))}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Team', k:i=>D.teams[D.team[i]], l:1},
     {h:'Make', k:i=>D.makes[D.make[i]], l:1}, {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]},
-    {h:'Stg 1 pts', k:i=>D.s1[i]}, {h:'Stg 2 pts', k:i=>D.s2[i]}, {h:'Stg 3 pts', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i]},
+    {h:'Stg 1 pts', k:i=>D.s1[i]}, {h:'Stg 2 pts', k:i=>D.s2[i]}, {h:'Stg 3 pts', k:i=>D.s3[i]}, {h:'Pts', k:i=>D.pts[i], html:ptsCell},
     {h:'Rating', k:i=>D.rating[i]}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
   ], rows, {file:`race-${season}-${r.num}`});
   renderRaceLapData();
 }
 $('r-season').onchange = () => { fillRaces(); renderRace(); };
 $('r-race').onchange = renderRace;
+$('r-lap-view').onchange = renderRaceLapData;
+$('d-gridtype').onchange = renderTypeGrid;
+$('d-gridtrack').onchange = renderTypeGrid;
 const stepRace = d => { const o=[...$('r-race').options], k=Math.min(o.length-1,Math.max(0,$('r-race').selectedIndex+d)); $('r-race').selectedIndex=k; renderRace(); };
 $('r-prev').onclick = () => stepRace(-1); $('r-next').onclick = () => stepRace(1);
 
@@ -710,7 +747,29 @@ function renderDriver() {
     {h:'Track type', k:r=>r.type, l:1}, {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins}, {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10},
     {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Laps Led', k:r=>r.led}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
   ], byType);
-  lastDriver = {name, bySeason, seasonStats}; renderWikiYears(); renderWikitext();
+  lastDriver = {name, bySeason, seasonStats}; renderWikiYears(); renderWikitext(); renderTypeGrid();
+}
+// Every race the driver started on one kind of track, all seasons in one list (newest season first): the race table above without the one-season limit.
+function renderTypeGrid() {
+  const sel = $('d-gridtype'), tsel = $('d-gridtrack');
+  if (!sel.options.length) { sel.innerHTML = '<option value="">All track types</option>' + TF[0].values.map(v => `<option value="${v.key}">${esc(v.label)}</option>`).join(''); sel.value = 'superspeedway'; }
+  if (!lastDriver) return;
+  const {name, bySeason} = lastDriver, type = sel.value, label = type ? tfLabel(TF[0], type) : '';
+  const ofType = [...bySeason.keys()].sort((a, b) => b - a).flatMap(season => bySeason.get(season).filter(i => !type || tfValue(i, TF[0]) === type).sort((a, b) => D.race[a] - D.race[b]));
+  // the track list is the tracks he raced at within the type; it resets to all tracks when the type or the driver changes
+  const counts = new Map(); ofType.forEach(i => counts.set(D.track[i], (counts.get(D.track[i]) || 0) + 1));
+  const key = name + '|' + type;
+  if (tsel.dataset.key !== key) {
+    tsel.innerHTML = '<option value="">All tracks</option>' + [...counts.entries()].sort((a, b) => D.tracks[a[0]].localeCompare(D.tracks[b[0]])).map(([t, c]) => `<option value="${t}">${esc(D.tracks[t])} (${c})</option>`).join('');
+    tsel.dataset.key = key;
+  }
+  const rr = tsel.value === '' ? ofType : ofType.filter(i => D.track[i] === +tsel.value);
+  const what = tsel.value === '' ? label.toLowerCase() : D.tracks[+tsel.value];
+  const f = rr.map(i => D.finish[i]), st = rr.map(i => D.start[i]), n = fn => f.filter(fn).length;
+  $('d-gridsub').textContent = rr.length
+    ? `${name} made ${rr.length} ${what ? what + ' ' : ''}start${rr.length === 1 ? '' : 's'}: average start ${f1(avg(st)) || '–'}, average finish ${f1(avg(f)) || '–'}; ${n(x => x === 1)} win${n(x => x === 1) === 1 ? '' : 's'}, ${n(x => x <= 5)} top 5s, ${n(x => x <= 10)} top 10s, ${rr.reduce((a, i) => a + nz(D.led[i]), 0)} laps led, ${rr.filter(dnf).length} DNFs.`
+    : `${name} has no ${what ? what + ' ' : ''}starts.`;
+  renderTable($('t-dgrid'), 'driver-type-races', [{h: 'Season', k: i => D.season[i]}, ...driverRaceCols()], rr, {file: `driver-${name.replace(/\W+/g, '_')}-${tsel.value === '' ? (type || 'all') : 'track' + tsel.value}-races`});
 }
 // ---- Wikipedia export (wikitext.js builds the text; this only turns the dashboard's data into its input)
 let lastDriver = null;
@@ -756,6 +815,16 @@ $('d-wikicopy').onclick = async () => {
   b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500);
 };
 $('d-wikisave').onclick = () => lastDriver && download(new Blob([wikiText()], {type:'text/plain'}), 'wikitext-' + lastDriver.name.replace(/\W+/g,'_') + '.txt');
+// the columns of a driver's race table (one season's races, or one track type's races over all seasons)
+const driverRaceCols = () => [
+    {h:'Race', k:i=>D.race[i]}, {h:'Name', k:i=>D.names[D.name[i]], l:1, html:i=>`<a data-race="${D.season[i]}-${D.race[i]}">${esc(D.names[D.name[i]])}</a>`},
+    {h:'Track', k:i=>D.tracks[D.track[i]], l:1, html:i=>`<a data-track="${D.track[i]}">${esc(D.tracks[D.track[i]])}</a>`},
+    {h:'Start', k:i=>D.start[i]}, {h:'Finish', k:i=>D.finish[i], html:i=>`<b style="${finishColor(D.finish[i])};padding:1px 6px;border-radius:4px">${D.finish[i]}</b>`},
+    {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
+    {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]}, {h:'Stage pts', k:i=>nz(D.s1[i])+nz(D.s2[i])+nz(D.s3[i])},
+    {h:'Pts', k:i=>D.pts[i], html:ptsCell}, {h:'Rating', k:i=>D.rating[i]}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
+];
+
 function renderDriverForm(name, bySeason) {
   const s = +$('d-season').value, rr = (bySeason.get(s) || []).slice().sort((a,b)=>D.race[a]-D.race[b]);
   $('d-formyr').textContent = '— ' + s; const t = themeColors();
@@ -775,14 +844,7 @@ function renderDriverForm(name, bySeason) {
       `${fin.filter(x=>x===1).length} win${fin.filter(x=>x===1).length===1?'':'s'}, ${fin.filter(x=>x<=5).length} top 5s, ${fin.filter(x=>x<=10).length} top 10s, ` +
       `${rr.reduce((a,i)=>a+nz(D.led[i]),0)} laps led, ${rr.filter(dnf).length} DNFs.`
     : `${name} did not start a race in ${s}.`;
-  renderTable($('t-draces'), 'driver-races', [
-    {h:'Race', k:i=>D.race[i]}, {h:'Name', k:i=>D.names[D.name[i]], l:1, html:i=>`<a data-race="${D.season[i]}-${D.race[i]}">${esc(D.names[D.name[i]])}</a>`},
-    {h:'Track', k:i=>D.tracks[D.track[i]], l:1, html:i=>`<a data-track="${D.track[i]}">${esc(D.tracks[D.track[i]])}</a>`},
-    {h:'Start', k:i=>D.start[i]}, {h:'Finish', k:i=>D.finish[i], html:i=>`<b style="${finishColor(D.finish[i])};padding:1px 6px;border-radius:4px">${D.finish[i]}</b>`},
-    {h:'+/-', k:i=>D.start[i]==null?null:D.start[i]-D.finish[i], html:i=>D.start[i]==null?'':delta(D.start[i]-D.finish[i])},
-    {h:'Laps', k:i=>D.laps[i]}, {h:'Led', k:i=>D.led[i]}, {h:'Stage pts', k:i=>nz(D.s1[i])+nz(D.s2[i])+nz(D.s3[i])},
-    {h:'Pts', k:i=>D.pts[i]}, {h:'Rating', k:i=>D.rating[i]}, {h:'Car', k:i=>D.car[i], l:1}, {h:'Status', k:i=>D.statuses[D.status[i]], l:1},
-  ], rr, {file:`driver-${name.replace(/\W+/g,'_')}-${s}-races`});
+  renderTable($('t-draces'), 'driver-races', driverRaceCols(), rr, {file:`driver-${name.replace(/\W+/g,'_')}-${s}-races`});
 }
 $('d-driver').onchange = renderDriver;
 $('d-metric').onchange = renderDriver;

@@ -33,7 +33,7 @@ class Handler(StaticHandler):
     saved_dir = os.path.join(HERE, "saved")
 
     def log_message(self, fmt, *args):          # quieter console
-        if "/api/" in (args[0] if args else ""): sys.stderr.write("%s\n" % (fmt % args))
+        if "/api/" in str(args[0] if args else ""): sys.stderr.write("%s\n" % (fmt % args))
 
     # ---- helpers
     def send_json(self, code, obj):

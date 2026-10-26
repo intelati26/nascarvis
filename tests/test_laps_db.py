@@ -10,7 +10,9 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "query"))
+sys.path.insert(0, ROOT)
 import build_db as b  # noqa: E402
+import lap_json  # noqa: E402
 
 
 def main():
@@ -63,6 +65,24 @@ def main():
     j = con.execute("SELECT COUNT(*) FROM laps l JOIN results r ON r.season = l.season AND r.race = l.race AND r.driver = l.driver").fetchone()[0]
     assert j == 9, "the laps table joins to results on (season, race, driver)"
     print("load_laps: pairing, names by car number, NULL speed, join to results, skipped race OK")
+
+    # ---- the dashboard's per-race lap files: the results' race numbers and driver names, columns as lists, nothing for a race with no results
+    rows_ = [(2024, 1, "Daytona International Speedway", "5", "Kyle Larson"), (2024, 1, "Daytona International Speedway", "11", "Denny Hamlin"),
+             (2024, 1, "Daytona International Speedway", "47", "Ricky Stenhouse Jr."), (2024, 5, "Las Vegas Motor Speedway", "5", "Kyle Larson"),
+             (2024, 5, "Las Vegas Motor Speedway", "11", "Denny Hamlin")]
+    res = lap_json.results_index(*zip(*rows_))
+    out_dir = os.path.join(d, "dash"); os.makedirs(os.path.join(out_dir, "laps"))
+    open(os.path.join(out_dir, "laps", "2024-9.json.gz"), "w").write("{}")                  # a stale file of this season goes
+    written, skipped = lap_json.write_race_files(os.path.join(d, "lap_times_2024.parquet"), 2024, res, out_dir)
+    assert written == [1, 5] and [x[0] for x in skipped] == [3], (written, skipped)
+    assert sorted(os.listdir(os.path.join(out_dir, "laps"))) == ["2024-1.json.gz", "2024-5.json.gz"], "feed race 2 is file 5; the stale file is removed"
+    import json
+    import gzip
+    read = lambda n: json.load(gzip.open(os.path.join(out_dir, "laps", n), "rt", encoding="utf-8"))
+    five = read("2024-5.json.gz")
+    assert five["Kyle Larson"] == [[1, 2], [51.0, 52.0], [1, 2]] and set(five) == {"Kyle Larson", "Denny Hamlin"}, five
+    assert set(read("2024-1.json.gz")) == {"Kyle Larson", "Denny Hamlin", "Ricky Stenhouse Jr."}
+    print("write_race_files: results' race numbers and names, columns, stale file removed, unmatched race skipped OK")
 
     # ---- no lap files: the table exists and is empty
     con2 = sqlite3.connect(os.path.join(d, "t2.db"))

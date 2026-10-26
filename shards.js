@@ -33,7 +33,7 @@ const NV = (function () {
     for (const s of order) {
       if (!shardMap.has(s)) throw new Error('season ' + s + ' did not load (is its file in the data folder?)');
     }
-    const out = { title: m.title, adjustments: m.adjustments, lapFiles: m.lapFiles, trackFilters: m.trackFilters || [] };
+    const out = { title: m.title, adjustments: m.adjustments, lapFiles: m.lapFiles, lapRaces: m.lapRaces || {}, curated: m.curated || {}, trackFilters: m.trackFilters || [] };
     for (const c of COLS) out[c] = [];
     for (const [dk, ik] of Object.entries(DICTS)) {
       // one global dictionary, sorted, as the single-file build has always had

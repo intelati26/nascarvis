@@ -16,12 +16,10 @@ Open dashboard.html directly in a desktop browser, or (phone) run python serve.p
 http://localhost:8765/dashboard.html -- file managers can't give a page its data folder. With --single-file the
 output is one offline HTML file with the data embedded.
 
-If a lap-data file is available, build_dashboard also writes one lap JSON file per season
-next to the dashboard, which the browser can fetch offline for lap-by-lap charts.
-If lap coverage is incomplete the build will write lap_gaps.csv into --lap-dir to list missing races.
-
-New: --embed-laps will embed per-season lap JSON into dashboard.html (may be large).
-New: --fetch-all-laps will fetch every season's lap data and write compressed parquet sidecars.
+Lap data: when lap_times_<season>.parquet files are next to this script (python fetch_lap_times.py --from 2020), the build writes one small JSON file per race to
+dashboard_data/laps/<season>-<race>.json.gz. The Race tab fetches the one it needs, so a phone only downloads the races it opens (about 28 KB each, gzipped; keep dashboard_data/
+next to dashboard.html). Races are paired with the results by track, since the feed numbers them by date; a feed race with no match is listed and left out.
+--fetch-all-laps fetches every season's lap times first. --lap-input FILE builds the older one-file-per-season lap_times_<season>.json instead.
 """
 import argparse
 import collections
@@ -37,7 +35,7 @@ import sys
 sys.path.insert(0, HERE)
 import track_types                                   # the track type of every race (see track_types.py)
 from nascar_data import apply_curation, clean, norm   # the curation overlay and the helpers shared with the other scripts
-from lap_json import build_lap_dict_for_season, check_lap_json_completeness, export_lap_json_for_season   # lap_times_<season>.json for the Race tab
+from lap_json import build_lap_dict_for_season, check_lap_json_completeness, export_lap_json_for_season, results_index, write_race_files   # lap_times_<season>.json for the Race tab
 URL = "https://nascar.kylegrealis.com/cup_series.parquet"
 
 
@@ -105,7 +103,7 @@ def write_data_files(data, data_dir):
         shards.append({"season": season, "file": fname, "v": hashlib.sha1(text.encode("utf-8")).hexdigest()[:10],
                        "rows": hi - lo})
         lo = hi
-    manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"],
+    manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"], "lapRaces": data.get("lapRaces", {}),
                 "adjustments": data["adjustments"], "curated": data.get("curated", {}), "trackFilters": data.get("trackFilters", [])}
     mtext = "NV.manifest(%s);\n" % json.dumps(manifest, separators=(",", ":"))
     rewritten += write_if_changed(os.path.join(data_dir, "manifest.js"), mtext)
@@ -218,6 +216,8 @@ def main():
     if a.fetch_all_laps:
         fetch_all_laps(sorted(expected_by_season), lap_parquet_dir, force=a.fetch_force)
 
+    data_dir = a.data_dir or os.path.join(os.path.dirname(os.path.abspath(a.out)), "dashboard_data")
+    rel_data = os.path.relpath(data_dir, os.path.dirname(os.path.abspath(a.out))).replace(os.sep, "/")      # the lap files sit in dashboard_data/laps, fetched from the page
     lap_files = {}
     lap_data_embed = {} if a.embed_laps else None
 
@@ -251,20 +251,24 @@ def main():
             if a.strict_lap_check:
                 raise SystemExit("historical lap coverage is incomplete")
     else:
-        # try to find parquet sidecars first (if fetch_all_laps wrote them), then json sidecars
+        # the lap parquet files fetch_lap_times.py writes become one small JSON file per race (fetched when the race is opened); else an older per-season JSON
+        res = lap_races = None
         for season in sorted(expected_by_season):
             pq_path = os.path.join(lap_parquet_dir, f"lap_times_{season}.parquet")
+            json_path = os.path.join(a.lap_dir, f"lap_times_{season}.json")
             if os.path.exists(pq_path):
-                # if embedding, convert parquet to in-memory dict; otherwise leave parquet on disk and also generate json sidecar
-                lap_files[str(season)] = os.path.basename(pq_path)
-                if a.embed_laps:
-                    lap_data_embed[str(season)] = build_lap_dict_for_season(season, pq_path)
-            else:
-                json_path = os.path.join(a.lap_dir, f"lap_times_{season}.json")
-                if os.path.exists(json_path):
-                    lap_files[str(season)] = os.path.basename(json_path)
-                    if a.embed_laps:
-                        lap_data_embed[str(season)] = json.load(open(json_path, encoding='utf-8'))
+                if res is None:
+                    res = results_index(data["season"], data["race"], [data["tracks"][i] for i in data["track"]], data["car"], [data["drivers"][i] for i in data["driver"]])
+                    lap_races = {}
+                written, skipped = write_race_files(pq_path, season, res, data_dir)
+                if written:
+                    lap_files[str(season)] = "%s/laps/%d-{race}.json.gz" % (rel_data, season)
+                    lap_races[str(season)] = written
+                for fnum, why in skipped: print(f"lap data: {season} feed race {fnum} left out: {why}")
+            elif os.path.exists(json_path):
+                lap_files[str(season)] = os.path.basename(json_path)
+                if a.embed_laps: lap_data_embed[str(season)] = json.load(open(json_path, encoding="utf-8"))
+        data["lapRaces"] = lap_races or {}
     # runtime guard: ensure 'data' is a dict before using string keys (helps diagnose accidental overwrite)
     if not isinstance(data, dict):
         raise TypeError(f"build_dashboard.py: expected 'data' to be dict before adding lapFiles, but got {type(data).__name__}: {repr(data)[:400]}")
@@ -290,7 +294,6 @@ def main():
     else:
         if data.pop("lapData", None) is not None:
             print("note: --embed-laps is ignored without --single-file (lap data stays in its own files)")
-        data_dir = a.data_dir or os.path.join(os.path.dirname(os.path.abspath(a.out)), "dashboard_data")
         mver, rewritten = write_data_files(data, data_dir)
         rel = os.path.relpath(data_dir, os.path.dirname(os.path.abspath(a.out))).replace(os.sep, "/")
         shards_js = open(os.path.join(HERE, "shards.js"), encoding="utf-8").read()
@@ -310,13 +313,14 @@ def main():
     print(f"wrote {a.out}: {len(keep):,} rows, seasons {data['season'][0]}-{data['season'][-1]}, "
           f"{os.path.getsize(a.out)/1e6:.1f} MB")
     if not a.single_file:
-        total = sum(os.path.getsize(os.path.join(data_dir, f)) for f in os.listdir(data_dir))
-        print(f"wrote {data_dir}: {len(os.listdir(data_dir)) - 1} season files + manifest, {total/1e6:.1f} MB "
+        files = [f for f in os.listdir(data_dir) if os.path.isfile(os.path.join(data_dir, f))]
+        total = sum(os.path.getsize(os.path.join(data_dir, f)) for f in files)
+        print(f"wrote {data_dir}: {len(files) - 1} season files + manifest, {total/1e6:.1f} MB "
               f"({rewritten} rewritten, rest unchanged)")
     if lap_files:
         # lap_files is a dict mapping season->filename; present a concise examples list of filenames
-        examples = sorted(lap_files.values())[:3]
-        print(f"lap JSON/parquet sidecars: {len(lap_files)} seasons; examples: {', '.join(examples)}")
+        n = sum(len(v) for v in (data.get("lapRaces") or {}).values())
+        print(f"lap data: {len(lap_files)} seasons" + (f", {n} races in {data_dir}/laps" if n else f"; examples: {', '.join(sorted(lap_files.values())[:3])}"))
     if lap_data_embed is not None:
         print(f"embedded lap data for {len(lap_data_embed)} seasons (this increases dashboard size).")
 

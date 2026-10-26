@@ -27,29 +27,7 @@ sys.path.insert(0, ROOT)
 import nascar_data as nd
 import track_types
 
-_words = track_types.words
-_norm = nd.norm
-# a driver's name for matching: without "(i)" style tags and Jr./Sr./II suffixes, so "Ricky Stenhouse" finds "Ricky Stenhouse Jr."
-_name = lambda s: _norm(re.sub(r"\(.*?\)|\b(?:jr|sr|ii|iii|iv)\b\.?", "", str(s), flags=re.I))
-
-
-LAP_TRACK_ALIAS = {"San Diego Street Course": "Naval Base Coronado", "ISM Raceway": "Phoenix Raceway"}      # one track under two names (the feed and the results); both sides are mapped to the right-hand name
-
-
-def align_races(feed, results, alias=None):
-    """Pair the lap feed's races with the results' races of one season by track, not by number: the feed numbers races by date and nascaR.data by its own order, and they
-    differ when a race was moved. feed: [(feed race number, track)] and results: [(race number, track)], both in order. Races at the same track pair in order (Daytona's two races).
-    Returns ({feed number: results number}, [(feed number, why not)]). An exact track name is preferred over a name that only shares a word (Charlotte and the Charlotte road course)."""
-    alias = alias or {}
-    free, pairs, skipped = sorted(results), {}, []
-    for fnum, ftrack in sorted(feed):
-        key = lambda t: _norm(alias.get(t, t))
-        cands = [r for r in free if key(r[1]) == key(ftrack)] or [r for r in free if _words(alias.get(r[1], r[1])) & _words(alias.get(ftrack, ftrack))]
-        if not cands:
-            skipped.append((fnum, f"no race at {ftrack} left in the results" if any(_words(ftrack) & _words(alias.get(r[1], r[1])) for r in results) else f"no race at {ftrack} in the results"))
-            continue
-        pairs[fnum] = cands[0][0]; free.remove(cands[0])
-    return pairs, skipped
+from lap_races import LAP_TRACK_ALIAS, align_races, lap_names, name_key as _name
 
 
 def load_laps(con, laps_dir, alias=None, log=print):
@@ -79,10 +57,8 @@ def load_laps(con, laps_dir, alias=None, log=print):
             out["renumbered"] += [(season, f, r) for f, r in pairs.items() if f != r]
             for fnum, race in sorted(pairs.items()):
                 e, g = res[(season, race)], ds[ds["race_num"] == fnum]
-                pairs_ = g[["car", "driver"]].drop_duplicates(); names = {}
-                for car, drv in zip(pairs_["car"].astype(str), pairs_["driver"]):
-                    got = e[1].get(car) or e[2].get(_name(drv))
-                    names[(car, drv)] = got or drv; names_total += 1; names_matched += bool(got)
+                names, found = lap_names(zip(g["car"], g["driver"]), e[1], e[2])
+                names_total += len(names); names_matched += found
                 g = g.assign(name=[names[(str(c), d)] for c, d in zip(g["car"], g["driver"])], race_num=race)
                 con.executemany("INSERT INTO laps VALUES (?,?,?,?,?,?,?,?,?)", g[cols].astype(object).where(g[cols].notna(), None).values.tolist())
                 out["rows"] += len(g); out["races"] += 1
