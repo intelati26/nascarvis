@@ -36,6 +36,7 @@ if you leave that on), with a link that opens the same query in the query builde
 ```bash
 pkg install python python-pyarrow          # once
 python build_dashboard.py --update         # download data, rebuild dashboard.html + dashboard_data/
+python update.py                          # or everything at once after a race weekend: results, this season's lap times and loop stats, nascar.db, data/query.db, dashboard
 python serve.py                            # serves this folder on http://localhost:8765 (Ctrl+C to stop); with a query/ folder it also serves the query builder
 ```
 
