@@ -77,6 +77,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <button data-tab="driver">Driver history</button>
     <button data-tab="track">Track history</button>
     <button data-tab="leaders">Leaders</button>
+    <button data-tab="ratings">Ratings</button>
   </nav>
   <button class="btn" id="theme" title="Toggle theme">Theme</button>
 </header>
@@ -263,6 +264,25 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
 </section>
 
 <!-- ============================ LEADERS ============================ -->
+<section class="panel" id="p-ratings">
+  <div class="controls">
+    <label>Season<select id="rt-season"></select></label>
+    <label>Min green laps<input type="number" id="rt-min" value="1500" min="1500" step="500" style="width:90px"></label>
+  </div>
+  <div class="sub" id="rt-note"></div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-png="c-ratings">PNG</button></div>
+    <h2>Driver against car</h2>
+    <div class="sub">Each dot is a driver: across, his team's pace (Equipment); up, his own (Rating). Above the line he out-ran the car, below it the car carried him. 50 is the season average, 15 one standard deviation.</div>
+    <div class="chartbox" style="height:460px"><canvas id="c-ratings"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="tools"><button class="btn" data-csv="ratings">CSV</button></div>
+    <h2 id="rt-title">Driver ratings</h2>
+    <div class="tablewrap" style="max-height:680px"><table id="t-ratings"></table></div>
+    <div class="sub">Rating: the driver's own green-flag pace with his team's share taken out. Equip.: the team's share. Pace: his plain green-flag pace. Driver vs car is Rating minus Equip. The split uses the teammates he raced beside, so a driver alone on his team, or on a team that rotates drivers, is only roughly separated from his car. Laps are green-flag laps; lap times exist from 2020. See <code>ratings.py</code>.</div>
+  </div>
+</section>
 <section class="panel" id="p-leaders">
   <div class="controls">
     <label>Stat<select id="l-stat">
@@ -448,7 +468,7 @@ function currentTitle(){ return titleFn(); }
 function show(tab) {
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + tab));
-  ({season:renderSeason, race:renderRace, driver:renderDriver, track:renderTrack, leaders:renderLeaders})[tab]();
+  ({season:renderSeason, race:renderRace, driver:renderDriver, track:renderTrack, leaders:renderLeaders, ratings:renderRatings})[tab]();
   window.scrollTo(0,0);
 }
 $('nav').onclick = e => { const b = e.target.closest('button'); if (b) show(b.dataset.tab); };
@@ -968,6 +988,38 @@ function leaderRows() {
   out.forEach((a, k) => { if (a.val !== prev) { rank = k + 1; prev = a.val; } a.rank = rank; });
   return {S, bySeason, from, to, minStarts, exactW, tf: tfText(lst), rows: out};
 }
+function renderRatings() {
+  const seasons = Object.keys(D.ratings || {}).sort().reverse(), sel = $('rt-season');
+  if (!seasons.length) { $('rt-note').textContent = 'No ratings in this build: they need lap times (python update.py).'; return; }
+  if (sel.options.length !== seasons.length) fillSelect(sel, seasons.map(x => [x, x]), seasons[0]);
+  const season = +sel.value, tab = D.ratings[season] || {}, min = +$('rt-min').value || 0;
+  const by = new Map();
+  for (let i = 0; i < N; i++) if (D.season[i] === season) { const d = drv(i); if (tab[d]) { if (!by.has(d)) by.set(d, []); by.get(d).push(i); } }
+  const rows = [...by.entries()].filter(([d]) => tab[d][3] >= min).map(([d, rr]) => { const v = tab[d], f = rr.map(i => D.finish[i]), last = rr[rr.length - 1];
+    return {d, rating: v[0], pace: v[1], equip: v[2], vs: Math.round((v[0] - v[2]) * 10) / 10, laps: v[3], races: v[4], team: D.teams[D.team[last]], car: D.car[last],
+      wins: f.filter(x => x === 1).length, avgfin: avg(f)}; }).sort((a, b) => b.rating - a.rating);
+  rows.forEach((r, k) => r.rank = k + 1);
+  titleFn = () => `${season} driver ratings`;
+  $('rt-title').textContent = `${season} driver ratings`;
+  $('rt-note').textContent = `${rows.length} drivers with at least ${min.toLocaleString()} green laps in ${season}.`;
+  renderTable($('t-ratings'), 'ratings', [
+    {h:'#', k:r=>r.rank}, {h:'Driver', k:r=>r.d, l:1, html:r=>driverLink(r.d)}, {h:'Team', k:r=>r.team, l:1}, {h:'Car', k:r=>r.car, l:1},
+    {h:'Rating', k:r=>r.rating, html:r=>f1(r.rating)}, {h:'Equip.', k:r=>r.equip, html:r=>f1(r.equip)}, {h:'Driver vs car', k:r=>r.vs, html:r=>delta(r.vs)},
+    {h:'Pace', k:r=>r.pace, html:r=>f1(r.pace)}, {h:'Green laps', k:r=>r.laps, html:r=>r.laps.toLocaleString()}, {h:'Races', k:r=>r.races},
+    {h:'Wins', k:r=>r.wins}, {h:'Avg fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)},
+  ], rows, {file: 'ratings-' + season});
+  const t = themeColors();
+  const labels = {id: 'ratingLabels', afterDatasetsDraw(c) { const g = c.ctx; g.save(); g.font = '10px sans-serif'; g.fillStyle = t.muted;
+    c.getDatasetMeta(0).data.forEach((pt, i) => g.fillText(rows[i].d.split(' ').pop(), pt.x + 6, pt.y + 3)); g.restore(); }};
+  const lo = Math.floor(Math.min(...rows.map(r => Math.min(r.rating, r.equip))) / 5) * 5 - 5, hi = Math.ceil(Math.max(...rows.map(r => Math.max(r.rating, r.equip))) / 5) * 5 + 5;
+  const diag = {id: 'ratingDiag', beforeDatasetsDraw(c) { const g = c.ctx, x = c.scales.x, y = c.scales.y; g.save(); g.strokeStyle = t.muted; g.setLineDash([4, 4]);
+    g.beginPath(); g.moveTo(x.getPixelForValue(lo), y.getPixelForValue(lo)); g.lineTo(x.getPixelForValue(hi), y.getPixelForValue(hi)); g.stroke(); g.restore(); }};
+  mount('c-ratings', {type: 'scatter', plugins: [labels, diag],
+    data: {datasets: [{data: rows.map(r => ({x: r.equip, y: r.rating})), backgroundColor: t.accent, pointRadius: 5, pointHoverRadius: 7}]},
+    options: {scales: {x: {min: lo, max: hi, title: {display: true, text: 'Equipment (team pace)'}}, y: {min: lo, max: hi, title: {display: true, text: 'Rating (driver pace)'}}},
+      plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => { const r = rows[c.dataIndex]; return `${r.d}: rating ${f1(r.rating)}, equipment ${f1(r.equip)}, ${r.laps.toLocaleString()} green laps`; }}}}}});
+}
+$('rt-season').onchange = renderRatings; $('rt-min').onchange = renderRatings;
 function renderLeaders() {
   const r = leaderRows(), top = +$('l-top').value, latest = seasons[0];
   const lead = r.rows.slice(0, top), S = r.S;
