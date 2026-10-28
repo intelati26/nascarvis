@@ -26,7 +26,8 @@ class NascarvisReportProcessor:
             return ""
         
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        top_drivers = self.df.sort_values(by='Equal_Equipment_Rating', ascending=False).groupby('driver').first().reset_index()
+        latest = self.df[self.df['season'] == self.df['season'].max()] if 'season' in self.df.columns else self.df
+        top_drivers = latest.sort_values(by='Equal_Equipment_Rating', ascending=False).groupby('driver').first().reset_index()
         top_drivers = top_drivers.sort_values(by='Equal_Equipment_Rating', ascending=False)
 
         md_content = f"""# NASCAR Cup Series Equal Equipment Driver Ratings
@@ -34,11 +35,11 @@ class NascarvisReportProcessor:
 
 ## Top Grid Driver Ratings & Hardware Disentanglement
 
-| Rank | Driver | Primary Team | Equal Equipment Rating | Equipment Factor | Stint Tire Deg Rate |
+| Rank | Driver | Primary Team | Equal Equipment Rating | Equipment Factor | Green laps |
 | :--- | :--- | :--- | :---: | :---: | :---: |
 """
-        for i, row in top_drivers.head(15).iterrows():
-            md_content += f"| {i+1} | **{row['driver']}** | {row['primary_team']} | **{row['Equal_Equipment_Rating']:.1f}** | {row['Equipment_Factor']:.1f} | {row.get('stint_tire_deg_rate', 0.02):.4f}s/lap |\n"
+        for rank, (_, row) in enumerate(top_drivers.head(15).iterrows(), start=1):
+            md_content += f"| {rank} | **{row['driver']}** | {row['primary_team']} | **{row['Equal_Equipment_Rating']:.1f}** | {row['Equipment_Factor']:.1f} | {int(row.get('total_green_laps', 0)):,} |\n"
 
         md_content += "\n\n*This report is rendered automatically by `update.py` and ingested by `dashboard.html` modals.*"
 
@@ -64,14 +65,8 @@ class NascarvisReportProcessor:
 ## Core Metrics
 - **Equal Equipment Rating**: {row['Equal_Equipment_Rating']:.1f} / 100
 - **Equipment Factor**: {row['Equipment_Factor']:.1f} / 100
-- **Stint Tire Degradation Rate**: {row.get('stint_tire_deg_rate', 0.02):.4f}s / lap
-- **Finishing Efficiency**: {row.get('neutralized_efficiency', 95.0):.1f}%
-
-## Track Discipline Splits
-- **Short Track**: {row.get('rating_short_track', 50.0):.1f}
-- **Intermediate Oval**: {row.get('rating_intermediate', 50.0):.1f}
-- **Road Course**: {row.get('rating_road_course', 50.0):.1f}
-- **Superspeedway**: {row.get('rating_superspeedway', 50.0):.1f}
+- **Observed Rating** (plain green-flag pace): {row['Observed_Rating']:.1f}
+- **Green laps**: {int(row['total_green_laps']):,} in {int(row['races'])} races
 """
         with open(output_path, 'w') as f:
             f.write(md)
