@@ -33,6 +33,7 @@ import urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.insert(0, HERE)
+import ratings                                       # equal-equipment driver ratings from the lap files (see ratings.py)
 import track_types                                   # the track type of every race (see track_types.py)
 from nascar_data import apply_curation, clean, norm   # the curation overlay and the helpers shared with the other scripts
 from lap_json import build_lap_dict_for_season, check_lap_json_completeness, export_lap_json_for_season, results_index, write_race_files   # lap_times_<season>.json for the Race tab
@@ -103,7 +104,7 @@ def write_data_files(data, data_dir):
         shards.append({"season": season, "file": fname, "v": hashlib.sha1(text.encode("utf-8")).hexdigest()[:10],
                        "rows": hi - lo})
         lo = hi
-    manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"], "lapRaces": data.get("lapRaces", {}),
+    manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"], "lapRaces": data.get("lapRaces", {}), "ratings": data.get("ratings", {}),
                 "adjustments": data["adjustments"], "curated": data.get("curated", {}), "trackFilters": data.get("trackFilters", [])}
     mtext = "NV.manifest(%s);\n" % json.dumps(manifest, separators=(",", ":"))
     rewritten += write_if_changed(os.path.join(data_dir, "manifest.js"), mtext)
@@ -269,6 +270,8 @@ def main():
                 lap_files[str(season)] = os.path.basename(json_path)
                 if a.embed_laps: lap_data_embed[str(season)] = json.load(open(json_path, encoding="utf-8"))
         data["lapRaces"] = lap_races or {}
+        data["ratings"] = ratings.compute(t, os.path.join(data_dir, "laps"), lap_races or {})
+        if data["ratings"]: print("ratings: %d driver-seasons in %d seasons" % (sum(len(v) for v in data["ratings"].values()), len(data["ratings"])))
     # runtime guard: ensure 'data' is a dict before using string keys (helps diagnose accidental overwrite)
     if not isinstance(data, dict):
         raise TypeError(f"build_dashboard.py: expected 'data' to be dict before adding lapFiles, but got {type(data).__name__}: {repr(data)[:400]}")

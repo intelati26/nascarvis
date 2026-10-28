@@ -109,3 +109,7 @@ In seasons rebuilt from `curation/` (1949-1951, 1972-1973) the dashboard shows `
 driver's derived season total matches the official standings exactly. Drivers who were reconciled to the official total, or who
 are not in the official table and so cannot be checked, are marked; exact ones are not. The list of exact drivers per season is
 computed at build time (`curated` in the manifest) from `final_standings_<season>.csv` and the reconcile entries in `adjustments.json`.
+
+### Equal-equipment ratings
+
+`ratings.py` rates every driver in every season that has lap files (2020 on): a ridge regression of green-flag lap speed on a driver effect and a team effect, a season at a time, scaled to 50 ± 15 within the season (method and limits in the file's docstring). `build_dashboard.py` runs it, so `python update.py` refreshes the ratings with everything else; the Driver tab shows **Eq. Rating** and **Equip.** beside each season, a career figure weighted by laps, and a chart metric. `python ratings.py --season 2024` prints a table. `generate_ratings.py`, `nascarvis_equal_equipment.py`, `nascarvis_report_processor.py` and `update_ratings.py` are the earlier uploaded versions; the dashboard does not use them.

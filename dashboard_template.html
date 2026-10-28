@@ -170,7 +170,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
       <div class="controls" style="margin:6px 0"><label>Metric<select id="d-metric">
         <option value="avgfin">Average finish</option><option value="wins">Wins</option>
         <option value="top5">Top 5s</option><option value="top10">Top 10s</option>
-        <option value="rating">Average driver rating</option><option value="led">Laps led</option>
+        <option value="rating">Average driver rating</option><option value="eq">Equal-equipment rating (2020 on)</option><option value="equip">Equipment (team) rating (2020 on)</option><option value="led">Laps led</option>
         <option value="dnf">DNFs</option><option value="rank">Final points rank</option>
       </select></label></div>
       <div class="chartbox" style="height:300px"><canvas id="c-dseasons"></canvas></div>
@@ -207,6 +207,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <div class="tools"><button class="btn" data-csv="driver">CSV</button></div>
     <h2>Seasons</h2>
     <div class="tablewrap"><table id="t-driver"></table></div>
+    <div class="sub">Eq. Rating and Equip. (2020 on, where lap times exist): how fast the driver and his team were on green-flag laps, split by a regression across the season (ratings.py). 50 is the season average, 15 one standard deviation; drivers with under 1,500 green laps are not rated. A driver alone on a team cannot be fully separated from his car, so read the two together. Career is weighted by laps.</div>
   </div>
   <div class="card">
     <div class="tools"><button class="btn" data-csv="driver-best-tracks">CSV</button></div>
@@ -570,6 +571,13 @@ function fillRaces() {
 
 // One race's laps as {driver: [{lap, lap_time, position}]}, or null. lapFiles[season] is either a path with {race} (one small file per race, columns as [laps],[times],[positions])
 // gzipped, or the older one plain file per season ({race: {driver: [rows]}}).
+// equal-equipment ratings (ratings.py): D.ratings[season][driver] = [rating, pace, equipment, green laps, races], a season's scale being 50 +- 15 over its drivers
+const ratingOf = (name, season, k) => { const v = D.ratings && D.ratings[season] && D.ratings[season][name]; return v ? v[k] : null; };
+function careerRating(name, k) {   // the seasons' ratings weighted by green laps
+  let w = 0, a = 0;
+  for (const s of Object.keys(D.ratings || {})) { const v = D.ratings[s][name]; if (v) { w += v[3]; a += v[3] * v[k]; } }
+  return w ? a / w : null;
+}
 const lapPick = {key: null, set: new Set()};   // drivers shown on the lap chart, reset to the top 8 when the race changes
 async function loadRaceLapData(season, raceNum) {
   const key = `${season}:${raceNum}`;
@@ -727,12 +735,12 @@ function renderDriver() {
     const rk = st.rank.get(di)?.[last] ?? null;
     return {s, starts: rr.length, wins: f.filter(x=>x===1).length, t5: f.filter(x=>x<=5).length, t10: f.filter(x=>x<=10).length,
       avgfin: avg(f), avgstart: avg(rr.map(i=>D.start[i])), led: rr.reduce((a,i)=>a+nz(D.led[i]),0),
-      dnf: rr.filter(dnf).length, rating: avg(rr.map(i=>D.rating[i])), rank: rk, pts: st.pts.get(di)?.[last] ?? null,
+      dnf: rr.filter(dnf).length, rating: avg(rr.map(i=>D.rating[i])), eq: ratingOf(name, s, 0), equip: ratingOf(name, s, 2), rank: rk, pts: st.pts.get(di)?.[last] ?? null,
       team: D.teams[D.team[rr[rr.length-1]]], make: D.makes[D.make[rr[rr.length-1]]], car: D.car[rr[rr.length-1]]}; });
   const sel = $('d-season'), cur = sel.value;
   fillSelect(sel, ss.slice().reverse().map(s=>[s,s]), ss.includes(+cur) && sel.dataset.driver===name ? cur : ss[ss.length-1]); sel.dataset.driver = name;
   const m = $('d-metric').value, t = themeColors();
-  const mv = {avgfin:s=>avgR(s.avgfin), wins:s=>s.wins, top5:s=>s.t5, top10:s=>s.t10, rating:s=>avgR(s.rating), led:s=>s.led, dnf:s=>s.dnf, rank:s=>s.rank};
+  const mv = {avgfin:s=>avgR(s.avgfin), wins:s=>s.wins, top5:s=>s.t5, top10:s=>s.t10, rating:s=>avgR(s.rating), eq:s=>s.eq, equip:s=>s.equip, led:s=>s.led, dnf:s=>s.dnf, rank:s=>s.rank};
   const mlabel = $('d-metric').selectedOptions[0].textContent;
   const lowGood = m==='avgfin' || m==='rank';
   mount('c-dseasons', {type: lowGood ? 'line' : 'bar', data:{labels: ss, datasets:[{label:mlabel, data: seasonStats.map(mv[m]),
@@ -744,8 +752,10 @@ function renderDriver() {
     {h:'Starts', k:r=>r.starts}, {h:'W', k:r=>r.wins}, {h:'T5', k:r=>r.t5}, {h:'T10', k:r=>r.t10},
     {h:'Avg Fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)}, {h:'Avg Start', k:r=>avgR(r.avgstart), html:r=>f1(r.avgstart)},
     {h:'Laps Led', k:r=>r.led}, {h:'DNF', k:r=>r.dnf}, {h:'Rating', k:r=>avgR(r.rating), html:r=>f1(r.rating)},
+    {h:'Eq. Rating', k:r=>r.eq, html:r=>r.eq == null ? '' : f1(r.eq)}, {h:'Equip.', k:r=>r.equip, html:r=>r.equip == null ? '' : f1(r.equip)},
   ], seasonStats.slice().reverse(), {file:'driver-' + name.replace(/\W+/g,'_'), foot: {s: 'Career', starts: rows.length, wins: fin.filter(f=>f===1).length, t5: fin.filter(f=>f<=5).length, t10: fin.filter(f=>f<=10).length,
-    avgfin: avg(fin), avgstart: avg(rows.map(i=>D.start[i])), led: rows.reduce((a,i)=>a+nz(D.led[i]),0), dnf: rows.filter(dnf).length, rating: avg(rows.map(i=>D.rating[i]))}});
+    avgfin: avg(fin), avgstart: avg(rows.map(i=>D.start[i])), led: rows.reduce((a,i)=>a+nz(D.led[i]),0), dnf: rows.filter(dnf).length, rating: avg(rows.map(i=>D.rating[i])),
+    eq: careerRating(name, 0), equip: careerRating(name, 2)}});
   // best tracks
   const dst = tfState($('d-tf'));
   const byTrack = new Map(); rows.filter(i => tfMatch(i, dst)).forEach(i => { const t=D.track[i]; if(!byTrack.has(t)) byTrack.set(t,[]); byTrack.get(t).push(i); });
