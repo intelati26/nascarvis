@@ -9,7 +9,7 @@ Race results from NASCAR's own feed, for the races nascaR.data has not got yet.
 nascaR.data is updated some days after a race. NASCAR's weekend feed has the finishing order the same evening: finish, start, car, driver, team, make, points,
 laps, laps led, status and the stage finishes; the rating comes from the loop statistics. fetch_feed_results() saves those races, and apply_feed(t) (called by
 nascar_data.load_results and build_dashboard.py) adds the ones the results do not have as extra rows, with the columns and the conventions of nascaR.data
-(Pts = the feed's points earned; S1, S2, S3 = the finishing position in the stage when in the top 10; Status lower case; Length and Surface from the track's earlier races).
+(Pts = the feed's points earned; S1, S2 = the finishing position in the stage when in the top 10, S3 always blank as in nascaR.data; Status lower case; Length and Surface from the track's earlier races).
 A race is paired with the results by track (lap_races.align_races), so the day nascaR.data adds it, the feed's rows for it drop out and nothing is counted twice.
 Extra races are numbered after the season's last race in the results. Not applied to nascar.db (import_nascar_data.py reads the parquet only).
 """
@@ -69,7 +69,7 @@ def race_rows(race, number, track, length, surface, names, teams=None):
     for x in sorted((x for x in race["results"] if x["finishing_position"]), key=lambda x: x["finishing_position"]):      # entries that did not make the race are listed with 0
         did, fin = str(x["driver_id"]), x["finishing_position"]
         top = lambda n: (stage.get(n) or {}).get(did)
-        s = [top(n) if top(n) is not None and top(n) <= 10 else None for n in (1, 2, 3)]
+        s = [top(n) if top(n) is not None and top(n) <= 10 else None for n in (1, 2)] + [None]     # nascaR.data never fills S3, not even for the Coca-Cola 600's third stage
         rows.append({"Season": int(race["season"]), "Race": number, "Track": track, "Name": race["race_name"], "Length": length, "Surface": surface, "Finish": fin,
                      "Start": x["starting_position"], "Car": str(x["car_number"]), "Driver": names.get(driver_key(x["driver_fullname"])) or names.get(first_last(x["driver_fullname"])) or x["driver_fullname"].strip(),
                      "Make": x["car_make"], "Pts": x["points_earned"], "Laps": x["laps_completed"], "Led": x["laps_led"], "Status": str(x["finishing_status"] or "").lower(),

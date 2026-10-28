@@ -28,7 +28,7 @@ def saved_race(race_id, name, track, date):
     return {"race_id": race_id, "race_name": name, "track_name": track, "race_date": date, "ratings": {"1": 108.34, "2": 60.0},
             "results": [result(1, 10, "5", "Daniel Suárez", 1, "HYAK Motorsports", 71, 189, 23), result(2, 3, "7", "John H. Nemechek", 2, "HYAK Motorsports", 47),
                         result(3, 1, "9", "Rookie Rider", 3, "New Team", 5, 80, 0, "Accident"), result(0, 0, "62", "Did Not Qualify", 4, "X", 0, 0)],
-            "stages": [{"stage": 1, "finish": {"1": 4, "2": 12}}, {"stage": 2, "finish": {"1": 2}}]}
+            "stages": [{"stage": 1, "finish": {"1": 4, "2": 12}}, {"stage": 2, "finish": {"1": 2}}, {"stage": 3, "finish": {"1": 7}}]}
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     assert [r["Finish"] for r in rows] == [1, 2, 3], rows                                             # the did-not-qualify entry (position 0) is left out
     w = rows[0]
     assert (w["Driver"], w["Team"], w["Status"], w["Win"], w["Pts"], w["Laps"], w["Led"], w["Car"], w["Start"]) == ("Daniel Suarez", "Hyak Motorsports", "running", 1.0, 71, 189, 23, "5", 10), w
-    assert (w["S1"], w["S2"], w["S3"], w["Rating"]) == (4, 2, None, 108.3), w                       # stage finishes in the top 10 only; rating to one decimal
+    assert (w["S1"], w["S2"], w["S3"], w["Rating"]) == (4, 2, None, 108.3), w                       # stage finishes in the top 10 only, S3 blank even when the feed has a third stage (the Coca-Cola 600), as nascaR.data has it; rating to one decimal
     assert rows[1]["Driver"] == "John Hunter Nemechek" and rows[1]["S1"] is None and rows[1]["S2"] is None, rows[1]     # a middle name does not make a new driver; stage 1 finish 12 is not kept
     assert rows[2]["Driver"] == "Rookie Rider" and rows[2]["Win"] == 0.0 and rows[2]["Team"] == "New Team", rows[2]
     with tempfile.TemporaryDirectory() as d:
