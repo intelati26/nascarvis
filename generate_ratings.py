@@ -1,134 +1,77 @@
 #!/usr/bin/env python3
 """
-generate_ratings.py — Standalone Ratings Generator for nascarvis
-===============================================================
-Queries raw race results, loop statistics, and lap databases 
-downloaded/built by nascarvis (nascar.db, query.db, Parquet files) 
-and generates Equal Equipment Driver Ratings and Scouting Grades.
+generate_ratings.py: Equal Equipment driver ratings, one row per driver and season, as CSV and JSON.
 
-Usage:
-    python3 generate_ratings.py                   # Generates latest ratings from nascarvis DBs/Parquet
-    python3 generate_ratings.py --from 2020 --to 2026   # Generates ratings for specific season window
-    python3 generate_ratings.py --parquet file.parquet # Ingests specific Parquet file
+    python generate_ratings.py                        # every season with lap files (2020 on)
+    python generate_ratings.py --from-year 2024       # a season window
+    python generate_ratings.py --out-dir data         # where the files go (default: data)
+
+Reads the results (cup_series.parquet with the curation overlay) and the per-race lap files in dashboard_data/laps, which `python build_dashboard.py` writes (run
+`python update.py` first for the newest races). The rating itself is ratings.py (method and limits in its docstring); the dashboard shows the same numbers.
+
+Columns: driver, season, car_number, primary_team, total_green_laps, races, Equal_Equipment_Rating, Observed_Rating, Equipment_Factor,
+         Scouting_Grade, Scouting_Delta, Scouting_Tier, Peak_Track_Kind, Earlier_Seasons
+  Equal_Equipment_Rating   the driver's own pace, the team's share taken out        Observed_Rating     his plain green-flag pace
+  Equipment_Factor         the team's share (a driver's laps-weighted mean)         all three: 50 = the season average, 15 = one standard deviation
+  Scouting_Grade           0.5 Rating + 0.3 Peak (best kind of track) + 0.2 (Rating + 12 under three earlier Cup seasons); Scouting_Delta = grade minus Observed_Rating
+Drivers with under ratings.MIN_LAPS green laps in a season are not rated.
 """
-
-import os
-import sys
-import glob
-import sqlite3
 import argparse
+import collections
+import os
+
 import pandas as pd
-import numpy as np
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-if os.path.exists('/workspace/artifacts'):
-    sys.path.append('/workspace/artifacts')
+import nascar_data as nd
+import ratings
 
-from nascarvis_equal_equipment import EqualEquipmentModel, normalize_telemetry_schema
+
+def lap_races(laps_dir):
+    """{season: [race numbers]} for the files in laps_dir (<season>-<race>.json.gz)."""
+    out = collections.defaultdict(list)
+    for f in sorted(os.listdir(laps_dir)):
+        if f.endswith(".json.gz"):
+            s, n = f[:-len(".json.gz")].split("-")
+            out[s].append(int(n))
+    return out
 
 
 class NascarvisRatingsGenerator:
-    def __init__(self, db_path='nascar.db', query_db_path='data/query.db'):
-        self.db_path = db_path
-        self.query_db_path = query_db_path
-        self.engine = EqualEquipmentModel()
+    def __init__(self, laps_dir=os.path.join(nd.ROOT, "dashboard_data", "laps")):
+        self.laps_dir = laps_dir
 
-    def _query_sqlite_tables(self, db_file, start_year, end_year):
-        if not os.path.exists(db_file):
-            return None
-        conn = sqlite3.connect(db_file)
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = [t[0] for t in cursor.fetchall()]
-        
-        df_list = []
-        for table in tables:
-            try:
-                df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
-                if not df.empty:
-                    df = normalize_telemetry_schema(df)
-                    if 'season' in df.columns:
-                        df = df[(df['season'] >= start_year) & (df['season'] <= end_year)]
-                    df_list.append(df)
-            except Exception as e:
-                continue
-        conn.close()
-        
-        if df_list:
-            return pd.concat(df_list, ignore_index=True)
-        return None
+    def generate_ratings(self, start_year=2020, end_year=2100):
+        if not os.path.isdir(self.laps_dir):
+            raise SystemExit(f"no lap files in {self.laps_dir}: run python build_dashboard.py (or update.py) first")
+        t = nd.load_results()
+        races = {s: n for s, n in lap_races(self.laps_dir).items() if start_year <= int(s) <= end_year}
+        got = ratings.compute(t, self.laps_dir, races)
+        team, car = collections.defaultdict(collections.Counter), collections.defaultdict(collections.Counter)
+        for s, d, tm, c in zip(t["Season"], t["Driver"], t["Team"], t["Car"]):
+            team[(str(int(s)), d)][tm] += 1; car[(str(int(s)), d)][str(c)] += 1
+        rows = [dict(driver=d, season=int(s), car_number=car[(s, d)].most_common(1)[0][0], primary_team=team[(s, d)].most_common(1)[0][0], total_green_laps=v[3], races=v[4],
+                     Equal_Equipment_Rating=v[0], Observed_Rating=v[1], Equipment_Factor=v[2], Scouting_Grade=v[5],
+                     Scouting_Delta=round(v[5] - v[1], 1), Scouting_Tier=ratings.scouting_tier(v[5]), Peak_Track_Kind=v[6], Earlier_Seasons=v[7]) for s, tab in got.items() for d, v in tab.items()]
+        return pd.DataFrame(rows).sort_values(["season", "Equal_Equipment_Rating"], ascending=[False, False]).reset_index(drop=True)
 
-    def load_input_data(self, parquet_path=None, start_year=2006, end_year=2026):
-        # 1. Direct Parquet ingestion if specified or found
-        if parquet_path and os.path.exists(parquet_path):
-            print(f"[RATINGS GENERATOR] Reading Parquet file: {parquet_path}")
-            df = pd.read_parquet(parquet_path)
-            return normalize_telemetry_schema(df)
-
-        parquet_files = glob.glob("*.parquet") + glob.glob("data/*.parquet")
-        if parquet_files:
-            print(f"[RATINGS GENERATOR] Found local Parquet file(s): {parquet_files}")
-            df_list = [pd.read_parquet(pf) for pf in parquet_files if os.path.exists(pf)]
-            if df_list:
-                return normalize_telemetry_schema(pd.concat(df_list, ignore_index=True))
-
-        # 2. Query SQLite databases (nascar.db, query.db)
-        for db in [self.db_path, self.query_db_path, 'data/nascar.db']:
-            df_db = self._query_sqlite_tables(db, start_year, end_year)
-            if df_db is not None and not df_db.empty:
-                print(f"[RATINGS GENERATOR] Ingested data from SQLite DB: {db}")
-                return df_db
-
-        # 3. Fallback to master project dataset
-        possible_masters = [
-            'data/nascarvis_driver_projections.csv',
-            'nascarvis_driver_projections.csv',
-            '/workspace/artifacts/nascarvis_driver_projections_v9.csv',
-            '/workspace/artifacts/nascarvis_driver_projections.csv'
-        ]
-        for p in possible_masters:
-            if os.path.exists(p):
-                print(f"[RATINGS GENERATOR] Reading master projection file: {p}")
-                df = pd.read_csv(p)
-                return normalize_telemetry_schema(df)
-
-        print("[RATINGS GENERATOR] Warning: No database or Parquet sources found. Returning empty dataset.")
-        return pd.DataFrame()
-
-    def generate_ratings(self, parquet_path=None, start_year=2006, end_year=2026):
-        df_raw = self.load_input_data(parquet_path, start_year, end_year)
-        if df_raw.empty:
-            print("[RATINGS GENERATOR] Error: Input DataFrame is empty.")
-            return pd.DataFrame()
-            
-        df_ratings = self.engine.process_full_pipeline(df_raw)
-        return df_ratings
-
-    def export_ratings(self, df_ratings, output_dir='data'):
-        if df_ratings.empty:
-            return
+    def export_ratings(self, df, output_dir="data"):
         os.makedirs(output_dir, exist_ok=True)
-        csv_path = os.path.join(output_dir, 'nascarvis_driver_projections.csv')
-        json_path = os.path.join(output_dir, 'nascarvis_driver_projections.json')
-        
-        df_ratings.to_csv(csv_path, index=False)
-        df_ratings.to_json(json_path, orient='records', indent=2)
-        print(f"[RATINGS GENERATOR] Exported CSV -> {csv_path}")
-        print(f"[RATINGS GENERATOR] Exported JSON -> {json_path} ({len(df_ratings)} driver records with Scouting Grades ready for dashboard.html)")
+        csv_path, json_path = (os.path.join(output_dir, "nascarvis_driver_projections." + e) for e in ("csv", "json"))
+        df.to_csv(csv_path, index=False)
+        df.to_json(json_path, orient="records", indent=2)
+        print(f"wrote {csv_path} and {json_path}: {len(df)} driver-seasons")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="nascarvis Equal Equipment Ratings Generator")
-    parser.add_argument('--db', type=str, default='nascar.db', help='Path to nascarvis SQLite database')
-    parser.add_argument('--parquet', type=str, default=None, help='Path to specific Parquet file')
-    parser.add_argument('--from-year', type=int, default=2006, help='Start season year')
-    parser.add_argument('--to-year', type=int, default=2026, help='End season year')
-    parser.add_argument('--out-dir', type=str, default='data', help='Output data directory for JSON/CSV')
-    args = parser.parse_args()
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--from-year", type=int, default=2020)
+    ap.add_argument("--to-year", type=int, default=2100)
+    ap.add_argument("--laps-dir", default=os.path.join(nd.ROOT, "dashboard_data", "laps"))
+    ap.add_argument("--out-dir", default="data")
+    a = ap.parse_args()
+    g = NascarvisRatingsGenerator(a.laps_dir)
+    g.export_ratings(g.generate_ratings(a.from_year, a.to_year), a.out_dir)
 
-    generator = NascarvisRatingsGenerator(db_path=args.db)
-    df_ratings = generator.generate_ratings(parquet_path=args.parquet, start_year=args.from_year, end_year=args.to_year)
-    generator.export_ratings(df_ratings, output_dir=args.out_dir)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

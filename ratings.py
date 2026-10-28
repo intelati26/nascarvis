@@ -32,6 +32,14 @@ GROWTH_BONUS, GROWTH_SEASONS = 12.0, 3
 GROUP = {"short": "short", "intermediate": "mid", "long": "mid", "road": "road"}   # the kinds of track that make up Peak
 
 
+TIERS = [(75.0, "Elite Championship Contender (80 Grade)"), (65.0, "All-Star / Consistent Winner (70 Grade)"), (53.0, "Solid Starter / Playoff Driver (60 Grade)"),
+         (42.0, "Mid-Pack Regular (50 Grade)"), (float("-inf"), "Developmental / Fringe Driver (40 Grade)")]
+
+
+def scouting_tier(grade):
+    return next(name for floor, name in TIERS if grade >= floor)
+
+
 def scale(v, ok):
     """v scaled to mean 50, standard deviation 15 over the entries where ok."""
     s = v[ok].std() or 1.0
