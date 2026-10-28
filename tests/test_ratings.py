@@ -41,6 +41,10 @@ def main():
         assert got["ann"][3] == 12 * 198 and got["ann"][4] == 12, got["ann"]       # the 2 slow laps of each race are not counted
         assert abs(np.mean([v[0] for v in got.values()]) - 50) < 1e-6              # scaled to a mean of 50
         assert got["ann"][7] == 0 and all(v[5] >= v[0] for v in got.values()), got  # no earlier seasons (+12 on a fifth of the grade); Peak is never below Rating so scouting >= rating
+        # age is the season minus the birth year, None without a birth date
+        both = {"ann": "2000-05-01"}
+        a0 = ratings.compute(t, d, {"2024": list(range(1, 13))})["2024"]["ann"]; a1 = ratings.compute(t, d, {"2024": list(range(1, 13))}, both)["2024"]["ann"]
+        assert a1[8] == 24 and a0[8] is None, (a0, a1)
         # a driver with too few green laps is not rated; a race without a track length adds nothing
         t["Length"] = [None] * len(t["Length"])
         assert ratings.compute(t, d, {"2024": [1, 2, 3]}) == {}

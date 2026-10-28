@@ -119,12 +119,14 @@ def results_index(season, race, track, car, driver):
     return res
 
 
-def write_race_files(lap_path, season, res, out_dir):
+def write_race_files(lap_path, season, res, out_dir, ids=None):
     """Write out_dir/laps/<season>-<race>.json for every race of `season` in the lap parquet at lap_path that pairs with a race in res (see results_index).
-    Returns ([race numbers written], [(feed race, why not)]); files of this season's races that are no longer there are removed."""
+    Returns ([race numbers written], [(feed race, why not)]); files of this season's races that are no longer there are removed.
+    ids, a dict, is filled with {results driver name: NASCAR driver id} (the feed's driver_id) for the drivers in the files written."""
     import pyarrow.parquet as pq
     t = pq.read_table(lap_path).to_pydict()
     rows = [i for i, s in enumerate(t["season"]) if s == season]
+    dids = t.get("driver_id")
     feed = {}
     for i in rows: feed.setdefault(int(t["race_num"][i]), t["track_name"][i])
     alias = {**track_types.ALIAS, **LAP_TRACK_ALIAS}
@@ -145,6 +147,7 @@ def write_race_files(lap_path, season, res, out_dir):
         per = {}
         for i in sorted(idx, key=lambda i: t["lap"][i]):
             who = mapping[(str(t["car"][i]), t["driver"][i])]
+            if ids is not None and dids is not None and dids[i] is not None: ids[who] = int(dids[i])
             lt = t["lap_time"][i]
             cols = per.setdefault(who, ([], [], []))
             cols[0].append(int(t["lap"][i])); cols[1].append(None if lt is None or lt != lt else round(float(lt), 3)); cols[2].append(t["position"][i])

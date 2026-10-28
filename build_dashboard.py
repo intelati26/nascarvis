@@ -33,6 +33,7 @@ import urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 import sys
 sys.path.insert(0, HERE)
+import driver_info                                     # NASCAR's driver file: birth date and hometown (see driver_info.py)
 import ratings                                       # equal-equipment driver ratings from the lap files (see ratings.py)
 import track_types                                   # the track type of every race (see track_types.py)
 from nascar_data import apply_curation, clean, norm   # the curation overlay and the helpers shared with the other scripts
@@ -104,7 +105,7 @@ def write_data_files(data, data_dir):
         shards.append({"season": season, "file": fname, "v": hashlib.sha1(text.encode("utf-8")).hexdigest()[:10],
                        "rows": hi - lo})
         lo = hi
-    manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"], "lapRaces": data.get("lapRaces", {}), "ratings": data.get("ratings", {}),
+    manifest = {"title": data["title"], "shards": shards, "lapFiles": data["lapFiles"], "lapRaces": data.get("lapRaces", {}), "ratings": data.get("ratings", {}), "driverInfo": data.get("driverInfo", {}),
                 "adjustments": data["adjustments"], "curated": data.get("curated", {}), "trackFilters": data.get("trackFilters", [])}
     mtext = "NV.manifest(%s);\n" % json.dumps(manifest, separators=(",", ":"))
     rewritten += write_if_changed(os.path.join(data_dir, "manifest.js"), mtext)
@@ -254,6 +255,7 @@ def main():
     else:
         # the lap parquet files fetch_lap_times.py writes become one small JSON file per race (fetched when the race is opened); else an older per-season JSON
         res = lap_races = None
+        ids = {}                                          # results driver name -> NASCAR driver id, from the lap files
         for season in sorted(expected_by_season):
             pq_path = os.path.join(lap_parquet_dir, f"lap_times_{season}.parquet")
             json_path = os.path.join(a.lap_dir, f"lap_times_{season}.json")
@@ -261,7 +263,7 @@ def main():
                 if res is None:
                     res = results_index(data["season"], data["race"], [data["tracks"][i] for i in data["track"]], data["car"], [data["drivers"][i] for i in data["driver"]])
                     lap_races = {}
-                written, skipped = write_race_files(pq_path, season, res, data_dir)
+                written, skipped = write_race_files(pq_path, season, res, data_dir, ids)
                 if written:
                     lap_files[str(season)] = "%s/laps/%d-{race}.json.gz" % (rel_data, season)
                     lap_races[str(season)] = written
@@ -270,7 +272,11 @@ def main():
                 lap_files[str(season)] = os.path.basename(json_path)
                 if a.embed_laps: lap_data_embed[str(season)] = json.load(open(json_path, encoding="utf-8"))
         data["lapRaces"] = lap_races or {}
-        data["ratings"] = ratings.compute(t, os.path.join(data_dir, "laps"), lap_races or {})
+        info = driver_info.match(driver_info.load(), ids, data["drivers"])
+        data["driverInfo"] = {n: [r["born"], r["hometown_city"], r["hometown_state"], r["hometown_country"]] for n, r in info.items() if r["born"] or r["hometown_city"]}
+        born = {n: r["born"] for n, r in info.items() if r["born"]}
+        data["ratings"] = ratings.compute(t, os.path.join(data_dir, "laps"), lap_races or {}, born)
+        if info: print("driver info: %d of %d drivers matched (%d with a birth date)" % (len(info), len(data["drivers"]), len(born)))
         if data["ratings"]: print("ratings: %d driver-seasons in %d seasons" % (sum(len(v) for v in data["ratings"].values()), len(data["ratings"])))
     # runtime guard: ensure 'data' is a dict before using string keys (helps diagnose accidental overwrite)
     if not isinstance(data, dict):

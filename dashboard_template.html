@@ -281,7 +281,7 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
     <div class="tools"><button class="btn" data-csv="ratings">CSV</button></div>
     <h2 id="rt-title">Driver ratings</h2>
     <div class="tablewrap" style="max-height:680px"><table id="t-ratings"></table></div>
-    <div class="sub">Rating: the driver's own green-flag pace with his team's share taken out. Equip.: the team's share. Pace: his plain green-flag pace. Scouting grade: 0.5 Rating + 0.3 Peak + 0.2 (Rating, plus 12 when he has under three earlier Cup seasons); Peak is his best Rating on short tracks, intermediates and long ovals, or road courses (each from those races alone, pulled toward his overall Rating when the laps are few, never below it). The tier uses 75, 65, 53 and 42 as cut-offs. Ages are not in the data, so experience stands in for youth. The vs-car column is the chosen measure minus Equip. The split uses the teammates he raced beside, so a driver alone on his team, or on a team that rotates drivers, is only roughly separated from his car. Laps are green-flag laps; lap times exist from 2020. See <code>ratings.py</code>.</div>
+    <div class="sub">Rating: the driver's own green-flag pace with his team's share taken out. Equip.: the team's share. Pace: his plain green-flag pace. Scouting grade: 0.5 Rating + 0.3 Peak + 0.2 (Rating, plus 12 when he is under 25 or has under three earlier Cup seasons); Peak is his best Rating on short tracks, intermediates and long ovals, or road courses (each from those races alone, pulled toward his overall Rating when the laps are few, never below it). The tier uses 75, 65, 53 and 42 as cut-offs. Age is the season minus the birth year, from NASCAR's driver file; a driver with no birth date there gets the bonus on experience alone. The vs-car column is the chosen measure minus Equip. The split uses the teammates he raced beside, so a driver alone on his team, or on a team that rotates drivers, is only roughly separated from his car. Laps are green-flag laps; lap times exist from 2020. See <code>ratings.py</code>.</div>
   </div>
 </section>
 <section class="panel" id="p-leaders">
@@ -592,6 +592,15 @@ function fillRaces() {
 
 // One race's laps as {driver: [{lap, lap_time, position}]}, or null. lapFiles[season] is either a path with {race} (one small file per race, columns as [laps],[times],[positions])
 // gzipped, or the older one plain file per season ({race: {driver: [rows]}}).
+// born / hometown cards from NASCAR's driver file (D.driverInfo[name] = [born, city, state, country]); nothing where the file has no entry
+function bioCards(name) {
+  const v = D.driverInfo && D.driverInfo[name]; if (!v) return '';
+  const [born, city, state, country] = v; let out = '';
+  if (born) { const b = new Date(born + 'T00:00:00'), now = new Date(); let age = now.getFullYear() - b.getFullYear(); if (now < new Date(now.getFullYear(), b.getMonth(), b.getDate())) age--;
+    out += stat('Born', `${b.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'})} (age ${age})`); }
+  const place = [city, state || (country && country !== 'United States' ? country : '')].filter(Boolean).join(', ');
+  return out + (place ? stat('Hometown', esc(place)) : '');
+}
 // equal-equipment ratings (ratings.py): D.ratings[season][driver] = [rating, pace, equipment, green laps, races], a season's scale being 50 +- 15 over its drivers
 const ratingOf = (name, season, k) => { const v = D.ratings && D.ratings[season] && D.ratings[season][name]; return v ? v[k] : null; };
 function careerRating(name, k) {   // the seasons' ratings weighted by green laps
@@ -750,7 +759,7 @@ function renderDriver() {
   titleFn = () => name;
   $('d-cards').innerHTML = stat('Seasons', `${ss[0]}–${ss[ss.length-1]}`) + stat('Starts', rows.length) + stat('Wins', fin.filter(f=>f===1).length) +
     stat('Top 5', fin.filter(f=>f<=5).length) + stat('Top 10', fin.filter(f=>f<=10).length) + stat('Avg finish', f1(avg(fin))) +
-    stat('Laps led', rows.reduce((a,i)=>a+nz(D.led[i]),0).toLocaleString()) + stat('Avg rating', f1(avg(rows.map(i=>D.rating[i]))) || '–');
+    stat('Laps led', rows.reduce((a,i)=>a+nz(D.led[i]),0).toLocaleString()) + stat('Avg rating', f1(avg(rows.map(i=>D.rating[i]))) || '–') + bioCards(name);
   const seasonStats = ss.map(s => { const rr = bySeason.get(s), f = rr.map(i=>D.finish[i]), st = standings(s);
     const di = name, last = st.nums.length-1;
     const rk = st.rank.get(di)?.[last] ?? null;
@@ -998,7 +1007,7 @@ function renderRatings() {
   const by = new Map();
   for (let i = 0; i < N; i++) if (D.season[i] === season) { const d = drv(i); if (tab[d]) { if (!by.has(d)) by.set(d, []); by.get(d).push(i); } }
   const rows = [...by.entries()].filter(([d]) => tab[d][3] >= min).map(([d, rr]) => { const v = tab[d], f = rr.map(i => D.finish[i]), last = rr[rr.length - 1];
-    return {d, rating: v[0], pace: v[1], equip: v[2], scout: v[5], peak: v[6], exp: v[7], laps: v[3], races: v[4], team: D.teams[D.team[last]], car: D.car[last],
+    return {d, rating: v[0], pace: v[1], equip: v[2], scout: v[5], peak: v[6], exp: v[7], age: v[8], laps: v[3], races: v[4], team: D.teams[D.team[last]], car: D.car[last],
       wins: f.filter(x => x === 1).length, avgfin: avg(f)}; }).sort((a, b) => b[meas] - a[meas]);
   rows.forEach(r => r.vs = Math.round((r[meas] - r.equip) * 10) / 10);
   rows.forEach((r, k) => r.rank = k + 1);
@@ -1010,7 +1019,7 @@ function renderRatings() {
   renderTable($('t-ratings'), 'ratings', [
     {h:'#', k:r=>r.rank}, {h:'Driver', k:r=>r.d, l:1, html:r=>driverLink(r.d)}, {h:'Team', k:r=>r.team, l:1}, {h:'Car', k:r=>r.car, l:1},
     {h:'Rating', k:r=>r.rating, html:r=>f1(r.rating)}, {h:'Scouting', k:r=>r.scout, html:r=>f1(r.scout)}, {h:'Tier', k:r=>r.scout, html:r=>scoutTier(r.scout), l:1},
-    {h:'Equip.', k:r=>r.equip, html:r=>f1(r.equip)}, {h:M.vs, k:r=>r.vs, html:r=>delta(r.vs)}, {h:'Pace', k:r=>r.pace, html:r=>f1(r.pace)}, {h:'Best track kind', k:r=>PEAKS[r.peak] || '', l:1}, {h:'Green laps', k:r=>r.laps, html:r=>r.laps.toLocaleString()}, {h:'Races', k:r=>r.races}, {h:'Earlier seasons', k:r=>r.exp},
+    {h:'Equip.', k:r=>r.equip, html:r=>f1(r.equip)}, {h:M.vs, k:r=>r.vs, html:r=>delta(r.vs)}, {h:'Pace', k:r=>r.pace, html:r=>f1(r.pace)}, {h:'Best track kind', k:r=>PEAKS[r.peak] || '', l:1}, {h:'Green laps', k:r=>r.laps, html:r=>r.laps.toLocaleString()}, {h:'Races', k:r=>r.races}, {h:'Age', k:r=>r.age}, {h:'Earlier seasons', k:r=>r.exp},
     {h:'Wins', k:r=>r.wins}, {h:'Avg fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)},
   ], rows, {file: 'ratings-' + season});
   const t = themeColors();
@@ -1027,7 +1036,7 @@ function renderRatings() {
 const MEASURES = {
   rating: {label: 'Rating', vs: 'Driver vs car', about: 'Rating is his own pace once his team\'s share is taken out.'},
   pace: {label: 'Observed pace', vs: 'Pace vs car', about: 'Observed pace is his plain green-flag pace, car included, so it rises with Equipment by construction.'},
-  scout: {label: 'Scouting grade', vs: 'Scouting vs car', about: 'The scouting grade is half his Rating, plus his best kind of track (short, intermediate or road) and a bonus for under three earlier Cup seasons.'}};
+  scout: {label: 'Scouting grade', vs: 'Scouting vs car', about: 'The scouting grade is half his Rating, plus his best kind of track (short, intermediate or road) and a bonus for a driver under 25 or with under three earlier Cup seasons.'}};
 const PEAKS = {short: 'Short track', mid: 'Intermediate / long', road: 'Road course'};
 const scoutTier = g => g >= 75 ? 'Elite contender (80)' : g >= 65 ? 'All-star / winner (70)' : g >= 53 ? 'Solid starter (60)' : g >= 42 ? 'Mid-pack (50)' : 'Fringe (40)';
 $('rt-measure').onchange = renderRatings;

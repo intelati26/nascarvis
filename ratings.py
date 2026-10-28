@@ -13,8 +13,8 @@ The method is the one in nascarvis_equal_equipment.py (a ridge regression of lap
 Each is scaled within the season to mean 50 and standard deviation 15 over the drivers with at least MIN_LAPS green laps (others are not rated).
 Scouting grade (the blend in nascarvis_equal_equipment.py): 0.5 Rating + 0.3 Peak + 0.2 (Rating + 12 if he has under 3 earlier Cup seasons), where Peak is the best of his
 short-track, intermediate (1.5 miles and longer) and road-course ratings, each worked out the same way from those races alone, pulled toward his overall Rating by
-laps / (laps + PEAK_N0) and never below it. Superspeedways are left out of Peak (the pace there is the draft's). The data has no ages, so only the experience half of the
-growth bonus can be used.
+laps / (laps + PEAK_N0) and never below it. Superspeedways are left out of Peak (the pace there is the draft's). The growth bonus also goes to a driver under AGE_UNDER at the season's start of the year (season minus birth year, from NASCAR's driver file: pass `born`); a driver with
+no birth date gets it on experience alone.
 A driver alone on his team that season (no teammate) cannot be told apart from his car: his pace is shared between the two effects. Read Rating with Equipment beside it.
 numpy only (the normal equations are as small as the drivers and teams of one season)."""
 import gzip
@@ -28,7 +28,7 @@ MIN_LAPS = 1500
 LOW, HIGH = 0.90, 1.12
 TYPE_MIN_LAPS = 400                # green laps a driver needs on one kind of track for a rating there
 PEAK_N0 = 1000.0                   # laps of doubt in a track-type rating
-GROWTH_BONUS, GROWTH_SEASONS = 12.0, 3
+GROWTH_BONUS, GROWTH_SEASONS, AGE_UNDER = 12.0, 3, 25
 GROUP = {"short": "short", "intermediate": "mid", "long": "mid", "road": "road"}   # the kinds of track that make up Peak
 
 
@@ -95,10 +95,11 @@ def season_ratings(races, min_laps=MIN_LAPS):
     return {d: [round(float(R[i]), 1), round(float(P[i]), 1), round(float(E[i]), 1), int(laps[i]), int(nraces[i])] for d, i in drivers.items() if ok[i]}
 
 
-def compute(t, laps_dir, lap_races):
-    """{season (str): {driver: [rating, pace, equipment, green laps, races, scouting grade, peak kind ('short', 'mid', 'road' or ''), earlier Cup seasons]}}
-    for every season in lap_races ({season: [race numbers with a lap file]}); t is the results table (nascar_data.load_results)."""
+def compute(t, laps_dir, lap_races, born=None):
+    """{season (str): {driver: [rating, pace, equipment, green laps, races, scouting grade, peak kind ('short', 'mid', 'road' or ''), earlier Cup seasons, age (season minus birth year) or None]}}
+    for every season in lap_races ({season: [race numbers with a lap file]}); t is the results table (nascar_data.load_results); born: {driver: 'YYYY-MM-DD'} where known."""
     import track_types
+    born = born or {}
     _, kind = track_types.classify_table(t)
     rows, played = {}, {}
     for s, r, d, tm, ln in zip(t["Season"], t["Race"], t["Driver"], t["Team"], t["Length"]):
@@ -123,8 +124,9 @@ def compute(t, laps_dir, lap_races):
                     n_g = tab[d][3]; shrunk = v[0] + (tab[d][0] - v[0]) * n_g / (n_g + PEAK_N0)
                     if shrunk > peak: peak, best = shrunk, g
             exp = sum(1 for y in played.get(d, ()) if y < int(season))
-            bonus = GROWTH_BONUS if exp < GROWTH_SEASONS else 0.0
-            v += [round(0.5 * v[0] + 0.3 * peak + 0.2 * (v[0] + bonus), 1), best, exp]
+            age = int(season) - int(born[d][:4]) if born.get(d) else None
+            bonus = GROWTH_BONUS if exp < GROWTH_SEASONS or (age is not None and age < AGE_UNDER) else 0.0
+            v += [round(0.5 * v[0] + 0.3 * peak + 0.2 * (v[0] + bonus), 1), best, exp, age]
         out[str(season)] = got
     return out
 
