@@ -29,10 +29,10 @@ def main():
     team = {"ann": "A", "bob": "A", "cy": "B", "dee": "B"}
     with tempfile.TemporaryDirectory() as d:
         for n in range(1, 13): write_race(d, 2024, n, {k: v * (1 + 0.01 * (n % 3)) for k, v in pace.items()})
-        t = {"Season": [], "Race": [], "Driver": [], "Team": [], "Length": []}
+        t = {"Season": [], "Race": [], "Driver": [], "Team": [], "Length": [], "Track": [], "Surface": []}
         for n in range(1, 13):
             for k in pace:
-                for c, v in zip(("Season", "Race", "Driver", "Team", "Length"), (2024, n, k, team[k], 1.0)): t[c].append(v)
+                for c, v in zip(("Season", "Race", "Driver", "Team", "Length", "Track", "Surface"), (2024, n, k, team[k], 1.0, "Oval %d" % (n % 2), "paved")): t[c].append(v)
         got = ratings.compute(t, d, {"2024": list(range(1, 13))})["2024"]
         assert set(got) == set(pace), got
         r = {k: v[0] for k, v in got.items()}; e = {k: v[2] for k, v in got.items()}
@@ -40,6 +40,7 @@ def main():
         assert e["ann"] > e["dee"] and e["bob"] > e["cy"], e                       # the fast team has the better equipment
         assert got["ann"][3] == 12 * 198 and got["ann"][4] == 12, got["ann"]       # the 2 slow laps of each race are not counted
         assert abs(np.mean([v[0] for v in got.values()]) - 50) < 1e-6              # scaled to a mean of 50
+        assert got["ann"][7] == 0 and all(v[5] >= v[0] for v in got.values()), got  # no earlier seasons (+12 on a fifth of the grade); Peak is never below Rating so scouting >= rating
         # a driver with too few green laps is not rated; a race without a track length adds nothing
         t["Length"] = [None] * len(t["Length"])
         assert ratings.compute(t, d, {"2024": [1, 2, 3]}) == {}

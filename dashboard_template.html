@@ -267,20 +267,21 @@ td a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted);cu
 <section class="panel" id="p-ratings">
   <div class="controls">
     <label>Season<select id="rt-season"></select></label>
+    <label>Driver measure<select id="rt-measure"><option value="rating">Rating (equal equipment)</option><option value="pace">Observed pace</option><option value="scout">Scouting grade</option></select></label>
     <label>Min green laps<input type="number" id="rt-min" value="1500" min="1500" step="500" style="width:90px"></label>
   </div>
   <div class="sub" id="rt-note"></div>
   <div class="card">
     <div class="tools"><button class="btn" data-png="c-ratings">PNG</button></div>
-    <h2>Driver against car</h2>
-    <div class="sub">Each dot is a driver: across, his team's pace (Equipment); up, his own (Rating). Above the line he out-ran the car, below it the car carried him. 50 is the season average, 15 one standard deviation.</div>
+    <h2 id="rt-charttitle">Driver against car</h2>
+    <div class="sub" id="rt-chartsub"></div>
     <div class="chartbox" style="height:460px"><canvas id="c-ratings"></canvas></div>
   </div>
   <div class="card">
     <div class="tools"><button class="btn" data-csv="ratings">CSV</button></div>
     <h2 id="rt-title">Driver ratings</h2>
     <div class="tablewrap" style="max-height:680px"><table id="t-ratings"></table></div>
-    <div class="sub">Rating: the driver's own green-flag pace with his team's share taken out. Equip.: the team's share. Pace: his plain green-flag pace. Driver vs car is Rating minus Equip. The split uses the teammates he raced beside, so a driver alone on his team, or on a team that rotates drivers, is only roughly separated from his car. Laps are green-flag laps; lap times exist from 2020. See <code>ratings.py</code>.</div>
+    <div class="sub">Rating: the driver's own green-flag pace with his team's share taken out. Equip.: the team's share. Pace: his plain green-flag pace. Scouting grade: 0.5 Rating + 0.3 Peak + 0.2 (Rating, plus 12 when he has under three earlier Cup seasons); Peak is his best Rating on short tracks, intermediates and long ovals, or road courses (each from those races alone, pulled toward his overall Rating when the laps are few, never below it). The tier uses 75, 65, 53 and 42 as cut-offs. Ages are not in the data, so experience stands in for youth. The vs-car column is the chosen measure minus Equip. The split uses the teammates he raced beside, so a driver alone on his team, or on a team that rotates drivers, is only roughly separated from his car. Laps are green-flag laps; lap times exist from 2020. See <code>ratings.py</code>.</div>
   </div>
 </section>
 <section class="panel" id="p-leaders">
@@ -993,32 +994,43 @@ function renderRatings() {
   if (!seasons.length) { $('rt-note').textContent = 'No ratings in this build: they need lap times (python update.py).'; return; }
   if (sel.options.length !== seasons.length) fillSelect(sel, seasons.map(x => [x, x]), seasons[0]);
   const season = +sel.value, tab = D.ratings[season] || {}, min = +$('rt-min').value || 0;
+  const meas = $('rt-measure').value, M = MEASURES[meas];
   const by = new Map();
   for (let i = 0; i < N; i++) if (D.season[i] === season) { const d = drv(i); if (tab[d]) { if (!by.has(d)) by.set(d, []); by.get(d).push(i); } }
   const rows = [...by.entries()].filter(([d]) => tab[d][3] >= min).map(([d, rr]) => { const v = tab[d], f = rr.map(i => D.finish[i]), last = rr[rr.length - 1];
-    return {d, rating: v[0], pace: v[1], equip: v[2], vs: Math.round((v[0] - v[2]) * 10) / 10, laps: v[3], races: v[4], team: D.teams[D.team[last]], car: D.car[last],
-      wins: f.filter(x => x === 1).length, avgfin: avg(f)}; }).sort((a, b) => b.rating - a.rating);
+    return {d, rating: v[0], pace: v[1], equip: v[2], scout: v[5], peak: v[6], exp: v[7], laps: v[3], races: v[4], team: D.teams[D.team[last]], car: D.car[last],
+      wins: f.filter(x => x === 1).length, avgfin: avg(f)}; }).sort((a, b) => b[meas] - a[meas]);
+  rows.forEach(r => r.vs = Math.round((r[meas] - r.equip) * 10) / 10);
   rows.forEach((r, k) => r.rank = k + 1);
-  titleFn = () => `${season} driver ratings`;
-  $('rt-title').textContent = `${season} driver ratings`;
+  titleFn = () => `${season} driver ${M.label.toLowerCase()} against equipment`;
+  $('rt-title').textContent = `${season} driver ratings, ranked by ${M.label.toLowerCase()}`;
+  $('rt-charttitle').textContent = `${M.label} against equipment`;
+  $('rt-chartsub').textContent = `Each dot is a driver: across, his team's pace (Equipment); up, his ${M.label.toLowerCase()}. ${M.about} Above the line he is ahead of the car, below it the car is ahead of him. 50 is the season average, 15 one standard deviation.`;
   $('rt-note').textContent = `${rows.length} drivers with at least ${min.toLocaleString()} green laps in ${season}.`;
   renderTable($('t-ratings'), 'ratings', [
     {h:'#', k:r=>r.rank}, {h:'Driver', k:r=>r.d, l:1, html:r=>driverLink(r.d)}, {h:'Team', k:r=>r.team, l:1}, {h:'Car', k:r=>r.car, l:1},
-    {h:'Rating', k:r=>r.rating, html:r=>f1(r.rating)}, {h:'Equip.', k:r=>r.equip, html:r=>f1(r.equip)}, {h:'Driver vs car', k:r=>r.vs, html:r=>delta(r.vs)},
-    {h:'Pace', k:r=>r.pace, html:r=>f1(r.pace)}, {h:'Green laps', k:r=>r.laps, html:r=>r.laps.toLocaleString()}, {h:'Races', k:r=>r.races},
+    {h:'Rating', k:r=>r.rating, html:r=>f1(r.rating)}, {h:'Scouting', k:r=>r.scout, html:r=>f1(r.scout)}, {h:'Tier', k:r=>r.scout, html:r=>scoutTier(r.scout), l:1},
+    {h:'Equip.', k:r=>r.equip, html:r=>f1(r.equip)}, {h:M.vs, k:r=>r.vs, html:r=>delta(r.vs)}, {h:'Pace', k:r=>r.pace, html:r=>f1(r.pace)}, {h:'Best track kind', k:r=>PEAKS[r.peak] || '', l:1}, {h:'Green laps', k:r=>r.laps, html:r=>r.laps.toLocaleString()}, {h:'Races', k:r=>r.races}, {h:'Earlier seasons', k:r=>r.exp},
     {h:'Wins', k:r=>r.wins}, {h:'Avg fin', k:r=>avgR(r.avgfin), html:r=>f1(r.avgfin)},
   ], rows, {file: 'ratings-' + season});
   const t = themeColors();
   const labels = {id: 'ratingLabels', afterDatasetsDraw(c) { const g = c.ctx; g.save(); g.font = '10px sans-serif'; g.fillStyle = t.muted;
     c.getDatasetMeta(0).data.forEach((pt, i) => g.fillText(rows[i].d.split(' ').pop(), pt.x + 6, pt.y + 3)); g.restore(); }};
-  const lo = Math.floor(Math.min(...rows.map(r => Math.min(r.rating, r.equip))) / 5) * 5 - 5, hi = Math.ceil(Math.max(...rows.map(r => Math.max(r.rating, r.equip))) / 5) * 5 + 5;
+  const lo = Math.floor(Math.min(...rows.map(r => Math.min(r[meas], r.equip))) / 5) * 5 - 5, hi = Math.ceil(Math.max(...rows.map(r => Math.max(r[meas], r.equip))) / 5) * 5 + 5;
   const diag = {id: 'ratingDiag', beforeDatasetsDraw(c) { const g = c.ctx, x = c.scales.x, y = c.scales.y; g.save(); g.strokeStyle = t.muted; g.setLineDash([4, 4]);
     g.beginPath(); g.moveTo(x.getPixelForValue(lo), y.getPixelForValue(lo)); g.lineTo(x.getPixelForValue(hi), y.getPixelForValue(hi)); g.stroke(); g.restore(); }};
   mount('c-ratings', {type: 'scatter', plugins: [labels, diag],
-    data: {datasets: [{data: rows.map(r => ({x: r.equip, y: r.rating})), backgroundColor: t.accent, pointRadius: 5, pointHoverRadius: 7}]},
-    options: {scales: {x: {min: lo, max: hi, title: {display: true, text: 'Equipment (team pace)'}}, y: {min: lo, max: hi, title: {display: true, text: 'Rating (driver pace)'}}},
-      plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => { const r = rows[c.dataIndex]; return `${r.d}: rating ${f1(r.rating)}, equipment ${f1(r.equip)}, ${r.laps.toLocaleString()} green laps`; }}}}}});
+    data: {datasets: [{data: rows.map(r => ({x: r.equip, y: r[meas]})), backgroundColor: t.accent, pointRadius: 5, pointHoverRadius: 7}]},
+    options: {scales: {x: {min: lo, max: hi, title: {display: true, text: 'Equipment (team pace)'}}, y: {min: lo, max: hi, title: {display: true, text: M.label}}},
+      plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => { const r = rows[c.dataIndex]; return `${r.d}: ${M.label.toLowerCase()} ${f1(r[meas])}, equipment ${f1(r.equip)}, ${r.laps.toLocaleString()} green laps`; }}}}}});
 }
+const MEASURES = {
+  rating: {label: 'Rating', vs: 'Driver vs car', about: 'Rating is his own pace once his team\'s share is taken out.'},
+  pace: {label: 'Observed pace', vs: 'Pace vs car', about: 'Observed pace is his plain green-flag pace, car included, so it rises with Equipment by construction.'},
+  scout: {label: 'Scouting grade', vs: 'Scouting vs car', about: 'The scouting grade is half his Rating, plus his best kind of track (short, intermediate or road) and a bonus for under three earlier Cup seasons.'}};
+const PEAKS = {short: 'Short track', mid: 'Intermediate / long', road: 'Road course'};
+const scoutTier = g => g >= 75 ? 'Elite contender (80)' : g >= 65 ? 'All-star / winner (70)' : g >= 53 ? 'Solid starter (60)' : g >= 42 ? 'Mid-pack (50)' : 'Fringe (40)';
+$('rt-measure').onchange = renderRatings;
 $('rt-season').onchange = renderRatings; $('rt-min').onchange = renderRatings;
 function renderLeaders() {
   const r = leaderRows(), top = +$('l-top').value, latest = seasons[0];

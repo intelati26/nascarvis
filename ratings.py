@@ -11,6 +11,10 @@ The method is the one in nascarvis_equal_equipment.py (a ridge regression of lap
     ALPHA shrinks both effects toward zero, more for a driver or team with few laps;
   - Rating = the driver effect, Equipment = the team effect (a driver's laps-weighted mean, if he changed teams), Pace = the plain mean z-score with no split.
 Each is scaled within the season to mean 50 and standard deviation 15 over the drivers with at least MIN_LAPS green laps (others are not rated).
+Scouting grade (the blend in nascarvis_equal_equipment.py): 0.5 Rating + 0.3 Peak + 0.2 (Rating + 12 if he has under 3 earlier Cup seasons), where Peak is the best of his
+short-track, intermediate (1.5 miles and longer) and road-course ratings, each worked out the same way from those races alone, pulled toward his overall Rating by
+laps / (laps + PEAK_N0) and never below it. Superspeedways are left out of Peak (the pace there is the draft's). The data has no ages, so only the experience half of the
+growth bonus can be used.
 A driver alone on his team that season (no teammate) cannot be told apart from his car: his pace is shared between the two effects. Read Rating with Equipment beside it.
 numpy only (the normal equations are as small as the drivers and teams of one season)."""
 import gzip
@@ -22,6 +26,10 @@ import numpy as np
 ALPHA = 1000.0                 # about a thousand laps of doubt: a driver with 2,000 laps keeps two thirds of what he shows, one with 7,000 keeps seven eighths
 MIN_LAPS = 1500
 LOW, HIGH = 0.90, 1.12
+TYPE_MIN_LAPS = 400                # green laps a driver needs on one kind of track for a rating there
+PEAK_N0 = 1000.0                   # laps of doubt in a track-type rating
+GROWTH_BONUS, GROWTH_SEASONS = 12.0, 3
+GROUP = {"short": "short", "intermediate": "mid", "long": "mid", "road": "road"}   # the kinds of track that make up Peak
 
 
 def scale(v, ok):
@@ -46,7 +54,7 @@ def race_laps(path, length):
     return out
 
 
-def season_ratings(races):
+def season_ratings(races, min_laps=MIN_LAPS):
     """races: [(speeds-by-driver list from race_laps, {driver: team})] -> {driver: [rating, pace, equipment, green laps, races]}."""
     drivers, teams = {}, {}
     di, ti, y, rid = [], [], [], []
@@ -73,28 +81,43 @@ def season_ratings(races):
     pace = np.bincount(di, y, nd) / np.maximum(laps, 1)
     equip = np.bincount(di, tm[ti], nd) / np.maximum(laps, 1)
     nraces = np.array([len({r for r in set(rid[di == i])}) for i in range(nd)])
-    ok = laps >= MIN_LAPS
+    ok = laps >= min_laps
     if ok.sum() < 3: return {}
     R, P, E = scale(drv, ok), scale(pace, ok), scale(equip, ok)
     return {d: [round(float(R[i]), 1), round(float(P[i]), 1), round(float(E[i]), 1), int(laps[i]), int(nraces[i])] for d, i in drivers.items() if ok[i]}
 
 
 def compute(t, laps_dir, lap_races):
-    """{season (str): season_ratings} for every season in lap_races ({season: [race numbers with a lap file]}); t is the results table (nascar_data.load_results)."""
-    rows = {}
+    """{season (str): {driver: [rating, pace, equipment, green laps, races, scouting grade, peak kind ('short', 'mid', 'road' or ''), earlier Cup seasons]}}
+    for every season in lap_races ({season: [race numbers with a lap file]}); t is the results table (nascar_data.load_results)."""
+    import track_types
+    _, kind = track_types.classify_table(t)
+    rows, played = {}, {}
     for s, r, d, tm, ln in zip(t["Season"], t["Race"], t["Driver"], t["Team"], t["Length"]):
         e = rows.setdefault((int(s), int(r)), [None, {}])
         if ln == ln and ln: e[0] = float(ln)
         if tm == tm and tm: e[1][d] = tm
+        played.setdefault(d, set()).add(int(s))
     out = {}
     for season, nums in lap_races.items():
         races = []
         for n in nums:
             length, team_of = rows.get((int(season), n), [None, {}])
             laps = race_laps(os.path.join(laps_dir, f"{season}-{n}.json.gz"), length)
-            if laps: races.append((laps, team_of))
-        got = season_ratings(races)
-        if got: out[str(season)] = got
+            if laps: races.append((laps, team_of, GROUP.get(kind.get((int(season), n)))))
+        got = season_ratings([r[:2] for r in races])
+        if not got: continue
+        by_group = {g: season_ratings([r[:2] for r in races if r[2] == g], TYPE_MIN_LAPS) for g in ("short", "mid", "road")}
+        for d, v in got.items():
+            peak, best = v[0], ""
+            for g, tab in by_group.items():
+                if d in tab:
+                    n_g = tab[d][3]; shrunk = v[0] + (tab[d][0] - v[0]) * n_g / (n_g + PEAK_N0)
+                    if shrunk > peak: peak, best = shrunk, g
+            exp = sum(1 for y in played.get(d, ()) if y < int(season))
+            bonus = GROWTH_BONUS if exp < GROWTH_SEASONS else 0.0
+            v += [round(0.5 * v[0] + 0.3 * peak + 0.2 * (v[0] + bonus), 1), best, exp]
+        out[str(season)] = got
     return out
 
 
@@ -111,5 +134,5 @@ if __name__ == "__main__":
     if a.season: nums = {str(a.season): nums[str(a.season)]}
     res = compute(nd.load_results(), a.laps_dir, nums)
     for s, tab in res.items():
-        print(f"\n{s}: rating, pace, equipment, green laps, races")
+        print(f"\n{s}: rating, pace, equipment, green laps, races, scouting, peak, earlier seasons")
         for d, v in sorted(tab.items(), key=lambda kv: -kv[1][0])[:15]: print(f"  {d:24s}", *v)
