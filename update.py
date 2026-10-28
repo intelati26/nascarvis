@@ -10,6 +10,7 @@ Steps, each the script you could run alone:
   2. fetch_lap_times.py        this season's new races from NASCAR's feed -> lap_times_<season>.parquet   (a failure here is reported, the rest goes on)
   3. fetch_loop_stats.py       the same for loop_stats_<season>.parquet
      fetch_driver_info.py      driver_info.json: NASCAR's driver file (birth date, hometown, rookie years)
+  .  feed_results.py          races NASCAR's feed has and nascaR.data does not yet (feed_results_<season>.json); the steps below use them until the parquet catches up
   4. query/build_db.py         data/query.db, the query builder's database (results + curation, laps, loop statistics)
   5. build_dashboard.py        dashboard.html, dashboard_data/, the per-race lap files and the equal-equipment ratings (ratings.py, from those lap files)
 The dashboard and data/query.db always use the whole parquet; only nascar.db is per season (importing every season stops on a duplicate-driver row in older data).
@@ -43,6 +44,7 @@ def main():
         step(f"lap times {a.season}", "fetch_lap_times.py", "--season", a.season, optional=True)
         step(f"loop statistics {a.season}", "fetch_loop_stats.py", "--season", a.season, optional=True)
         step("driver info", "fetch_driver_info.py", optional=True)
+    step(f"results from NASCAR's feed {a.season}", "feed_results.py", "--season", a.season, optional=True)
     step("query database", os.path.join("query", "build_db.py"))
     step("dashboard", "build_dashboard.py")
     print("\nup to date: reload dashboard.html (python serve.py serves it and the query builder)")

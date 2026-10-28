@@ -6,7 +6,8 @@
     nd.norm("Ricky Stenhouse Jr.")        # 'rickystenhousejr': letters only, lower case, for matching names
     nd.clean(v) / nd.ok(v)                # None for a missing value (None or NaN) / whether there is a value
 
-build_dashboard.py, query/build_db.py and the scripts in curation/ share this; apply_curation is the one place the curation overlay is applied.
+build_dashboard.py, query/build_db.py and the scripts in curation/ share this; apply_curation is the one place the curation overlay is applied, and apply_feed adds the races
+nascaR.data does not have yet from NASCAR's feed (feed_results.py).
 """
 import csv
 import glob
@@ -77,8 +78,14 @@ def write_points_csv(path, rows):
         for season, race, finish, driver, pts, override in rows: w.writerow([season, race, finish, driver, "%g" % pts, "1" if override else ""])
 
 
-def load_results(curated=True, path=PARQUET, folder=CURATION):
-    """The results table as a dict of column lists; with curated=True the curation overlay is applied."""
+def apply_feed(t):
+    """Add the races NASCAR's feed has and nascaR.data lacks (feed_results.py); a no-op without feed_results_<season>.json files."""
+    import feed_results
+    return feed_results.apply_feed(t, ROOT)
+
+
+def load_results(curated=True, path=PARQUET, folder=CURATION, feed=True):
+    """The results table as a dict of column lists; with curated=True the curation overlay is applied, and with feed (and curated) the races nascaR.data lacks come from NASCAR's feed."""
     import pyarrow.parquet as pq
     t = pq.read_table(path).to_pydict()
-    return apply_curation(t, folder) if curated else t
+    return apply_curation(apply_feed(t) if feed else t, folder) if curated else t

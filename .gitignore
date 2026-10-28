@@ -8,6 +8,7 @@ race_events.csv
 lap_times_*.parquet
 loop_stats_*.parquet
 driver_info.json
+feed_results_*.json
 lap_data/
 lap_data_sample.txt
 dashboard.html
