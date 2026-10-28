@@ -72,6 +72,11 @@ class HttpNascarRepo:
         race = data[0] if isinstance(data, list) and data else None
         return race if isinstance(race, dict) and race.get("drivers") else None
 
+    def get_drivers(self):
+        """NASCAR's driver file (all series): a list of one dict per driver (Full_Name, DOB, Hometown_City, ...), or [] when the feed has none."""
+        data = self.safe_get(f"{DOMAIN}/drivers.json")
+        return (data or {}).get("response", []) if isinstance(data, dict) else []
+
     def get_lap_times(self, year, series=1, race_id=None):
         data = self.safe_get(f"{DOMAIN}/{year}/{int(getattr(series, 'value', series))}/{race_id}/lap-times.json")
         out = []
