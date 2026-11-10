@@ -91,6 +91,7 @@ per entity and a crosswalk table (`<entity>_xref`: core id, source, source id). 
 | ID register | Chadwick Bureau register | Cross-source player IDs. Verify the license before redistributing. |
 | Pitch-level | Statcast (Baseball Savant CSV export) | 2008 onward; richer from 2015 |
 | Live / current | MLB Stats API | Unofficial and unversioned; each fetch stores the raw response |
+| Season-level WAR | Neil Paine's `MLB-WAR-data-historical` (JEFFBAGWELL: B-R and FanGraphs WAR averaged) | Imported as a source-tagged table, not recomputed. See Appendix F. |
 | Not used | Baseball-Reference, FanGraphs pages | Terms restrict automated access. Reproduce their numbers from event data instead and spot-check by hand. |
 
 Verify each source's current terms and record them in `SOURCES.md`. Do not rely on this table for legal detail.
@@ -594,3 +595,53 @@ Results are small, but lap-by-lap data is the useful stress test: every driver o
 seasons, is on the order of millions of rows, which is the NASCAR counterpart to pitch data. The lap
 files and the size measurements from the export stage decide whether the tier boundaries and the
 per-file budget in Appendix D are right before baseball depends on them.
+
+## Appendix F: imported metric source: historical WAR (baseballvis)
+
+Added to the baseball scope. Source: `jeffbagwell_war_historical.csv` in Neil Paine's repository
+`MLB-WAR-data-historical` (MIT license, copyright 2024 Neil Paine). It holds WAR per player-season-stint
+from JEFFBAGWELL, which averages Baseball-Reference and FanGraphs WAR (pitchers: FIP-based, runs-allowed
+based and defense-adjusted), plus index stats and appearance counts.
+
+### Profile (measured on a download of 2026-11-10)
+
+| Item | Value |
+|---|---|
+| Size | 35.6 MB, 112,650 rows, 78 columns |
+| Seasons | 1901 to 2022 (nothing after 2022) |
+| Players | 20,923 distinct `key_bbref` |
+| Key | Unique on (`key_bbref`, `year_ID`, `stint_ID`) |
+| Leagues | NL, AL, Federal League, and Negro leagues (NNL, NAL, NN2, ECL, NSL and others) |
+| Encoding | Not UTF-8: decodes as Latin-1/cp1252. The adapter must declare it. Missing values are written `NA`. |
+| Gaps | About 24% of rows lack `wRC_plus`; 58% lack `fg_pwar162` and `salary` (Negro leagues, early years, no FanGraphs match) |
+| Ids | `key_bbref` maps through the Chadwick register; `franch_ID` is the Lahman franchise id; `team_ID` is the Baseball-Reference code |
+
+### Units
+
+Rate columns are per 162 team games. Season WAR is read as `WAR162 x sched / 162` (inferred, not stated
+by the author: the 2001 league total comes to about 1,003, consistent with roughly 1,000 WAR a season, and
+Barry Bonds 2001 reads 12.2). Confirm this before publishing any WAR number.
+
+### Role in the design
+
+1. **Imported metric table** (`war_season`), tagged with its source and never mixed into marts computed
+   from event data. WAR needs defense, positional and replacement-level inputs that Retrosheet event files
+   do not provide, so it is imported, not recomputed. This is the one deliberate exception to "derive,
+   don't import"; every imported metric carries its source name.
+2. **Audit reference.** `pa`, `g_bat`, `innings`, `starts` and the `gms_*` appearance counts per
+   player-season-stint are independent counts to check Retrosheet-derived totals against, in the same way
+   NASCAR points are checked against official standings.
+3. **Query material.** Career and single-season WAR leaderboards, and context columns for companion
+   queries (the `wRC_plus`, `K_plus` and `BB_plus` indices sit beside the K+BB rate example in Appendix A).
+
+### Terms and limits
+
+The repository is MIT licensed, but the numbers are built from Baseball-Reference and FanGraphs data, so
+their own terms may still apply to reuse. Record both in `SOURCES.md` and keep the attribution. The data
+ends in 2022, so seasons after that have no WAR from this source and the viewer must show a gap, not a zero.
+
+### Ingest
+
+One source adapter downloads the CSV to a dated raw folder, a baseball importer reads it as Latin-1,
+converts `NA` to null, resolves `key_bbref` through the person crosswalk (unmatched ids go to the queue),
+and writes Parquet. Not part of the NASCAR work.
